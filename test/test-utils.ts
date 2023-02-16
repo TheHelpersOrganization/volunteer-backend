@@ -2,13 +2,13 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { createConnection, getConnection } from 'typeorm';
 
+import { CreateAccountInput } from '../src/account/dtos/account-create-input.dto';
+import { AccountOutput } from '../src/account/dtos/account-output.dto';
+import { AccountService } from '../src/account/services/account.service';
 import { ROLE } from '../src/auth/constants/role.constant';
 import { LoginInput } from '../src/auth/dtos/auth-login-input.dto';
 import { AuthTokenOutput } from '../src/auth/dtos/auth-token-output.dto';
 import { RequestContext } from '../src/common/request-context/request-context.dto';
-import { CreateUserInput } from '../src/user/dtos/user-create-input.dto';
-import { UserOutput } from '../src/user/dtos/user-output.dto';
-import { UserService } from '../src/user/services/user.service';
 
 const TEST_DB_CONNECTION_NAME = 'e2e_test_connection';
 export const TEST_DB_NAME = 'e2e_test_db';
@@ -50,12 +50,13 @@ export const createDBEntities = async (): Promise<void> => {
   });
 };
 
-export const seedAdminUser = async (
+export const seedAdminAccount = async (
   app: INestApplication,
-): Promise<{ adminUser: UserOutput; authTokenForAdmin: AuthTokenOutput }> => {
-  const defaultAdmin: CreateUserInput = {
-    name: 'Default Admin User',
-    username: 'default-admin',
+): Promise<{
+  adminUser: AccountOutput;
+  authTokenForAdmin: AuthTokenOutput;
+}> => {
+  const defaultAdmin: CreateAccountInput = {
     password: 'default-admin-password',
     roles: [ROLE.ADMIN],
     isAccountDisabled: false,
@@ -65,8 +66,8 @@ export const seedAdminUser = async (
   const ctx = new RequestContext();
 
   // Creating Admin User
-  const userService = app.get(UserService);
-  const userOutput = await userService.createUser(ctx, defaultAdmin);
+  const userService = app.get(AccountService);
+  const userOutput = await userService.createAccount(ctx, defaultAdmin);
 
   const loginInput: LoginInput = {
     username: defaultAdmin.username,
@@ -81,7 +82,7 @@ export const seedAdminUser = async (
 
   const authTokenForAdmin: AuthTokenOutput = loginResponse.body.data;
 
-  const adminUser: UserOutput = JSON.parse(JSON.stringify(userOutput));
+  const adminUser: AccountOutput = JSON.parse(JSON.stringify(userOutput));
 
   return { adminUser, authTokenForAdmin };
 };

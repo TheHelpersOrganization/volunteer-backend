@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ROLE } from './../../auth/constants/role.constant';
+import { ROLE } from '../../auth/constants/role.constant';
 import { Action } from '../../common/acl/action.constant';
-import { UserAclService } from './user-acl.service';
+import { AccountAclService } from './account-acl.service';
 
-describe('UserAclService', () => {
-  let service: UserAclService;
+describe(AccountAclService.name, () => {
+  let service: AccountAclService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserAclService],
+      providers: [AccountAclService],
     }).compile();
 
-    service = module.get<UserAclService>(UserAclService);
+    service = module.get<AccountAclService>(AccountAclService);
   });
 
   it('should be defined', () => {
@@ -20,31 +20,31 @@ describe('UserAclService', () => {
   });
 
   describe('for admin user', () => {
-    let userAcl;
+    let accountAcl;
     beforeEach(async () => {
       const user = {
         id: 6,
         username: 'admin',
         roles: [ROLE.ADMIN],
       };
-      userAcl = service.forActor(user);
+      accountAcl = service.forActor(user);
     });
 
     it('should allow admin user to create, read, update, delete, list user', async () => {
-      expect(userAcl.canDoAction(Action.Create)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.Read)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.Update)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.Delete)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.List)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Create)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Read)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Update)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Delete)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.List)).toBeTruthy();
     });
 
     it('should allow admin to read, update, delete any user', () => {
       const otherUser = {
         id: 7,
       };
-      expect(userAcl.canDoAction(Action.Read, otherUser)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.Update, otherUser)).toBeTruthy();
-      expect(userAcl.canDoAction(Action.Delete, otherUser)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Read, otherUser)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Update, otherUser)).toBeTruthy();
+      expect(accountAcl.canDoAction(Action.Delete, otherUser)).toBeTruthy();
     });
   });
 

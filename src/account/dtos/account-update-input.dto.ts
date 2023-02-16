@@ -7,7 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class UpdateUserInput {
+export class UpdateAccountInput {
   @ApiPropertyOptional()
   @IsOptional()
   @IsNotEmpty()

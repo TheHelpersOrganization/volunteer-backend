@@ -12,7 +12,7 @@ import {
   closeDBAfterTest,
   createDBEntities,
   resetDBBeforeTest,
-  seedAdminUser,
+  seedAdminAccount,
 } from './../test-utils';
 
 describe('AuthController (e2e)', () => {
@@ -31,7 +31,7 @@ describe('AuthController (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
-    ({ authTokenForAdmin } = await seedAdminUser(app));
+    ({ authTokenForAdmin } = await seedAdminAccount(app));
   });
 
   describe('Admin User Auth Tokens', () => {

@@ -4,17 +4,17 @@ import * as request from 'supertest';
 
 import { AppModule } from '../../src/app.module';
 import { AuthTokenOutput } from '../../src/auth/dtos/auth-token-output.dto';
-import { UserOutput } from '../../src/user/dtos/user-output.dto';
+import { AccountOutput } from '../../src/account/dtos/account-output.dto';
 import {
   closeDBAfterTest,
   createDBEntities,
   resetDBBeforeTest,
-  seedAdminUser,
+  seedAdminAccount,
 } from '../test-utils';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
-  let adminUser: UserOutput;
+  let adminUser: AccountOutput;
   let authTokenForAdmin: AuthTokenOutput;
 
   beforeAll(async () => {
@@ -29,7 +29,7 @@ describe('UserController (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
-    ({ adminUser, authTokenForAdmin } = await seedAdminUser(app));
+    ({ adminUser, authTokenForAdmin } = await seedAdminAccount(app));
   });
 
   describe('Get user me', () => {
@@ -90,7 +90,7 @@ describe('UserController (e2e)', () => {
 
   describe('update a user', () => {
     it('successfully updates a user', async () => {
-      const expectedOutput: UserOutput = {
+      const expectedOutput: AccountOutput = {
         ...adminUser,
         ...{ name: 'New e2etestername' },
       };

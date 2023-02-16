@@ -6,7 +6,7 @@ import { Strategy } from 'passport-local';
 import { AppLogger } from '../../common/logger/logger.service';
 import { createRequestContext } from '../../common/request-context/util';
 import { STRATEGY_LOCAL } from '../constants/strategy.constant';
-import { UserAccessTokenClaims } from '../dtos/auth-token-output.dto';
+import { AccountAccessTokenClaims } from '../dtos/auth-token-output.dto';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
@@ -28,14 +28,18 @@ export class LocalStrategy extends PassportStrategy(Strategy, STRATEGY_LOCAL) {
     request: Request,
     username: string,
     password: string,
-  ): Promise<UserAccessTokenClaims> {
+  ): Promise<AccountAccessTokenClaims> {
     const ctx = createRequestContext(request);
 
     this.logger.log(ctx, `${this.validate.name} was called`);
 
-    const user = await this.authService.validateUser(ctx, username, password);
+    const account = await this.authService.validateAccount(
+      ctx,
+      username,
+      password,
+    );
     // Passport automatically creates a user object, based on the value we return from the validate() method,
     // and assigns it to the Request object as req.user
-    return user;
+    return account;
   }
 }

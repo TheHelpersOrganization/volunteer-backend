@@ -51,11 +51,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
-  login(
+  async login(
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: LoginInput,
-  ): BaseApiResponse<AuthTokenOutput> {
+  ): Promise<BaseApiResponse<AuthTokenOutput>> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
     const authToken = this.authService.login(ctx);
@@ -74,8 +74,8 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
   ): Promise<BaseApiResponse<RegisterOutput>> {
-    const registeredUser = await this.authService.register(ctx, input);
-    return { data: registeredUser, meta: {} };
+    const registeredAccount = await this.authService.register(ctx, input);
+    return { data: registeredAccount, meta: {} };
   }
 
   @Post('refresh-token')

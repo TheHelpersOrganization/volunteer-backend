@@ -4,13 +4,13 @@ import { ROLE } from '../../auth/constants/role.constant';
 import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { UserOutput } from '../dtos/user-output.dto';
-import { UpdateUserInput } from '../dtos/user-update-input.dto';
-import { UserService } from '../services/user.service';
-import { UserController } from './user.controller';
+import { AccountOutput } from '../dtos/account-output.dto';
+import { UpdateAccountInput } from '../dtos/account-update-input.dto';
+import { AccountService } from '../services/account.service';
+import { AccountController } from './account.controller';
 
 describe('UserController', () => {
-  let controller: UserController;
+  let controller: AccountController;
   const mockedUserService = {
     getUsers: jest.fn(),
     getUserById: jest.fn(),
@@ -21,14 +21,14 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
+      controllers: [AccountController],
       providers: [
-        { provide: UserService, useValue: mockedUserService },
+        { provide: AccountService, useValue: mockedUserService },
         { provide: AppLogger, useValue: mockedLogger },
       ],
     }).compile();
 
-    controller = moduleRef.get<UserController>(UserController);
+    controller = moduleRef.get<AccountController>(AccountController);
   });
 
   it('should be defined', () => {
@@ -51,7 +51,7 @@ describe('UserController', () => {
 
   const currentDate = new Date().toString();
 
-  const expectedOutput: UserOutput = {
+  const expectedOutput: AccountOutput = {
     id: 1,
     username: 'default-user',
     name: 'default-name',
@@ -67,7 +67,7 @@ describe('UserController', () => {
       const id = 1;
       mockedUserService.getUserById.mockResolvedValue(expectedOutput);
 
-      expect(await controller.getUser(ctx, id)).toEqual({
+      expect(await controller.getAccount(ctx, id)).toEqual({
         data: expectedOutput,
         meta: {},
       });
@@ -77,10 +77,10 @@ describe('UserController', () => {
 
   describe('Update user by id', () => {
     it('Update user by id and returns user', async () => {
-      const input = new UpdateUserInput();
+      const input = new UpdateAccountInput();
       mockedUserService.updateUser.mockResolvedValue(expectedOutput);
 
-      expect(await controller.updateUser(ctx, 1, input)).toEqual({
+      expect(await controller.updateAccount(ctx, 1, input)).toEqual({
         data: expectedOutput,
         meta: {},
       });

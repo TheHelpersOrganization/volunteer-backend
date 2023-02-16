@@ -3,18 +3,10 @@ import { Expose } from 'class-transformer';
 
 import { ROLE } from '../../auth/constants/role.constant';
 
-export class UserOutput {
+export class AccountOutput {
   @Expose()
   @ApiProperty()
   id: number;
-
-  @Expose()
-  @ApiProperty()
-  name: string;
-
-  @Expose()
-  @ApiProperty()
-  username: string;
 
   @Expose()
   @ApiProperty({ example: [ROLE.USER] })
