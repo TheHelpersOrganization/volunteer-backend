@@ -18,6 +18,7 @@ import {
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
+import { Public } from '../decorators';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
@@ -36,6 +37,8 @@ export class AuthController {
   ) {
     this.logger.setContext(AuthController.name);
   }
+
+  @Public()
   @Post('login')
   @ApiOperation({
     summary: 'User login API',
@@ -62,6 +65,7 @@ export class AuthController {
     return { data: authToken, meta: {} };
   }
 
+  @Public()
   @Post('register')
   @ApiOperation({
     summary: 'User registration API',
@@ -70,12 +74,12 @@ export class AuthController {
     status: HttpStatus.CREATED,
     type: SwaggerBaseApiResponse(RegisterOutput),
   })
-  async registerLocal(
+  async register(
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
   ): Promise<BaseApiResponse<RegisterOutput>> {
     const registeredAccount = await this.authService.register(ctx, input);
-    return { data: registeredAccount, meta: {} };
+    return { data: registeredAccount };
   }
 
   @Post('refresh-token')

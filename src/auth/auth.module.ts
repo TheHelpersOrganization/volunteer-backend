@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
-import { CommonModule } from '../common/common.module';
 import { AccountModule } from '../account/account.module';
+import { CommonModule } from '../common/common.module';
 import { STRATEGY_JWT_AUTH } from './constants/strategy.constant';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';

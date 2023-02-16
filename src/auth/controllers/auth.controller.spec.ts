@@ -50,12 +50,10 @@ describe('AuthController', () => {
         .spyOn(mockedAuthService, 'register')
         .mockImplementation(async () => null);
 
-      expect(await authController.registerLocal(ctx, registerInputDto)).toEqual(
-        {
-          data: null,
-          meta: {},
-        },
-      );
+      expect(await authController.register(ctx, registerInputDto)).toEqual({
+        data: null,
+        meta: {},
+      });
     });
   });
 

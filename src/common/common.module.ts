@@ -4,6 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { configModuleOptions } from './configs/module-options';
+import { Environment } from './constants';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AppLoggerModule } from './logger/logger.module';
@@ -26,7 +27,7 @@ import { AppLoggerModule } from './logger/logger.module';
         // This is used to typecast server date/time values to JavaScript Date object and vice versa.
         timezone: 'Z',
         synchronize: false,
-        debug: configService.get<string>('env') === 'development',
+        debug: configService.get<string>('env') === Environment.Development,
         ssl: true,
       }),
     }),

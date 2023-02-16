@@ -1,5 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { createLogger, Logger, transports } from 'winston';
+import { ConfigService } from '@nestjs/config';
+import { createLogger, format, Logger, transports } from 'winston';
+import { Environment } from '../constants';
 
 import { RequestContext } from '../request-context/request-context.dto';
 
@@ -12,9 +14,14 @@ export class AppLogger {
     this.context = context;
   }
 
-  constructor() {
+  constructor(configService: ConfigService) {
+    let loggerFormat = undefined;
+    if (configService.get('app.env') == Environment.Development) {
+      loggerFormat = format.prettyPrint();
+    }
     this.logger = createLogger({
       transports: [new transports.Console()],
+      format: loggerFormat,
     });
   }
 

@@ -1,10 +1,15 @@
-import { AbstractEntity } from 'src/common/entities/abstract-entity.entity';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { EMAIL_MAX_LENGTH } from '../constants/account.constant';
 
 @Entity('accounts')
-export class Account extends AbstractEntity {
+export class Account {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -16,4 +21,10 @@ export class Account extends AbstractEntity {
 
   @Column()
   isAccountDisabled: boolean;
+
+  @CreateDateColumn({ name: 'created_at', nullable: true })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', nullable: true })
+  updatedAt: Date;
 }

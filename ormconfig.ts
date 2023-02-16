@@ -14,6 +14,7 @@ const typeOrmConfig = new DataSource({
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   migrationsRun: false,
   synchronize: false,
+  ssl: true,
 });
 
 export default typeOrmConfig;

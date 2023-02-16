@@ -9,6 +9,9 @@ import { STRATEGY_LOCAL } from '../constants/strategy.constant';
 import { AccountAccessTokenClaims } from '../dtos/auth-token-output.dto';
 import { AuthService } from '../services/auth.service';
 
+/**
+ * Use to provide strategy for local auth guard
+ */
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, STRATEGY_LOCAL) {
   constructor(
@@ -17,7 +20,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, STRATEGY_LOCAL) {
   ) {
     // Add option passReqToCallback: true to configure strategy to be request-scoped.
     super({
-      usernameField: 'username',
+      usernameField: 'email',
       passwordField: 'password',
       passReqToCallback: true,
     });
@@ -26,7 +29,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, STRATEGY_LOCAL) {
 
   async validate(
     request: Request,
-    username: string,
+    email: string,
     password: string,
   ): Promise<AccountAccessTokenClaims> {
     const ctx = createRequestContext(request);
@@ -35,7 +38,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, STRATEGY_LOCAL) {
 
     const account = await this.authService.validateAccount(
       ctx,
-      username,
+      email,
       password,
     );
     // Passport automatically creates a user object, based on the value we return from the validate() method,

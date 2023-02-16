@@ -1,2 +1,2 @@
-export * from './common';
+export * from './common.constant';
 export * from './env.constant';

@@ -43,8 +43,6 @@ describe('AuthController (e2e)', () => {
 
   describe('register a new user', () => {
     const registerInput: RegisterInput = {
-      name: 'e2etester',
-      username: 'e2etester',
       password: '12345678',
       roles: [ROLE.USER],
       isAccountDisabled: false,

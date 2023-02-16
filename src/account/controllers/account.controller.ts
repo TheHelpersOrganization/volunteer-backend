@@ -34,8 +34,8 @@ import { AccountOutput } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
 
-@ApiTags('users')
-@Controller('users')
+@ApiTags('accounts')
+@Controller('accounts')
 export class AccountController {
   constructor(
     private readonly accountService: AccountService,
@@ -43,6 +43,7 @@ export class AccountController {
   ) {
     this.logger.setContext(AccountController.name);
   }
+
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor)

@@ -27,10 +27,10 @@ export class AuthService {
   }
 
   private readonly refreshTokenExpirationTime = this.configService.get(
-    'jwt.refreshTokenExpiresInSec',
+    'auth.refreshTokenLifeSec',
   );
   private readonly accessTokenExpirationTime = this.configService.get(
-    'jwt.accessTokenExpiresInSec',
+    'auth.accessTokenLifeSec',
   );
 
   async validateAccount(

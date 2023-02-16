@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { plainToClass as plainToInstance } from 'class-transformer';
+import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
+import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
@@ -26,6 +28,11 @@ export class AccountService {
 
     const account = plainToInstance(Account, input);
 
+    const exist = await this.repository.findOneBy({ email: account.email });
+    if (exist) {
+      throw new EmailAlreadyInUseException();
+    }
+
     account.password = await hash(input.password, 10);
 
     this.logger.log(ctx, `calling ${AccountRepository.name}.saveUser`);
@@ -45,10 +52,10 @@ export class AccountService {
 
     this.logger.log(ctx, `calling ${AccountRepository.name}.findOne`);
     const account = await this.repository.findOneBy({ email });
-    if (!account) throw new UnauthorizedException();
+    if (!account) throw new AccountNotFoundException();
 
     const match = await compare(pass, account.password);
-    if (!match) throw new UnauthorizedException();
+    if (!match) throw new AccountNotFoundException();
 
     return plainToInstance(AccountOutput, account, {
       excludeExtraneousValues: true,
