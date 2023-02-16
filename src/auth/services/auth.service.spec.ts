@@ -5,19 +5,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { UserOutput } from '../../user/dtos/user-output.dto';
-import { UserService } from '../../user/services/user.service';
+import { AccountOutput } from '../../account/dtos/account-output.dto';
+import { AccountService } from '../../account/services/account.service';
 import { ROLE } from '../constants/role.constant';
 import {
   AuthTokenOutput,
-  UserAccessTokenClaims,
+  AccountAccessTokenClaims,
 } from '../dtos/auth-token-output.dto';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
   let service: AuthService;
 
-  const accessTokenClaims: UserAccessTokenClaims = {
+  const accessTokenClaims: AccountAccessTokenClaims = {
     id: 6,
     username: 'jhon',
     roles: [ROLE.USER],
@@ -34,7 +34,7 @@ describe('AuthService', () => {
 
   const currentDate = new Date().toString();
 
-  const userOutput: UserOutput = {
+  const userOutput: AccountOutput = {
     username: 'jhon',
     name: 'Jhon doe',
     roles: [ROLE.USER],
@@ -68,7 +68,7 @@ describe('AuthService', () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: UserService, useValue: mockedUserService },
+        { provide: AccountService, useValue: mockedUserService },
         { provide: JwtService, useValue: mockedJwtService },
         { provide: ConfigService, useValue: mockedConfigService },
         { provide: AppLogger, useValue: mockedLogger },
@@ -90,7 +90,7 @@ describe('AuthService', () => {
         .spyOn(mockedUserService, 'validateUsernamePassword')
         .mockImplementation(() => userOutput);
 
-      expect(await service.validateUser(ctx, 'jhon', 'somepass')).toEqual(
+      expect(await service.validateAccount(ctx, 'jhon', 'somepass')).toEqual(
         userOutput,
       );
       expect(mockedUserService.validateUsernamePassword).toBeCalledWith(
@@ -108,7 +108,7 @@ describe('AuthService', () => {
         });
 
       await expect(
-        service.validateUser(ctx, 'jhon', 'somepass'),
+        service.validateAccount(ctx, 'jhon', 'somepass'),
       ).rejects.toThrowError(UnauthorizedException);
     });
 
@@ -118,7 +118,7 @@ describe('AuthService', () => {
         .mockImplementation(() => ({ ...userOutput, isAccountDisabled: true }));
 
       await expect(
-        service.validateUser(ctx, 'jhon', 'somepass'),
+        service.validateAccount(ctx, 'jhon', 'somepass'),
       ).rejects.toThrowError(UnauthorizedException);
     });
   });
@@ -148,7 +148,7 @@ describe('AuthService', () => {
   });
 
   describe('refreshToken', () => {
-    ctx.user = accessTokenClaims;
+    ctx.account = accessTokenClaims;
 
     it('should generate auth token', async () => {
       jest

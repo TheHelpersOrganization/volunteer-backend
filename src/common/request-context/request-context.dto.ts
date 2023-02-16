@@ -1,4 +1,4 @@
-import { UserAccessTokenClaims } from '../../auth/dtos/auth-token-output.dto';
+import { AccountAccessTokenClaims } from '../../auth/dtos/auth-token-output.dto';
 
 export class RequestContext {
   public requestID: string;
@@ -7,6 +7,5 @@ export class RequestContext {
 
   public ip: string;
 
-  // TODO : Discuss with team if this import is acceptable or if we should move UserAccessTokenClaims to shared.
-  public user: UserAccessTokenClaims;
+  public account: AccountAccessTokenClaims;
 }

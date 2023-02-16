@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { UserAccessTokenClaims } from '../../../auth/dtos/auth-token-output.dto';
+import { AccountAccessTokenClaims } from '../../../auth/dtos/auth-token-output.dto';
 import {
   FORWARDED_FOR_TOKEN_HEADER,
   REQUEST_ID_TOKEN_HEADER,
@@ -8,8 +8,8 @@ import {
 import { createRequestContext } from '.';
 
 describe('createRequestContext function', () => {
-  const user = new UserAccessTokenClaims();
-  const request = ({
+  const user = new AccountAccessTokenClaims();
+  const request = {
     url: 'someUrl',
     ip: 'someIP',
 
@@ -24,7 +24,7 @@ describe('createRequestContext function', () => {
           break;
       }
     }),
-  } as unknown) as Request;
+  } as unknown as Request;
 
   const expectedOutput = {
     url: 'someUrl',

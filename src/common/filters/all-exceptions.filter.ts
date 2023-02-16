@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 
-import { REQUEST_ID_TOKEN_HEADER } from '../constants';
+import { Environment, REQUEST_ID_TOKEN_HEADER } from '../constants';
 import { BaseApiException } from '../exceptions/base-api.exception';
 import { AppLogger } from '../logger/logger.service';
 import { createRequestContext } from '../request-context/util';
@@ -36,6 +36,7 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     let stack: any;
     let statusCode: HttpStatus;
     let errorName: string;
+    let errorCode: string;
     let message: string;
     let details: string | Record<string, any>;
     // TODO : Based on language value in header, return a localized message.
@@ -46,14 +47,16 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     if (exception instanceof BaseApiException) {
       statusCode = exception.getStatus();
       errorName = exception.constructor.name;
+      errorCode = exception.errorCode;
       message = exception.message;
-      localizedMessage = exception.localizedMessage[acceptedLanguage];
+      localizedMessage = exception.localizedMessage?.[acceptedLanguage];
       details = exception.details || exception.getResponse();
     } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       errorName = exception.constructor.name;
       message = exception.message;
       details = exception.getResponse();
+      stack = exception.stack;
     } else if (exception instanceof Error) {
       errorName = exception.constructor.name;
       message = exception.message;
@@ -71,6 +74,7 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       message,
       localizedMessage,
       errorName,
+      errorCode,
       details,
       // Additional meta added by us.
       path,
@@ -83,7 +87,8 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     });
 
     // Suppress original internal server error details in prod mode
-    const isProMood = this.config.get<string>('env') !== 'development';
+    const isProMood =
+      this.config.get<string>('app.env') !== Environment.Development;
     if (isProMood && statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
       error.message = 'Internal server error';
     }

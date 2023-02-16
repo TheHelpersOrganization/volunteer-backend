@@ -3,6 +3,7 @@ import {
   IsBooleanString,
   IsEnum,
   IsNumber,
+  IsNumberString,
   IsOptional,
   IsString,
   validateSync,
@@ -43,10 +44,10 @@ class EnvironmentVariables {
   DB_PASS: string;
 
   @IsNumber()
-  JWT_ACCESS_TOKEN_EXP_IN_SEC: number;
+  AUTH_ACCESS_TOKEN_LIFE_SEC: number;
 
   @IsNumber()
-  JWT_REFRESH_TOKEN_EXP_IN_SEC: number;
+  AUTH_REFRESH_TOKEN_LIFE_SEC: number;
 }
 
 export function validate(config: Record<string, unknown>): any {

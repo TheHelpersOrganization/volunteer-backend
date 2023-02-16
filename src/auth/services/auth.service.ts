@@ -3,22 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass } from 'class-transformer';
 
+import { AccountOutput } from '../../account/dtos/account-output.dto';
+import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { UserOutput } from '../../user/dtos/user-output.dto';
-import { UserService } from '../../user/services/user.service';
 import { ROLE } from '../constants/role.constant';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import {
+  AccountAccessTokenClaims,
   AuthTokenOutput,
-  UserAccessTokenClaims,
 } from '../dtos/auth-token-output.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
+    private accountService: AccountService,
     private jwtService: JwtService,
     private configService: ConfigService,
     private readonly logger: AppLogger,
@@ -26,32 +26,39 @@ export class AuthService {
     this.logger.setContext(AuthService.name);
   }
 
-  async validateUser(
-    ctx: RequestContext,
-    username: string,
-    pass: string,
-  ): Promise<UserAccessTokenClaims> {
-    this.logger.log(ctx, `${this.validateUser.name} was called`);
+  private readonly refreshTokenExpirationTime = this.configService.get(
+    'auth.refreshTokenLifeSec',
+  );
+  private readonly accessTokenExpirationTime = this.configService.get(
+    'auth.accessTokenLifeSec',
+  );
 
-    // The userService will throw Unauthorized in case of invalid username/password.
-    const user = await this.userService.validateUsernamePassword(
+  async validateAccount(
+    ctx: RequestContext,
+    email: string,
+    password: string,
+  ): Promise<AccountAccessTokenClaims> {
+    this.logger.log(ctx, `${this.validateAccount.name} was called`);
+
+    // The userService will throw Unauthorized in case of invalid email/password.
+    const account = await this.accountService.validateEmailPassword(
       ctx,
-      username,
-      pass,
+      email,
+      password,
     );
 
     // Prevent disabled users from logging in.
-    if (user.isAccountDisabled) {
+    if (account.isAccountDisabled) {
       throw new UnauthorizedException('This user account has been disabled');
     }
 
-    return user;
+    return account;
   }
 
   login(ctx: RequestContext): AuthTokenOutput {
     this.logger.log(ctx, `${this.login.name} was called`);
 
-    return this.getAuthToken(ctx, ctx.user);
+    return this.getAuthToken(ctx, ctx.account);
   }
 
   async register(
@@ -64,8 +71,11 @@ export class AuthService {
     input.roles = [ROLE.USER];
     input.isAccountDisabled = false;
 
-    const registeredUser = await this.userService.createUser(ctx, input);
-    return plainToClass(RegisterOutput, registeredUser, {
+    const registeredAccount = await this.accountService.createAccount(
+      ctx,
+      input,
+    );
+    return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,
     });
   }
@@ -73,34 +83,34 @@ export class AuthService {
   async refreshToken(ctx: RequestContext): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.refreshToken.name} was called`);
 
-    const user = await this.userService.findById(ctx, ctx.user.id);
-    if (!user) {
+    const account = await this.accountService.findById(ctx, ctx.account.id);
+    if (!account) {
       throw new UnauthorizedException('Invalid user id');
     }
 
-    return this.getAuthToken(ctx, user);
+    return this.getAuthToken(ctx, account);
   }
 
   getAuthToken(
     ctx: RequestContext,
-    user: UserAccessTokenClaims | UserOutput,
+    account: AccountAccessTokenClaims | AccountOutput,
   ): AuthTokenOutput {
     this.logger.log(ctx, `${this.getAuthToken.name} was called`);
 
-    const subject = { sub: user.id };
+    const subject = { sub: account.id };
     const payload = {
-      username: user.username,
-      sub: user.id,
-      roles: user.roles,
+      email: account.email,
+      sub: account.id,
+      roles: account.roles,
     };
 
     const authToken = {
       refreshToken: this.jwtService.sign(subject, {
-        expiresIn: this.configService.get('jwt.refreshTokenExpiresInSec'),
+        expiresIn: this.refreshTokenExpirationTime,
       }),
       accessToken: this.jwtService.sign(
         { ...payload, ...subject },
-        { expiresIn: this.configService.get('jwt.accessTokenExpiresInSec') },
+        { expiresIn: this.accessTokenExpirationTime },
       ),
     };
     return plainToClass(AuthTokenOutput, authToken, {

@@ -3,31 +3,24 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('users')
-export class User {
+import { EMAIL_MAX_LENGTH } from '../constants/account.constant';
+
+@Entity('accounts')
+export class Account {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100 })
-  name: string;
+  @Column({ length: EMAIL_MAX_LENGTH, unique: true })
+  email: string;
 
   @Column()
   password: string;
 
-  @Unique('username', ['username'])
-  @Column({ length: 200 })
-  username: string;
-
   @Column()
   isAccountDisabled: boolean;
-
-  @Unique('email', ['email'])
-  @Column({ length: 200 })
-  email: string;
 
   @CreateDateColumn({ name: 'created_at', nullable: true })
   createdAt: Date;
