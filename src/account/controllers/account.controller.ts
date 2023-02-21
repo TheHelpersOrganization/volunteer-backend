@@ -59,10 +59,10 @@ export class AccountController {
     status: HttpStatus.UNAUTHORIZED,
     type: BaseApiErrorResponse,
   })
-  async getMyProfile(
+  async getMyAccount(
     @ReqContext() ctx: RequestContext,
   ): Promise<BaseApiResponse<AccountOutput>> {
-    this.logger.log(ctx, `${this.getMyProfile.name} was called`);
+    this.logger.log(ctx, `${this.getMyAccount.name} was called`);
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
     return { data: account, meta: {} };
@@ -83,13 +83,13 @@ export class AccountController {
   })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(ROLE.ADMIN, ROLE.USER)
-  async getUsers(
+  async getAccounts(
     @ReqContext() ctx: RequestContext,
     @Query() query: PaginationParamsDto,
   ): Promise<BaseApiResponse<AccountOutput[]>> {
-    this.logger.log(ctx, `${this.getUsers.name} was called`);
+    this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
-    const { users: accounts, count } = await this.accountService.getUsers(
+    const { users: accounts, count } = await this.accountService.getAccounts(
       ctx,
       query.limit,
       query.offset,

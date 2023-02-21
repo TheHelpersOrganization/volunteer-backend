@@ -44,7 +44,7 @@ describe('UserController', () => {
         limit: 0,
       };
       mockedUserService.getUsers.mockResolvedValue({ users: [], count: 0 });
-      controller.getUsers(ctx, query);
+      controller.getAccounts(ctx, query);
       expect(mockedUserService.getUsers).toHaveBeenCalled();
     });
   });

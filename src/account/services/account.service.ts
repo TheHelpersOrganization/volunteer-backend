@@ -62,12 +62,12 @@ export class AccountService {
     });
   }
 
-  async getUsers(
+  async getAccounts(
     ctx: RequestContext,
     limit: number,
     offset: number,
   ): Promise<{ users: AccountOutput[]; count: number }> {
-    this.logger.log(ctx, `${this.getUsers.name} was called`);
+    this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     this.logger.log(ctx, `calling ${AccountRepository.name}.findAndCount`);
     const [users, count] = await this.repository.findAndCount({

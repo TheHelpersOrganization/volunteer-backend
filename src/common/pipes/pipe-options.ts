@@ -1,12 +1,9 @@
-import { ValidationError, ValidationPipeOptions } from '@nestjs/common';
+import { ValidationPipeOptions } from '@nestjs/common';
 
-import { InvalidInputException } from '../exceptions/invalid-input.exception';
+import { PIPE_EXCEPTION_FACTORY } from './exception-factory';
 
 export const VALIDATION_PIPE_OPTIONS: ValidationPipeOptions = {
   transform: true,
   whitelist: true,
-  exceptionFactory: (errors: ValidationError[]) => {
-    const customErrors = errors.map((e) => e.property);
-    return new InvalidInputException(customErrors);
-  },
+  exceptionFactory: PIPE_EXCEPTION_FACTORY,
 };
