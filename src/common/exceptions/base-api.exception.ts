@@ -17,7 +17,9 @@ export class BaseApiException extends HttpException {
     // Calling parent constructor of base Exception class.
     super(message, status ?? 400);
     this.name = this.constructor.name;
-    this.errorCode = errorCode ?? createExceptionErrorCode(this.name);
+    this.errorCode = errorCode
+      ? createExceptionErrorCode(errorCode)
+      : createExceptionErrorCode(this.name);
     this.localizedMessage = localizedMessage;
     this.details = details;
   }

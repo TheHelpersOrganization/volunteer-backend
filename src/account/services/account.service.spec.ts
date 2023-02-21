@@ -247,7 +247,7 @@ describe(AccountService.name, () => {
       const offset = 0;
       const limit = 0;
       mockedRepository.findAndCount.mockResolvedValue([[user], 1]);
-      await service.getUsers(ctx, limit, offset);
+      await service.getAccounts(ctx, limit, offset);
       expect(mockedRepository.findAndCount).toHaveBeenCalled();
     });
   });

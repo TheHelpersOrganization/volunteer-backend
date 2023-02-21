@@ -82,6 +82,7 @@ export class AuthController {
     return { data: registeredAccount };
   }
 
+  @Public()
   @Post('refresh-token')
   @ApiOperation({
     summary: 'Refresh access token API',

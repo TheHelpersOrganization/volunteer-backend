@@ -29,6 +29,7 @@ import { AppLoggerModule } from './logger/logger.module';
         synchronize: false,
         debug: configService.get<string>('env') === Environment.Development,
         ssl: true,
+        logging: ['query'],
       }),
     }),
     AppLoggerModule,
