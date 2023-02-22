@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+      
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+  GCE_INSTANCE: ${{ secrets.GCE_INSTANCE }}
+  GCE_INSTANCE_ZONE:  ${{ secrets.GCE_INSTANCE_ZONE }}
 
 jobs:
   docker:
@@ -21,3 +27,17 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/volunteer-backend:latest
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v1.1.0
+      - name: Deploy to compute engine
+        run: |-
+          gcloud compute instances update-container "$GCE_INSTANCE" \
+            --zone "$GCE_INSTANCE_ZONE" \
+            --container-image "registry.hub.docker.com/$DOCKERHUB_USERNAME/volunteer-backend:latest" \
+            --container-restart-policy on-failure
+
+
