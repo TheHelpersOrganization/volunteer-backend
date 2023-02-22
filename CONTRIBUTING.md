@@ -96,4 +96,4 @@ reference Github issues that this commit **Closes**.
 
 ### Opening Issues
 
-Before opening any issues, it is prefered to ensure that the issue is not already reported by searching [here](https://github.com/monstar-lab-oss/nestjs-starter-rest-api/issues).
+Before opening any issues, it is prefered to ensure that the issue is not already reported by searching [here](https://github.com/TheHelpersOrganization/volunteer-backend/issues).
