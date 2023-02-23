@@ -5,10 +5,11 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CommonModule } from './common/common.module';
+import { MailModule } from './mail/mail.module';
 import { ProfileModule } from './profile/profile.module';
 
 @Module({
-  imports: [CommonModule, AccountModule, AuthModule, ProfileModule],
+  imports: [CommonModule, AccountModule, AuthModule, ProfileModule, MailModule],
   providers: [
     {
       provide: 'APP_GUARD',
