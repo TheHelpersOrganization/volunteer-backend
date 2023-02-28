@@ -10,7 +10,7 @@ import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { ROLE } from '../constants/role.constant';
-import { VerifyAccountDto } from '../dtos';
+import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import {
@@ -89,7 +89,6 @@ export class AuthService {
       registeredAccount.id,
       OtpType.EmailVerification,
     );
-    console.log(otp);
 
     return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,
@@ -153,6 +152,24 @@ export class AuthService {
     );
 
     await this.accountService.markAccountAsVerified(ctx, account.id);
+
+    return {
+      successful: true,
+    };
+  }
+
+  async createVerifyAccountToken(
+    ctx: RequestContext,
+    dto: VerifyAccountTokenInputDto,
+  ): Promise<VerifyAccountOutputDto> {
+    this.logger.log(ctx, `${this.createVerifyAccountToken.name} was called`);
+
+    const account = await this.accountService.findByEmail(ctx, dto.email);
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    await this.otpService.createOtp(ctx, account.id, OtpType.EmailVerification);
 
     return {
       successful: true,

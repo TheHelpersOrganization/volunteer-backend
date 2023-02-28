@@ -25,12 +25,12 @@ export class Otp {
   @Column()
   otp: string;
 
-  @CreateDateColumn({ nullable: true })
+  @CreateDateColumn({ type: 'timestamptz', nullable: true })
   createdAt: Date;
 
-  @UpdateDateColumn({ nullable: true })
+  @UpdateDateColumn({ type: 'timestamptz', nullable: true })
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
+  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
   deletedAt: Date;
 }

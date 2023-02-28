@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
+import * as dayjs from 'dayjs';
 import { gen } from 'n-digit-token';
 import otpConfig from 'src/common/configs/subconfigs/otp.config';
 import { AppLogger } from 'src/common/logger';
@@ -35,7 +36,10 @@ export class OtpService extends AbstractService {
       type: type,
     });
 
-    if (!exist || exist.createdAt.getTime() - Date.now() > lifeSec) {
+    if (
+      !exist ||
+      dayjs(exist.createdAt).add(lifeSec, 'second').isBefore(dayjs())
+    ) {
       return null;
     }
 
@@ -56,8 +60,10 @@ export class OtpService extends AbstractService {
       accountId: accountId,
       type: type,
     });
-    // Check if user request to renew to otp too early
-    if (exist && exist.createdAt.getTime() - Date.now() <= renewSec) {
+    if (
+      exist &&
+      dayjs(exist.createdAt).add(renewSec, 'second').isAfter(dayjs())
+    ) {
       throw new EarlyOtpRenewalException();
     }
 
@@ -72,6 +78,7 @@ export class OtpService extends AbstractService {
 
     // Generate 6-digit OTP and hash it
     const otp = gen(6);
+    console.log(otp);
     const hashed = await hash(otp, 10);
 
     await this.otpRepository.save({
@@ -97,7 +104,10 @@ export class OtpService extends AbstractService {
       type: type,
     });
     // Check if otp exists and not expires yet
-    if (!exist || exist.createdAt.getTime() - Date.now() > lifeSec) {
+    if (
+      !exist ||
+      dayjs(exist.createdAt.getTime()).add(lifeSec, 'second').isBefore(dayjs())
+    ) {
       throw new InvalidOtpException();
     }
 
@@ -119,10 +129,13 @@ export class OtpService extends AbstractService {
     switch (type) {
       case OtpType.ResetPassword:
         renewSec = this.otpConfigApi.passwordResetRenewSec;
+        break;
       case OtpType.EmailVerification:
         renewSec = this.otpConfigApi.emailVerificationResetRenewSec;
+        break;
       default:
         renewSec = 0;
+        break;
     }
     return renewSec;
   }

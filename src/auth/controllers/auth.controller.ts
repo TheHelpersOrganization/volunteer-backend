@@ -19,7 +19,7 @@ import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { Public } from '../decorators';
-import { VerifyAccountDto } from '../dtos';
+import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
@@ -120,5 +120,15 @@ export class AuthController {
     @Body() dto: VerifyAccountDto,
   ): Promise<VerifyAccountOutputDto> {
     return this.authService.verifyAccount(ctx, dto);
+  }
+
+  @Public()
+  @Post('verify-account-token')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async createVerifyAccountToken(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: VerifyAccountTokenInputDto,
+  ): Promise<{ successful: boolean }> {
+    return this.authService.createVerifyAccountToken(ctx, dto);
   }
 }

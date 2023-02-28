@@ -5,3 +5,5 @@ export * from './auth-register-output.dto';
 export * from './auth-token-output.dto';
 export * from './reset-password-input.dto';
 export * from './verify-account-input.dto';
+export * from './verify-account-output.dto';
+export * from './verify-account-token-input.dto';
