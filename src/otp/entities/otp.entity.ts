@@ -1,4 +1,3 @@
-import { Account } from 'src/account/entities';
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { Account } from '../../account/entities';
 import { OtpType } from '../constants';
 
 @Entity()

@@ -84,7 +84,12 @@ export class AuthService {
     );
 
     // Generate OTP
-    const otp = await this.otpService.createOtp(ctx, OtpType.EmailVerification);
+    const otp = await this.otpService.createOtp(
+      ctx,
+      registeredAccount.id,
+      OtpType.EmailVerification,
+    );
+    console.log(otp);
 
     return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,

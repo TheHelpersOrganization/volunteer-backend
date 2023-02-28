@@ -49,7 +49,6 @@ export class ProfileService extends AbstractService {
     const accountId = ctx.account.id;
     this.logger.log(ctx, `calling ProfileRepository findOneBy`);
     const profile = this.profileRepository.findOneBy({ accountId: accountId });
-    this.logger.log(ctx, `account profile does not exist, create new`);
     const updatedProfile = {
       ...profile,
       ...plainToInstance(Profile, input),

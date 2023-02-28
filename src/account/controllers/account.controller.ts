@@ -23,7 +23,6 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import {
   BaseApiErrorResponse,
-  BaseApiResponse,
   SwaggerBaseApiResponse,
 } from '../../common/dtos/base-api-response.dto';
 import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
@@ -61,11 +60,11 @@ export class AccountController {
   })
   async getMyAccount(
     @ReqContext() ctx: RequestContext,
-  ): Promise<BaseApiResponse<AccountOutput>> {
+  ): Promise<AccountOutput> {
     this.logger.log(ctx, `${this.getMyAccount.name} was called`);
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
-    return { data: account, meta: {} };
+    return account;
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -86,7 +85,7 @@ export class AccountController {
   async getAccounts(
     @ReqContext() ctx: RequestContext,
     @Query() query: PaginationParamsDto,
-  ): Promise<BaseApiResponse<AccountOutput[]>> {
+  ): Promise<AccountOutput[]> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     const { users: accounts, count } = await this.accountService.getAccounts(
@@ -95,7 +94,7 @@ export class AccountController {
       query.offset,
     );
 
-    return { data: accounts, meta: { count } };
+    return accounts;
   }
 
   // TODO: ADD RoleGuard
@@ -116,11 +115,11 @@ export class AccountController {
   async getAccount(
     @ReqContext() ctx: RequestContext,
     @Param('id') id: number,
-  ): Promise<BaseApiResponse<AccountOutput>> {
+  ): Promise<AccountOutput> {
     this.logger.log(ctx, `${this.getAccount.name} was called`);
 
     const account = await this.accountService.findById(ctx, id);
-    return { data: account, meta: {} };
+    return account;
   }
 
   // TODO: ADD RoleGuard
@@ -142,10 +141,10 @@ export class AccountController {
     @ReqContext() ctx: RequestContext,
     @Param('id') userId: number,
     @Body() input: UpdateAccountInput,
-  ): Promise<BaseApiResponse<AccountOutput>> {
+  ): Promise<AccountOutput> {
     this.logger.log(ctx, `${this.updateAccount.name} was called`);
 
     const account = await this.accountService.updateAccount(ctx, userId, input);
-    return { data: account, meta: {} };
+    return account;
   }
 }

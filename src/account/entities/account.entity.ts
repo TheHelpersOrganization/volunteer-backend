@@ -19,10 +19,10 @@ export class Account {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: false })
   isAccountDisabled: boolean;
 
-  @Column()
+  @Column({ default: false })
   isAccountVerified: boolean;
 
   @CreateDateColumn({ name: 'created_at', nullable: true })

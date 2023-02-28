@@ -13,7 +13,6 @@ import { OtpService } from 'src/otp/services';
 
 import {
   BaseApiErrorResponse,
-  BaseApiResponse,
   SwaggerBaseApiResponse,
 } from '../../common/dtos/base-api-response.dto';
 import { AppLogger } from '../../common/logger/logger.service';
@@ -62,11 +61,11 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: LoginInput,
-  ): Promise<BaseApiResponse<AuthTokenOutput>> {
+  ): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
     const authToken = this.authService.login(ctx);
-    return { data: authToken, meta: {} };
+    return authToken;
   }
 
   @Public()
@@ -81,9 +80,9 @@ export class AuthController {
   async register(
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
-  ): Promise<BaseApiResponse<RegisterOutput>> {
+  ): Promise<RegisterOutput> {
     const registeredAccount = await this.authService.register(ctx, input);
-    return { data: registeredAccount };
+    return registeredAccount;
   }
 
   @Public()
@@ -106,13 +105,14 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: RefreshTokenInput,
-  ): Promise<BaseApiResponse<AuthTokenOutput>> {
+  ): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.refreshToken.name} was called`);
 
     const authToken = await this.authService.refreshToken(ctx);
-    return { data: authToken, meta: {} };
+    return authToken;
   }
 
+  @Public()
   @Post('verify-account')
   @UseInterceptors(ClassSerializerInterceptor)
   async verifyAccount(

@@ -16,7 +16,7 @@ export class ResponseInterceptor implements NestInterceptor {
           return res;
         }
         return {
-          data: res.data,
+          data: res ?? {},
           meta: {},
         };
       }),

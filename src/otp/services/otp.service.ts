@@ -42,12 +42,15 @@ export class OtpService extends AbstractService {
     return exist;
   }
 
-  async createOtp(ctx: RequestContext, type: OtpType): Promise<string> {
+  async createOtp(
+    ctx: RequestContext,
+    accountId: number,
+    type: OtpType,
+  ): Promise<string> {
     this.logCaller(ctx, this.createOtp);
 
     const renewSec = this.getRenewSec(type);
     this.logger.log(ctx, `type is ${type}`);
-    const accountId = ctx.account.id;
 
     const exist = await this.otpRepository.findOneBy({
       accountId: accountId,
@@ -74,6 +77,7 @@ export class OtpService extends AbstractService {
     await this.otpRepository.save({
       accountId: accountId,
       otp: hashed,
+      type: type,
     });
 
     return otp;
