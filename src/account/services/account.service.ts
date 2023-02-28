@@ -1,6 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
-import { plainToClass as plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 

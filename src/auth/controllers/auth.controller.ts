@@ -9,6 +9,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { OtpType } from 'src/otp/constants';
+import { OtpOutputDto } from 'src/otp/dto';
+import { OtpService } from 'src/otp/services';
 
 import {
   BaseApiErrorResponse,
@@ -33,6 +36,7 @@ import { AuthService } from '../services/auth.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly otpService: OtpService,
     private readonly logger: AppLogger,
   ) {
     this.logger.setContext(AuthController.name);
@@ -107,5 +111,24 @@ export class AuthController {
 
     const authToken = await this.authService.refreshToken(ctx);
     return { data: authToken, meta: {} };
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset user password',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: SwaggerBaseApiResponse(OtpOutputDto),
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    type: BaseApiErrorResponse,
+  })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtRefreshGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async resetPassword(ctx: RequestContext): Promise<OtpOutputDto> {
+    return this.otpService.createOtp(ctx, OtpType.ResetPassword);
   }
 }
