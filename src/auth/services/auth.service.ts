@@ -2,24 +2,30 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass } from 'class-transformer';
+import { OtpType } from 'src/otp/constants';
+import { OtpService } from 'src/otp/services';
 
 import { AccountOutput } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { ROLE } from '../constants/role.constant';
+import { VerifyAccountDto } from '../dtos';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import {
   AccountAccessTokenClaims,
   AuthTokenOutput,
 } from '../dtos/auth-token-output.dto';
+import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
+import { AccountNotFoundException } from '../exceptions/account-not-found.exception';
 
 @Injectable()
 export class AuthService {
   constructor(
     private accountService: AccountService,
     private jwtService: JwtService,
+    private otpService: OtpService,
     private configService: ConfigService,
     private readonly logger: AppLogger,
   ) {
@@ -70,11 +76,16 @@ export class AuthService {
     // TODO : Setting default role as USER here. Will add option to change this later via ADMIN users.
     input.roles = [ROLE.USER];
     input.isAccountDisabled = false;
+    input.isAccountVerified = false;
 
     const registeredAccount = await this.accountService.createAccount(
       ctx,
       input,
     );
+
+    // Generate OTP
+    const otp = await this.otpService.createOtp(ctx, OtpType.EmailVerification);
+
     return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,
     });
@@ -116,5 +127,30 @@ export class AuthService {
     return plainToClass(AuthTokenOutput, authToken, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async verifyAccount(
+    ctx: RequestContext,
+    dto: VerifyAccountDto,
+  ): Promise<VerifyAccountOutputDto> {
+    this.logger.log(ctx, `${this.verifyAccount.name} was called`);
+
+    const account = await this.accountService.findByEmail(ctx, dto.email);
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    await this.otpService.verifyOtp(
+      ctx,
+      account.id,
+      { otp: dto.token },
+      OtpType.EmailVerification,
+    );
+
+    await this.accountService.markAccountAsVerified(ctx, account.id);
+
+    return {
+      successful: true,
+    };
   }
 }

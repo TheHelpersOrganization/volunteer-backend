@@ -20,6 +20,7 @@ export class AccountService {
   ) {
     this.logger.setContext(AccountService.name);
   }
+
   async createAccount(
     ctx: RequestContext,
     input: CreateAccountInput,
@@ -92,7 +93,11 @@ export class AccountService {
     });
   }
 
-  async findByEmail(email: string): Promise<AccountOutput> {
+  async findByEmail(
+    ctx: RequestContext,
+    email: string,
+  ): Promise<AccountOutput> {
+    this.logger.log(ctx, `${this.findByEmail.name} was called`);
     const account = await this.repository.findOneBy({ email });
 
     return plainToInstance(AccountOutput, account, {
@@ -125,6 +130,26 @@ export class AccountService {
     await this.repository.save(updatedUser);
 
     return plainToInstance(AccountOutput, updatedUser, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async markAccountAsVerified(ctx: RequestContext, id: number) {
+    this.logger.log(ctx, `${this.markAccountAsVerified.name} was called`);
+
+    const account = await this.repository.findOneBy({ id });
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    const verifiedAccount: Account = {
+      ...account,
+      isAccountVerified: true,
+    };
+
+    await this.repository.save(verifiedAccount);
+
+    return plainToInstance(AccountOutput, verifiedAccount, {
       excludeExtraneousValues: true,
     });
   }

@@ -3,6 +3,7 @@ import { ConfigType } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
 import { gen } from 'n-digit-token';
 import otpConfig from 'src/common/configs/subconfigs/otp.config';
+import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 
@@ -18,20 +19,34 @@ export class OtpService extends AbstractService {
     @Inject(otpConfig.KEY)
     private readonly otpConfigApi: ConfigType<typeof otpConfig>,
     private readonly otpRepository: OtpRepository,
+    appLogger: AppLogger,
   ) {
-    super();
+    super(appLogger);
   }
 
-  async createOtp(ctx: RequestContext, type: OtpType): Promise<OtpOutputDto> {
-    let renewSec;
-    switch (type) {
-      case OtpType.ResetPassword:
-        renewSec = this.otpConfigApi.passwordResetRenewSec;
-      case OtpType.EmailVerification:
-        renewSec = this.otpConfigApi.emailVerificationResetRenewSec;
-      default:
-        renewSec = 0;
+  async getEffectiveOtp(
+    ctx: RequestContext,
+    type: OtpType,
+  ): Promise<OtpOutputDto | null> {
+    const lifeSec = this.otpConfigApi.lifeSec;
+
+    const exist = await this.otpRepository.findOneBy({
+      accountId: ctx.account.id,
+      type: type,
+    });
+
+    if (!exist || exist.createdAt.getTime() - Date.now() > lifeSec) {
+      return null;
     }
+
+    return exist;
+  }
+
+  async createOtp(ctx: RequestContext, type: OtpType): Promise<string> {
+    this.logCaller(ctx, this.createOtp);
+
+    const renewSec = this.getRenewSec(type);
+    this.logger.log(ctx, `type is ${type}`);
     const accountId = ctx.account.id;
 
     const exist = await this.otpRepository.findOneBy({
@@ -45,6 +60,7 @@ export class OtpService extends AbstractService {
 
     // Delete the old otp
     if (exist) {
+      this.logger.log(ctx, 'old otp exist, delete it');
       await this.otpRepository.delete({
         accountId: accountId,
         type: type,
@@ -60,18 +76,17 @@ export class OtpService extends AbstractService {
       otp: hashed,
     });
 
-    return {
-      successful: true,
-    };
+    return otp;
   }
 
   async verifyOtp(
     ctx: RequestContext,
+    accountId: number,
     verifyOtp: VerifyOtpDto,
     type: OtpType,
-  ): Promise<OtpOutputDto> {
+  ): Promise<void> {
+    this.logCaller(ctx, this.verifyOtp);
     const lifeSec = this.otpConfigApi.lifeSec;
-    const accountId = ctx.account.id;
 
     const exist = await this.otpRepository.findOneBy({
       accountId: accountId,
@@ -93,9 +108,18 @@ export class OtpService extends AbstractService {
       accountId: accountId,
       type: type,
     });
+  }
 
-    return {
-      successful: true,
-    };
+  private getRenewSec(type: OtpType): number {
+    let renewSec;
+    switch (type) {
+      case OtpType.ResetPassword:
+        renewSec = this.otpConfigApi.passwordResetRenewSec;
+      case OtpType.EmailVerification:
+        renewSec = this.otpConfigApi.emailVerificationResetRenewSec;
+      default:
+        renewSec = 0;
+    }
+    return renewSec;
   }
 }

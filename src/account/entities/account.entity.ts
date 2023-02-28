@@ -22,6 +22,9 @@ export class Account {
   @Column()
   isAccountDisabled: boolean;
 
+  @Column()
+  isAccountVerified: boolean;
+
   @CreateDateColumn({ name: 'created_at', nullable: true })
   createdAt: Date;
 

@@ -52,10 +52,10 @@ class EnvironmentVariables {
   OTP_LIFE_SEC: number;
 
   @IsNumber()
-  OTP_PASSWORD_RESET_RENEW_SEC: number;
+  OTP_PASSWORD_RESET_RENEWAL_SEC: number;
 
   @IsNumber()
-  OTP_EMAIL_VERIFICATION_RENEW_SEC: number;
+  OTP_EMAIL_VERIFICATION_RENEWAL_SEC: number;
 }
 
 export function validate(config: Record<string, unknown>): any {

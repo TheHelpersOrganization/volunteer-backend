@@ -14,9 +14,9 @@ export class ProfileService extends AbstractService {
   constructor(
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-    private readonly logger: AppLogger,
+    logger: AppLogger,
   ) {
-    super();
+    super(logger);
     this.logger.setContext(ProfileService.name);
   }
 

@@ -9,8 +9,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { OtpType } from 'src/otp/constants';
-import { OtpOutputDto } from 'src/otp/dto';
 import { OtpService } from 'src/otp/services';
 
 import {
@@ -22,11 +20,13 @@ import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { Public } from '../decorators';
+import { VerifyAccountDto } from '../dtos';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
+import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../services/auth.service';
@@ -113,22 +113,12 @@ export class AuthController {
     return { data: authToken, meta: {} };
   }
 
-  @Post('reset-password')
-  @ApiOperation({
-    summary: 'Reset user password',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(OtpOutputDto),
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    type: BaseApiErrorResponse,
-  })
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtRefreshGuard)
+  @Post('verify-account')
   @UseInterceptors(ClassSerializerInterceptor)
-  async resetPassword(ctx: RequestContext): Promise<OtpOutputDto> {
-    return this.otpService.createOtp(ctx, OtpType.ResetPassword);
+  async verifyAccount(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: VerifyAccountDto,
+  ): Promise<VerifyAccountOutputDto> {
+    return this.authService.verifyAccount(ctx, dto);
   }
 }
