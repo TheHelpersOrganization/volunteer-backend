@@ -4,7 +4,17 @@ import {
   plainToInstance,
 } from 'class-transformer';
 
+import { AppLogger } from '../logger';
+import { RequestContext } from '../request-context';
+
 export abstract class AbstractService {
+  private readonly name;
+
+  constructor(protected readonly logger: AppLogger) {
+    this.name = this.constructor.name;
+    logger.setContext(this.name);
+  }
+
   protected output<T, V>(
     cls: ClassConstructor<T>,
     plain: V,
@@ -14,5 +24,24 @@ export abstract class AbstractService {
       excludeExtraneousValues: true,
       ...options,
     });
+  }
+
+  protected logCaller(
+    ctx: RequestContext, // eslint-disable-next-line @typescript-eslint/ban-types
+    func: Function | string,
+  ) {
+    const funcName = typeof func === 'string' ? func : func.name;
+    this.logger.log(ctx, `${this.name}.${funcName} was called`);
+  }
+
+  protected logCallee<T>(
+    ctx: RequestContext,
+    cls: ClassConstructor<T> | string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    func: Function | string,
+  ) {
+    const clsName = typeof cls === 'string' ? cls : cls.name;
+    const funcName = typeof func === 'string' ? func : func.name;
+    this.logger.log(ctx, `calling ${clsName}.${funcName}`);
   }
 }

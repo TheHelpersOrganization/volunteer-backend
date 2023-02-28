@@ -3,7 +3,6 @@ import {
   IsBooleanString,
   IsEnum,
   IsNumber,
-  IsNumberString,
   IsOptional,
   IsString,
   validateSync,
@@ -48,6 +47,15 @@ class EnvironmentVariables {
 
   @IsNumber()
   AUTH_REFRESH_TOKEN_LIFE_SEC: number;
+
+  @IsNumber()
+  OTP_LIFE_SEC: number;
+
+  @IsNumber()
+  OTP_PASSWORD_RESET_RENEWAL_SEC: number;
+
+  @IsNumber()
+  OTP_EMAIL_VERIFICATION_RENEWAL_SEC: number;
 }
 
 export function validate(config: Record<string, unknown>): any {

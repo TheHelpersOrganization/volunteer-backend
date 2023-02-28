@@ -9,21 +9,23 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { OtpService } from 'src/otp/services';
 
 import {
   BaseApiErrorResponse,
-  BaseApiResponse,
   SwaggerBaseApiResponse,
 } from '../../common/dtos/base-api-response.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { Public } from '../decorators';
+import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
+import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../services/auth.service';
@@ -33,6 +35,7 @@ import { AuthService } from '../services/auth.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly otpService: OtpService,
     private readonly logger: AppLogger,
   ) {
     this.logger.setContext(AuthController.name);
@@ -58,11 +61,11 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: LoginInput,
-  ): Promise<BaseApiResponse<AuthTokenOutput>> {
+  ): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
     const authToken = this.authService.login(ctx);
-    return { data: authToken, meta: {} };
+    return authToken;
   }
 
   @Public()
@@ -77,9 +80,9 @@ export class AuthController {
   async register(
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
-  ): Promise<BaseApiResponse<RegisterOutput>> {
+  ): Promise<RegisterOutput> {
     const registeredAccount = await this.authService.register(ctx, input);
-    return { data: registeredAccount };
+    return registeredAccount;
   }
 
   @Public()
@@ -102,10 +105,30 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: RefreshTokenInput,
-  ): Promise<BaseApiResponse<AuthTokenOutput>> {
+  ): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.refreshToken.name} was called`);
 
     const authToken = await this.authService.refreshToken(ctx);
-    return { data: authToken, meta: {} };
+    return authToken;
+  }
+
+  @Public()
+  @Post('verify-account')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async verifyAccount(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: VerifyAccountDto,
+  ): Promise<VerifyAccountOutputDto> {
+    return this.authService.verifyAccount(ctx, dto);
+  }
+
+  @Public()
+  @Post('verify-account-token')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async createVerifyAccountToken(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: VerifyAccountTokenInputDto,
+  ): Promise<{ successful: boolean }> {
+    return this.authService.createVerifyAccountToken(ctx, dto);
   }
 }

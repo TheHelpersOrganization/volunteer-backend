@@ -1,3 +1,10 @@
+import * as dayjs from 'dayjs';
+import * as tz from 'dayjs/plugin/timezone';
+import * as utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+dayjs.extend(tz);
+
 export function createExceptionErrorCode(str) {
   const raw = toKebabCase(str);
   return raw.replace(/-exception$/, '');

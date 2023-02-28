@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Put } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -6,7 +6,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AbstractController } from 'src/common/controllers';
-import { BaseApiResponse, SwaggerBaseApiResponse } from 'src/common/dtos';
+import { SwaggerBaseApiResponse } from 'src/common/dtos';
 import { AppLogger } from 'src/common/logger';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
@@ -35,8 +35,8 @@ export class ProfileController extends AbstractController {
   })
   async getProfile(
     @ReqContext() ctx: RequestContext,
-  ): Promise<BaseApiResponse<ProfileOutputDto>> {
-    return this.response(this.profileService.getProfile(ctx));
+  ): Promise<ProfileOutputDto> {
+    return this.profileService.getProfile(ctx);
   }
 
   @Put('me')
@@ -51,7 +51,7 @@ export class ProfileController extends AbstractController {
   async updateProfile(
     @ReqContext() ctx: RequestContext,
     @Body() input: UpdateProfileInputDto,
-  ): Promise<BaseApiResponse<ProfileOutputDto>> {
-    return this.response(this.profileService.updateProfile(ctx, input));
+  ): Promise<ProfileOutputDto> {
+    return this.profileService.updateProfile(ctx, input);
   }
 }

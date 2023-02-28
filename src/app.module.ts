@@ -5,10 +5,12 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CommonModule } from './common/common.module';
+import { ResponseInterceptor } from './common/interceptors';
+import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
 
 @Module({
-  imports: [CommonModule, AccountModule, AuthModule, ProfileModule],
+  imports: [CommonModule, AccountModule, AuthModule, ProfileModule, OtpModule],
   providers: [
     {
       provide: 'APP_GUARD',
@@ -17,6 +19,10 @@ import { ProfileModule } from './profile/profile.module';
     {
       provide: 'APP_GUARD',
       useClass: RolesGuard,
+    },
+    {
+      provide: 'APP_INTERCEPTOR',
+      useClass: ResponseInterceptor,
     },
   ],
 })
