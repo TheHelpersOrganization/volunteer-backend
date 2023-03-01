@@ -5,5 +5,5 @@ export class VerifyAccountDto {
   email: string;
 
   @IsString()
-  token: string;
+  otp: string;
 }
