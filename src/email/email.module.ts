@@ -4,6 +4,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { CommonModule } from 'src/common/common.module';
 import emailConfig from 'src/common/configs/subconfigs/email.config';
+import { rootProjectPath } from 'src/common/utils';
 
 import { EmailService } from './services';
 
@@ -29,7 +30,7 @@ import { EmailService } from './services';
           from: emailConfigApi.default.from,
         },
         template: {
-          dir: process.cwd() + '/templates',
+          dir: `${rootProjectPath}/templates`,
           adapter: new EjsAdapter(),
           options: {
             strict: false,
