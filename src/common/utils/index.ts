@@ -1,6 +1,7 @@
 import * as dayjs from 'dayjs';
 import * as tz from 'dayjs/plugin/timezone';
 import * as utc from 'dayjs/plugin/utc';
+import * as path from 'path';
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -13,3 +14,5 @@ export function createExceptionErrorCode(str) {
 export function toKebabCase(str): string {
   return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
+
+export const rootProjectPath = path.resolve('./');
