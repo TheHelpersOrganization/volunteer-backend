@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass } from 'class-transformer';
+import { EmailService } from 'src/email/services';
 import { OtpType } from 'src/otp/constants';
 import { OtpService } from 'src/otp/services';
 
@@ -26,6 +27,7 @@ export class AuthService {
     private accountService: AccountService,
     private jwtService: JwtService,
     private otpService: OtpService,
+    private emailService: EmailService,
     private configService: ConfigService,
     private readonly logger: AppLogger,
   ) {
@@ -90,6 +92,10 @@ export class AuthService {
       OtpType.EmailVerification,
     );
 
+    // Send OTP to account email
+    // No need to wait for sendOtp
+    this.emailService.sendEmailVerification(ctx, registeredAccount.email, otp);
+
     return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,
     });
@@ -147,7 +153,7 @@ export class AuthService {
     await this.otpService.verifyOtp(
       ctx,
       account.id,
-      { otp: dto.token },
+      { otp: dto.otp },
       OtpType.EmailVerification,
     );
 
@@ -169,7 +175,12 @@ export class AuthService {
       throw new AccountNotFoundException();
     }
 
-    await this.otpService.createOtp(ctx, account.id, OtpType.EmailVerification);
+    const otp = await this.otpService.createOtp(
+      ctx,
+      account.id,
+      OtpType.EmailVerification,
+    );
+    this.emailService.sendEmailVerification(ctx, account.email, otp);
 
     return {
       successful: true,

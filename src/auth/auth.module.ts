@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { EmailModule } from 'src/email/email.module';
 import { OtpModule } from 'src/otp/otp.module';
 
 import { AccountModule } from '../account/account.module';
@@ -26,6 +27,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
     AccountModule,
     OtpModule,
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtAuthStrategy, JwtRefreshStrategy],

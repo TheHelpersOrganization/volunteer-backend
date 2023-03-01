@@ -56,6 +56,22 @@ class EnvironmentVariables {
 
   @IsNumber()
   OTP_EMAIL_VERIFICATION_RENEWAL_SEC: number;
+
+  @IsString()
+  EMAIL_HOST: string;
+
+  @IsNumber()
+  EMAIL_PORT: number;
+
+  @IsString()
+  EMAIL_USER: string;
+
+  @IsString()
+  EMAIL_PASSWORD: string;
+
+  @IsString()
+  @IsOptional()
+  EMAIL_DEFAULT_FROM: string;
 }
 
 export function validate(config: Record<string, unknown>): any {
