@@ -3,7 +3,7 @@ import * as request from 'supertest';
 import { createConnection, getConnection } from 'typeorm';
 
 import { CreateAccountInput } from '../src/account/dtos/account-create-input.dto';
-import { AccountOutput } from '../src/account/dtos/account-output.dto';
+import { AccountOutputDto } from '../src/account/dtos/account-output.dto';
 import { AccountService } from '../src/account/services/account.service';
 import { ROLE } from '../src/auth/constants/role.constant';
 import { LoginInput } from '../src/auth/dtos/auth-login-input.dto';
@@ -53,7 +53,7 @@ export const createDBEntities = async (): Promise<void> => {
 export const seedAdminAccount = async (
   app: INestApplication,
 ): Promise<{
-  adminUser: AccountOutput;
+  adminUser: AccountOutputDto;
   authTokenForAdmin: AuthTokenOutput;
 }> => {
   const defaultAdmin: CreateAccountInput = {
@@ -82,7 +82,7 @@ export const seedAdminAccount = async (
 
   const authTokenForAdmin: AuthTokenOutput = loginResponse.body.data;
 
-  const adminUser: AccountOutput = JSON.parse(JSON.stringify(userOutput));
+  const adminUser: AccountOutputDto = JSON.parse(JSON.stringify(userOutput));
 
   return { adminUser, authTokenForAdmin };
 };

@@ -7,7 +7,7 @@ import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { CreateAccountInput } from '../dtos/account-create-input.dto';
-import { AccountOutput } from '../dtos/account-output.dto';
+import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { Account } from '../entities/account.entity';
 import { AccountRepository } from '../repositories/account.repository';
@@ -24,7 +24,7 @@ export class AccountService {
   async createAccount(
     ctx: RequestContext,
     input: CreateAccountInput,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.createAccount.name} was called`);
 
     const account = plainToInstance(Account, input);
@@ -39,7 +39,7 @@ export class AccountService {
     this.logger.log(ctx, `calling ${AccountRepository.name}.saveUser`);
     await this.repository.save(account);
 
-    return plainToInstance(AccountOutput, account, {
+    return plainToInstance(AccountOutputDto, account, {
       excludeExtraneousValues: true,
     });
   }
@@ -48,7 +48,7 @@ export class AccountService {
     ctx: RequestContext,
     email: string,
     pass: string,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.validateEmailPassword.name} was called`);
 
     this.logger.log(ctx, `calling ${AccountRepository.name}.findOne`);
@@ -58,7 +58,7 @@ export class AccountService {
     const match = await compare(pass, account.password);
     if (!match) throw new AccountNotFoundException();
 
-    return plainToInstance(AccountOutput, account, {
+    return plainToInstance(AccountOutputDto, account, {
       excludeExtraneousValues: true,
     });
   }
@@ -67,7 +67,7 @@ export class AccountService {
     ctx: RequestContext,
     limit: number,
     offset: number,
-  ): Promise<{ users: AccountOutput[]; count: number }> {
+  ): Promise<{ users: AccountOutputDto[]; count: number }> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     this.logger.log(ctx, `calling ${AccountRepository.name}.findAndCount`);
@@ -77,18 +77,18 @@ export class AccountService {
       skip: offset,
     });
 
-    const usersOutput = plainToInstance(AccountOutput, users, {
+    const usersOutput = plainToInstance(AccountOutputDto, users, {
       excludeExtraneousValues: true,
     });
 
     return { users: usersOutput, count };
   }
 
-  async findById(ctx: RequestContext, id: number): Promise<AccountOutput> {
+  async findById(ctx: RequestContext, id: number): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.findById.name} was called`);
     const account = await this.repository.findOneBy({ id });
 
-    return plainToInstance(AccountOutput, account, {
+    return plainToInstance(AccountOutputDto, account, {
       excludeExtraneousValues: true,
     });
   }
@@ -96,11 +96,11 @@ export class AccountService {
   async findByEmail(
     ctx: RequestContext,
     email: string,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.findByEmail.name} was called`);
     const account = await this.repository.findOneBy({ email });
 
-    return plainToInstance(AccountOutput, account, {
+    return plainToInstance(AccountOutputDto, account, {
       excludeExtraneousValues: true,
     });
   }
@@ -109,7 +109,7 @@ export class AccountService {
     ctx: RequestContext,
     id: number,
     input: UpdateAccountInput,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.updateAccount.name} was called`);
 
     this.logger.log(ctx, `calling ${AccountRepository.name} to find by email`);
@@ -129,7 +129,7 @@ export class AccountService {
     this.logger.log(ctx, `calling ${AccountRepository.name}.save`);
     await this.repository.save(updatedUser);
 
-    return plainToInstance(AccountOutput, updatedUser, {
+    return plainToInstance(AccountOutputDto, updatedUser, {
       excludeExtraneousValues: true,
     });
   }
@@ -149,7 +149,7 @@ export class AccountService {
 
     await this.repository.save(verifiedAccount);
 
-    return plainToInstance(AccountOutput, verifiedAccount, {
+    return plainToInstance(AccountOutputDto, verifiedAccount, {
       excludeExtraneousValues: true,
     });
   }

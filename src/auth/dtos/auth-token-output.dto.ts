@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { AccountOutputDto } from 'src/account/dtos';
 
 import { ROLE } from '../constants/role.constant';
 
@@ -11,6 +12,9 @@ export class AuthTokenOutput {
   @Expose()
   @ApiProperty()
   refreshToken: string;
+
+  @Expose()
+  account: AccountOutputDto;
 }
 
 export class AccountAccessTokenClaims {

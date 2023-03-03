@@ -9,6 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AccountOutputDto } from 'src/account/dtos';
 import { OtpService } from 'src/otp/services';
 
 import {
@@ -25,7 +26,6 @@ import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
-import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../services/auth.service';
@@ -118,7 +118,7 @@ export class AuthController {
   async verifyAccount(
     @ReqContext() ctx: RequestContext,
     @Body() dto: VerifyAccountDto,
-  ): Promise<VerifyAccountOutputDto> {
+  ): Promise<AccountOutputDto> {
     return this.authService.verifyAccount(ctx, dto);
   }
 

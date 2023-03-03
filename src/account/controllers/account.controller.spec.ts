@@ -4,7 +4,7 @@ import { ROLE } from '../../auth/constants/role.constant';
 import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { AccountOutput } from '../dtos/account-output.dto';
+import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
 import { AccountController } from './account.controller';
@@ -51,7 +51,7 @@ describe('UserController', () => {
 
   const currentDate = new Date().toString();
 
-  const expectedOutput: AccountOutput = {
+  const expectedOutput: AccountOutputDto = {
     id: 1,
     username: 'default-user',
     name: 'default-name',

@@ -3,7 +3,7 @@ import { Expose } from 'class-transformer';
 
 import { ROLE } from '../../auth/constants/role.constant';
 
-export class AccountOutput {
+export class AccountOutputDto {
   @Expose()
   @ApiProperty()
   id: number;

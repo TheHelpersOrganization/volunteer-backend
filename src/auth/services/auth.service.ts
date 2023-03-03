@@ -6,7 +6,7 @@ import { EmailService } from 'src/email/services';
 import { OtpType } from 'src/otp/constants';
 import { OtpService } from 'src/otp/services';
 
-import { AccountOutput } from '../../account/dtos/account-output.dto';
+import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
@@ -63,10 +63,15 @@ export class AuthService {
     return account;
   }
 
-  login(ctx: RequestContext): AuthTokenOutput {
+  async login(ctx: RequestContext): Promise<AuthTokenOutput> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
-    return this.getAuthToken(ctx, ctx.account);
+    const token = this.getAuthToken(ctx, ctx.account);
+    token.account = await this.accountService.findById(ctx, ctx.account.id);
+
+    return plainToClass(AuthTokenOutput, token, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async register(
@@ -114,7 +119,7 @@ export class AuthService {
 
   getAuthToken(
     ctx: RequestContext,
-    account: AccountAccessTokenClaims | AccountOutput,
+    account: AccountAccessTokenClaims | AccountOutputDto,
   ): AuthTokenOutput {
     this.logger.log(ctx, `${this.getAuthToken.name} was called`);
 
@@ -142,7 +147,7 @@ export class AuthService {
   async verifyAccount(
     ctx: RequestContext,
     dto: VerifyAccountDto,
-  ): Promise<VerifyAccountOutputDto> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.verifyAccount.name} was called`);
 
     const account = await this.accountService.findByEmail(ctx, dto.email);
@@ -157,11 +162,12 @@ export class AuthService {
       OtpType.EmailVerification,
     );
 
-    await this.accountService.markAccountAsVerified(ctx, account.id);
+    const updatedAccount = await this.accountService.markAccountAsVerified(
+      ctx,
+      account.id,
+    );
 
-    return {
-      successful: true,
-    };
+    return updatedAccount;
   }
 
   async createVerifyAccountToken(
