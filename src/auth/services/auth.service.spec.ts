@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { AccountOutputDto } from '../../account/dtos/account-output.dto';
+import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { AccountOutput } from '../../account/dtos/account-output.dto';
-import { AccountService } from '../../account/services/account.service';
 import { ROLE } from '../constants/role.constant';
 import {
-  AuthTokenOutput,
   AccountAccessTokenClaims,
+  AuthTokenOutput,
 } from '../dtos/auth-token-output.dto';
 import { AuthService } from './auth.service';
 
@@ -34,7 +34,7 @@ describe('AuthService', () => {
 
   const currentDate = new Date().toString();
 
-  const userOutput: AccountOutput = {
+  const userOutput: AccountOutputDto = {
     username: 'jhon',
     name: 'Jhon doe',
     roles: [ROLE.USER],

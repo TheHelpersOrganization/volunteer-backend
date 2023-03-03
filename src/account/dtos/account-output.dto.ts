@@ -3,7 +3,7 @@ import { Expose } from 'class-transformer';
 
 import { ROLE } from '../../auth/constants/role.constant';
 
-export class AccountOutput {
+export class AccountOutputDto {
   @Expose()
   @ApiProperty()
   id: number;
@@ -19,6 +19,10 @@ export class AccountOutput {
   @Expose()
   @ApiProperty()
   isAccountDisabled: boolean;
+
+  @Expose()
+  @ApiProperty()
+  isAccountVerified: boolean;
 
   @Expose()
   @ApiProperty()

@@ -2,9 +2,9 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 
+import { AccountOutputDto } from '../../src/account/dtos/account-output.dto';
 import { AppModule } from '../../src/app.module';
 import { AuthTokenOutput } from '../../src/auth/dtos/auth-token-output.dto';
-import { AccountOutput } from '../../src/account/dtos/account-output.dto';
 import {
   closeDBAfterTest,
   createDBEntities,
@@ -14,7 +14,7 @@ import {
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
-  let adminUser: AccountOutput;
+  let adminUser: AccountOutputDto;
   let authTokenForAdmin: AuthTokenOutput;
 
   beforeAll(async () => {
@@ -90,7 +90,7 @@ describe('UserController (e2e)', () => {
 
   describe('update a user', () => {
     it('successfully updates a user', async () => {
-      const expectedOutput: AccountOutput = {
+      const expectedOutput: AccountOutputDto = {
         ...adminUser,
         ...{ name: 'New e2etestername' },
       };

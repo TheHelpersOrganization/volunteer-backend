@@ -29,7 +29,7 @@ import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { AccountOutput } from '../dtos/account-output.dto';
+import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
 
@@ -52,7 +52,7 @@ export class AccountController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(AccountOutput),
+    type: SwaggerBaseApiResponse(AccountOutputDto),
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -60,7 +60,7 @@ export class AccountController {
   })
   async getMyAccount(
     @ReqContext() ctx: RequestContext,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.getMyAccount.name} was called`);
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
@@ -74,7 +74,7 @@ export class AccountController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse([AccountOutput]),
+    type: SwaggerBaseApiResponse([AccountOutputDto]),
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -85,7 +85,7 @@ export class AccountController {
   async getAccounts(
     @ReqContext() ctx: RequestContext,
     @Query() query: PaginationParamsDto,
-  ): Promise<AccountOutput[]> {
+  ): Promise<AccountOutputDto[]> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     const { users: accounts, count } = await this.accountService.getAccounts(
@@ -106,7 +106,7 @@ export class AccountController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(AccountOutput),
+    type: SwaggerBaseApiResponse(AccountOutputDto),
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -115,7 +115,7 @@ export class AccountController {
   async getAccount(
     @ReqContext() ctx: RequestContext,
     @Param('id') id: number,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.getAccount.name} was called`);
 
     const account = await this.accountService.findById(ctx, id);
@@ -130,7 +130,7 @@ export class AccountController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(AccountOutput),
+    type: SwaggerBaseApiResponse(AccountOutputDto),
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -141,7 +141,7 @@ export class AccountController {
     @ReqContext() ctx: RequestContext,
     @Param('id') userId: number,
     @Body() input: UpdateAccountInput,
-  ): Promise<AccountOutput> {
+  ): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.updateAccount.name} was called`);
 
     const account = await this.accountService.updateAccount(ctx, userId, input);
