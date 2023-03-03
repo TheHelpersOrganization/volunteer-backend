@@ -22,6 +22,10 @@ export class AccountOutputDto {
 
   @Expose()
   @ApiProperty()
+  isAccountVerified: boolean;
+
+  @Expose()
+  @ApiProperty()
   createdAt: string;
 
   @Expose()
