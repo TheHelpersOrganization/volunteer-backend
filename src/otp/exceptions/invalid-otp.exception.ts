@@ -1,7 +1,7 @@
 import { BaseApiException } from 'src/common/exceptions';
 
-export class InvalidOtpException extends BaseApiException {
+export class InvalidTokenException extends BaseApiException {
   constructor() {
-    super('The OTP is invalid or has been expired');
+    super('The token is invalid or has been expired');
   }
 }

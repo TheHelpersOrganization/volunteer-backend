@@ -11,7 +11,10 @@ import { AbstractService } from 'src/common/services';
 import { OtpType } from '../constants';
 import { VerifyOtpDto } from '../dto';
 import { OtpOutputDto } from '../dto/otp-output.dto';
-import { EarlyOtpRenewalException, InvalidOtpException } from '../exceptions';
+import {
+  EarlyTokenRenewalException,
+  InvalidTokenException,
+} from '../exceptions';
 import { OtpRepository } from '../repositories';
 
 @Injectable()
@@ -64,7 +67,7 @@ export class OtpService extends AbstractService {
       exist &&
       dayjs(exist.createdAt).add(renewSec, 'second').isAfter(dayjs())
     ) {
-      throw new EarlyOtpRenewalException();
+      throw new EarlyTokenRenewalException();
     }
 
     // Delete the old otp
@@ -83,7 +86,7 @@ export class OtpService extends AbstractService {
 
     await this.otpRepository.save({
       accountId: accountId,
-      otp: hashed,
+      token: hashed,
       type: type,
     });
 
@@ -108,13 +111,13 @@ export class OtpService extends AbstractService {
       !exist ||
       dayjs(exist.createdAt.getTime()).add(lifeSec, 'second').isBefore(dayjs())
     ) {
-      throw new InvalidOtpException();
+      throw new InvalidTokenException();
     }
 
     // Compare with hashed otp
-    const match = await compare(verifyOtp.otp, exist.otp);
+    const match = await compare(verifyOtp.token, exist.token);
     if (!match) {
-      throw new InvalidOtpException();
+      throw new InvalidTokenException();
     }
 
     // Delete the otp

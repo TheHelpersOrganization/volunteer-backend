@@ -23,7 +23,7 @@ export class Otp {
   type: OtpType;
 
   @Column()
-  otp: string;
+  token: string;
 
   @CreateDateColumn({ type: 'timestamptz', nullable: true })
   createdAt: Date;

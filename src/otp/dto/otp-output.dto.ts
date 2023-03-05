@@ -2,5 +2,5 @@ import { Expose } from 'class-transformer';
 
 export class OtpOutputDto {
   @Expose()
-  otp: string;
+  token: string;
 }
