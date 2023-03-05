@@ -175,7 +175,7 @@ export class AuthService {
     await this.otpService.verifyOtp(
       ctx,
       account.id,
-      { otp: dto.otp },
+      { token: dto.token },
       OtpType.EmailVerification,
     );
 

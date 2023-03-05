@@ -13,17 +13,21 @@ export class EmailService extends AbstractService {
     super(logger);
   }
 
-  async sendEmailVerification(ctx: RequestContext, email: string, otp: string) {
+  async sendEmailVerification(
+    ctx: RequestContext,
+    email: string,
+    token: string,
+  ) {
     this.logCaller(ctx, this.sendEmailVerification);
     try {
       const res = await this.mailerService.sendMail({
         to: email,
         subject: 'TheHelpers Account Email Verification - Action Required',
-        text: `Please confirm your email address. Here is the code: ${otp}. Note: The code will be expired after 5 minutes`,
+        text: `Please confirm your email address. Here is the code: ${token}. Note: The code will be expired after 5 minutes`,
         template: 'email-verify-account',
         context: {
-          otp: otp,
-          otpLife: '5 minutes',
+          token: token,
+          tokenLife: '5 minutes',
         },
       });
       this.logger.log(ctx, `successfully send email ${res.messageId}`);

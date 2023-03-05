@@ -1,7 +1,7 @@
 import { BaseApiException } from 'src/common/exceptions';
 
-export class EarlyOtpRenewalException extends BaseApiException {
+export class EarlyTokenRenewalException extends BaseApiException {
   constructor() {
-    super('OTP renewal request is too early');
+    super('Token renewal request is too early');
   }
 }
