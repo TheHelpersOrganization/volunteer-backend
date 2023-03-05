@@ -6,7 +6,7 @@ import { ROLE } from '../../src/auth/constants/role.constant';
 import { LoginInput } from '../../src/auth/dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../../src/auth/dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../../src/auth/dtos/auth-register-input.dto';
-import { AuthTokenOutput } from '../../src/auth/dtos/auth-token-output.dto';
+import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
 import { AppModule } from './../../src/app.module';
 import {
   closeDBAfterTest,
@@ -17,7 +17,7 @@ import {
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  let authTokenForAdmin: AuthTokenOutput;
+  let authTokenForAdmin: AccountTokenOutputDto;
 
   beforeAll(async () => {
     await resetDBBeforeTest();
@@ -129,7 +129,7 @@ describe('AuthController (e2e)', () => {
         .post('/auth/login')
         .send(loginInput);
 
-      const token: AuthTokenOutput = loginResponse.body.data;
+      const token: AccountTokenOutputDto = loginResponse.body.data;
       const refreshTokenInput: RefreshTokenInput = {
         refreshToken: token.refreshToken,
       };

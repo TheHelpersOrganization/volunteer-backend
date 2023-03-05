@@ -10,7 +10,7 @@ import { RequestContext } from '../../common/request-context/request-context.dto
 import { ROLE } from '../constants/role.constant';
 import {
   AccountAccessTokenClaims,
-  AuthTokenOutput,
+  AccountTokenOutputDto,
 } from '../dtos/auth-token-output.dto';
 import { AuthService } from './auth.service';
 
@@ -45,7 +45,7 @@ describe('AuthService', () => {
     ...accessTokenClaims,
   };
 
-  const authToken: AuthTokenOutput = {
+  const authToken: AccountTokenOutputDto = {
     accessToken: 'random_access_token',
     refreshToken: 'random_refresh_token',
   };

@@ -5,7 +5,7 @@ import { RequestContext } from '../../common/request-context/request-context.dto
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
-import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
+import { AccountTokenOutputDto } from '../dtos/auth-token-output.dto';
 import { AuthService } from '../services/auth.service';
 import { AuthController } from './auth.controller';
 
@@ -74,7 +74,7 @@ describe('AuthController', () => {
 
   describe('refreshToken', () => {
     let refreshTokenInputDto: RefreshTokenInput;
-    let authToken: AuthTokenOutput;
+    let authToken: AccountTokenOutputDto;
 
     beforeEach(() => {
       refreshTokenInputDto = {

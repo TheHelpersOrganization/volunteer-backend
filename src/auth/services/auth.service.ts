@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { EmailService } from 'src/email/services';
 import { OtpType } from 'src/otp/constants';
 import { OtpService } from 'src/otp/services';
@@ -16,8 +16,9 @@ import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import {
   AccountAccessTokenClaims,
-  AuthTokenOutput,
+  AccountTokenOutputDto,
 } from '../dtos/auth-token-output.dto';
+import { TokenOutputDto } from '../dtos/token-output.dto';
 import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
 import { AccountNotFoundException } from '../exceptions/account-not-found.exception';
 
@@ -63,15 +64,22 @@ export class AuthService {
     return account;
   }
 
-  async login(ctx: RequestContext): Promise<AuthTokenOutput> {
+  async login(ctx: RequestContext): Promise<AccountTokenOutputDto> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
     const token = this.getAuthToken(ctx, ctx.account);
-    token.account = await this.accountService.findById(ctx, ctx.account.id);
+    const account = await this.accountService.findById(ctx, ctx.account.id);
 
-    return plainToClass(AuthTokenOutput, token, {
-      excludeExtraneousValues: true,
-    });
+    return plainToClass(
+      AccountTokenOutputDto,
+      {
+        token: token,
+        account: account,
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async register(
@@ -106,7 +114,7 @@ export class AuthService {
     });
   }
 
-  async refreshToken(ctx: RequestContext): Promise<AuthTokenOutput> {
+  async refreshToken(ctx: RequestContext): Promise<AccountTokenOutputDto> {
     this.logger.log(ctx, `${this.refreshToken.name} was called`);
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
@@ -114,13 +122,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid user id');
     }
 
-    return this.getAuthToken(ctx, account);
+    return plainToInstance(
+      AccountTokenOutputDto,
+      {
+        token: this.getAuthToken(ctx, account),
+        account: account,
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   getAuthToken(
     ctx: RequestContext,
     account: AccountAccessTokenClaims | AccountOutputDto,
-  ): AuthTokenOutput {
+  ): TokenOutputDto {
     this.logger.log(ctx, `${this.getAuthToken.name} was called`);
 
     const subject = { sub: account.id };
@@ -139,7 +156,7 @@ export class AuthService {
         { expiresIn: this.accessTokenExpirationTime },
       ),
     };
-    return plainToClass(AuthTokenOutput, authToken, {
+    return plainToClass(TokenOutputDto, authToken, {
       excludeExtraneousValues: true,
     });
   }

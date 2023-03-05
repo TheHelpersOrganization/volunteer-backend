@@ -25,7 +25,7 @@ import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
-import { AuthTokenOutput } from '../dtos/auth-token-output.dto';
+import { AccountTokenOutputDto } from '../dtos/auth-token-output.dto';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../services/auth.service';
@@ -48,7 +48,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(AuthTokenOutput),
+    type: SwaggerBaseApiResponse(AccountTokenOutputDto),
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -61,7 +61,7 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: LoginInput,
-  ): Promise<AuthTokenOutput> {
+  ): Promise<AccountTokenOutputDto> {
     this.logger.log(ctx, `${this.login.name} was called`);
 
     const authToken = this.authService.login(ctx);
@@ -92,7 +92,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(AuthTokenOutput),
+    type: SwaggerBaseApiResponse(AccountTokenOutputDto),
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -105,7 +105,7 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() credential: RefreshTokenInput,
-  ): Promise<AuthTokenOutput> {
+  ): Promise<AccountTokenOutputDto> {
     this.logger.log(ctx, `${this.refreshToken.name} was called`);
 
     const authToken = await this.authService.refreshToken(ctx);
