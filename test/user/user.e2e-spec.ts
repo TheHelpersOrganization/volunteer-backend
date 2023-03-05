@@ -4,7 +4,7 @@ import * as request from 'supertest';
 
 import { AccountOutputDto } from '../../src/account/dtos/account-output.dto';
 import { AppModule } from '../../src/app.module';
-import { AuthTokenOutput } from '../../src/auth/dtos/auth-token-output.dto';
+import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
 import {
   closeDBAfterTest,
   createDBEntities,
@@ -15,7 +15,7 @@ import {
 describe('UserController (e2e)', () => {
   let app: INestApplication;
   let adminUser: AccountOutputDto;
-  let authTokenForAdmin: AuthTokenOutput;
+  let authTokenForAdmin: AccountTokenOutputDto;
 
   beforeAll(async () => {
     await resetDBBeforeTest();

@@ -3,15 +3,11 @@ import { Expose } from 'class-transformer';
 import { AccountOutputDto } from 'src/account/dtos';
 
 import { ROLE } from '../constants/role.constant';
+import { TokenOutputDto } from './token-output.dto';
 
-export class AuthTokenOutput {
+export class AccountTokenOutputDto {
   @Expose()
-  @ApiProperty()
-  accessToken: string;
-
-  @Expose()
-  @ApiProperty()
-  refreshToken: string;
+  token: TokenOutputDto;
 
   @Expose()
   account: AccountOutputDto;

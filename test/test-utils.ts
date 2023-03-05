@@ -7,7 +7,7 @@ import { AccountOutputDto } from '../src/account/dtos/account-output.dto';
 import { AccountService } from '../src/account/services/account.service';
 import { ROLE } from '../src/auth/constants/role.constant';
 import { LoginInput } from '../src/auth/dtos/auth-login-input.dto';
-import { AuthTokenOutput } from '../src/auth/dtos/auth-token-output.dto';
+import { AccountTokenOutputDto } from '../src/auth/dtos/auth-token-output.dto';
 import { RequestContext } from '../src/common/request-context/request-context.dto';
 
 const TEST_DB_CONNECTION_NAME = 'e2e_test_connection';
@@ -54,7 +54,7 @@ export const seedAdminAccount = async (
   app: INestApplication,
 ): Promise<{
   adminUser: AccountOutputDto;
-  authTokenForAdmin: AuthTokenOutput;
+  authTokenForAdmin: AccountTokenOutputDto;
 }> => {
   const defaultAdmin: CreateAccountInput = {
     password: 'default-admin-password',
@@ -80,7 +80,7 @@ export const seedAdminAccount = async (
     .send(loginInput)
     .expect(HttpStatus.OK);
 
-  const authTokenForAdmin: AuthTokenOutput = loginResponse.body.data;
+  const authTokenForAdmin: AccountTokenOutputDto = loginResponse.body.data;
 
   const adminUser: AccountOutputDto = JSON.parse(JSON.stringify(userOutput));
 
