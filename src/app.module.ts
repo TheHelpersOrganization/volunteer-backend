@@ -7,6 +7,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { CommonModule } from './common/common.module';
 import { ResponseInterceptor } from './common/interceptors';
 import { EmailModule } from './email/email.module';
+import { FileModule } from './file/file.module';
 import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
 
@@ -18,6 +19,7 @@ import { ProfileModule } from './profile/profile.module';
     ProfileModule,
     OtpModule,
     EmailModule,
+    FileModule,
   ],
   providers: [
     {

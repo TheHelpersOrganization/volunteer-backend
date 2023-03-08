@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   validateSync,
 } from 'class-validator';
 
@@ -72,6 +73,21 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   EMAIL_DEFAULT_FROM: string;
+
+  @IsUrl()
+  FILE_ENDPOINT: string;
+
+  @IsString()
+  FILE_REGION: string;
+
+  @IsString()
+  FILE_ACCESS_KEY: string;
+
+  @IsString()
+  FILE_SECRET_KEY: string;
+
+  @IsString()
+  FILE_BUCKET: string;
 }
 
 export function validate(config: Record<string, unknown>): any {
