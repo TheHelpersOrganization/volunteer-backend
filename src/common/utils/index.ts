@@ -15,4 +15,18 @@ export function toKebabCase(str): string {
   return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
+export function getFileExtension(name: string, full = true) {
+  const parts = name.split('.').filter(Boolean);
+  console.log(parts);
+  if (parts.length == 1) {
+    return;
+  }
+  if (!full) {
+    return path.extname(name);
+  }
+  return parts // removes empty extensions (e.g. `filename...txt`)
+    .slice(1)
+    .join('.');
+}
+
 export const rootProjectPath = path.resolve('./');
