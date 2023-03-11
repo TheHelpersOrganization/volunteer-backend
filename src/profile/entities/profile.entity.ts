@@ -23,7 +23,7 @@ export class Profile {
   username: string;
 
   @Column({ nullable: true })
-  telephoneNumber: string;
+  phoneNumber: string;
 
   @Column({ nullable: true })
   firstName: string;
@@ -40,9 +40,15 @@ export class Profile {
   @Column({ nullable: true })
   bio: string;
 
-  @CreateDateColumn({ name: 'created_at', nullable: true })
+  @Column({ nullable: true })
+  addressLine1: string;
+
+  @Column({ nullable: true })
+  addressLine2: string;
+
+  @CreateDateColumn({ name: 'createdAt', nullable: true })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', nullable: true })
+  @UpdateDateColumn({ name: 'updatedAt', nullable: true })
   updatedAt: Date;
 }
