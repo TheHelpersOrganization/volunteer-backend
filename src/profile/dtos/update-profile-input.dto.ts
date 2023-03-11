@@ -11,6 +11,7 @@ import {
 
 import { Gender } from '../constants/profile.constant';
 import {
+  ADDRESS_MAX_LENGTH,
   BIO_MAX_LENGTH,
   NAME_REGEX,
   USERNAME_REGEX,
@@ -26,7 +27,7 @@ export class UpdateProfileInputDto {
 
   @IsPhoneNumber()
   @IsOptional()
-  telephoneNumber: string;
+  phoneNumber: string;
 
   @Matches(NAME_REGEX, { context: { generalMessage: true } })
   @IsOptional()
@@ -48,4 +49,14 @@ export class UpdateProfileInputDto {
   @IsOptional()
   @MaxLength(BIO_MAX_LENGTH)
   bio: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(ADDRESS_MAX_LENGTH)
+  addressLine1: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(ADDRESS_MAX_LENGTH)
+  addressLine2: string;
 }

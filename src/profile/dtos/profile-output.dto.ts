@@ -7,7 +7,7 @@ export class ProfileOutputDto {
   username: string;
 
   @Expose()
-  telephoneNumber: string;
+  phoneNumber: string;
 
   @Expose()
   firstName: string;
@@ -23,4 +23,10 @@ export class ProfileOutputDto {
 
   @Expose()
   bio: string;
+
+  @Expose()
+  addressLine1: string;
+
+  @Expose()
+  addressLine2: string;
 }
