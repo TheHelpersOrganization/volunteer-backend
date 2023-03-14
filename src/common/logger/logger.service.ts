@@ -1,8 +1,8 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createLogger, format, Logger, transports } from 'winston';
-import { Environment } from '../constants';
 
+import { Environment } from '../constants';
 import { RequestContext } from '../request-context/request-context.dto';
 
 @Injectable({ scope: Scope.TRANSIENT })
