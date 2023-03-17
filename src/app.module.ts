@@ -8,6 +8,7 @@ import { CommonModule } from './common/common.module';
 import { ResponseInterceptor } from './common/interceptors';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
+import { LocationModule } from './location/location.module';
 import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
 
@@ -20,6 +21,7 @@ import { ProfileModule } from './profile/profile.module';
     OtpModule,
     EmailModule,
     FileModule,
+    LocationModule,
   ],
   providers: [
     {
