@@ -2,6 +2,9 @@ import { Expose } from 'class-transformer';
 
 export class LocationOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   addressLine1: string;
 
   @Expose()

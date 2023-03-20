@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from 'src/common/common.module';
 
+import { ContactModule } from '../contact/contact.module';
+import { FileModule } from '../file/file.module';
+import { LocationModule } from '../location/location.module';
 import { OrganizationController } from './controllers';
-import { Organization } from './entities';
-import { OrganizationRepository } from './repositories';
+import { OrganizationFilesPipe } from './pipes';
 import { OrganizationService } from './services';
 
 @Module({
-  imports: [CommonModule, TypeOrmModule.forFeature([Organization])],
+  imports: [CommonModule, FileModule, LocationModule, ContactModule],
   controllers: [OrganizationController],
-  providers: [OrganizationService, OrganizationRepository],
+  providers: [OrganizationService, OrganizationFilesPipe],
 })
 export class OrganizationModule {}

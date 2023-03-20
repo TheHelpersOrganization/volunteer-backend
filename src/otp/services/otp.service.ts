@@ -8,6 +8,7 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 
+import { PrismaService } from '../../prisma/prisma.service';
 import { OtpType } from '../constants';
 import { VerifyOtpDto } from '../dto';
 import { OtpOutputDto } from '../dto/otp-output.dto';
@@ -15,14 +16,13 @@ import {
   EarlyTokenRenewalException,
   InvalidTokenException,
 } from '../exceptions';
-import { OtpRepository } from '../repositories';
 
 @Injectable()
 export class OtpService extends AbstractService {
   constructor(
     @Inject(otpConfig.KEY)
     private readonly otpConfigApi: ConfigType<typeof otpConfig>,
-    private readonly otpRepository: OtpRepository,
+    private readonly prisma: PrismaService,
     appLogger: AppLogger,
   ) {
     super(appLogger);
@@ -34,9 +34,13 @@ export class OtpService extends AbstractService {
   ): Promise<OtpOutputDto | null> {
     const lifeSec = this.otpConfigApi.lifeSec;
 
-    const exist = await this.otpRepository.findOneBy({
-      accountId: ctx.account.id,
-      type: type,
+    const exist = await this.prisma.token.findUnique({
+      where: {
+        accountId_type: {
+          accountId: ctx.account.id,
+          type: type,
+        },
+      },
     });
 
     if (
@@ -59,9 +63,13 @@ export class OtpService extends AbstractService {
     const renewSec = this.getRenewSec(type);
     this.logger.log(ctx, `type is ${type}`);
 
-    const exist = await this.otpRepository.findOneBy({
-      accountId: accountId,
-      type: type,
+    const exist = await this.prisma.token.findUnique({
+      where: {
+        accountId_type: {
+          accountId: accountId,
+          type: type,
+        },
+      },
     });
     if (
       exist &&
@@ -73,9 +81,13 @@ export class OtpService extends AbstractService {
     // Delete the old otp
     if (exist) {
       this.logger.log(ctx, 'old otp exist, delete it');
-      await this.otpRepository.delete({
-        accountId: accountId,
-        type: type,
+      await this.prisma.token.delete({
+        where: {
+          accountId_type: {
+            accountId: accountId,
+            type: type,
+          },
+        },
       });
     }
 
@@ -84,10 +96,12 @@ export class OtpService extends AbstractService {
     console.log(otp);
     const hashed = await hash(otp, 10);
 
-    await this.otpRepository.save({
-      accountId: accountId,
-      token: hashed,
-      type: type,
+    await this.prisma.token.create({
+      data: {
+        accountId: accountId,
+        token: hashed,
+        type: type,
+      },
     });
 
     return otp;
@@ -102,9 +116,13 @@ export class OtpService extends AbstractService {
     this.logCaller(ctx, this.verifyOtp);
     const lifeSec = this.otpConfigApi.lifeSec;
 
-    const exist = await this.otpRepository.findOneBy({
-      accountId: accountId,
-      type: type,
+    const exist = await this.prisma.token.findUnique({
+      where: {
+        accountId_type: {
+          accountId: accountId,
+          type: type,
+        },
+      },
     });
     // Check if otp exists and not expires yet
     if (
@@ -121,9 +139,13 @@ export class OtpService extends AbstractService {
     }
 
     // Delete the otp
-    await this.otpRepository.delete({
-      accountId: accountId,
-      type: type,
+    await this.prisma.token.delete({
+      where: {
+        accountId_type: {
+          accountId: accountId,
+          type: type,
+        },
+      },
     });
   }
 

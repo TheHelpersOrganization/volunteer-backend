@@ -9,12 +9,12 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { Readable } from 'stream';
 
+import { PrismaService } from '../../prisma';
 import { FileOutputDto } from '../dtos/file-output.dto';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
 import { File } from '../entities';
 import { FileProcessingHasNotFinished } from '../exceptions';
 import { FileNotFoundException } from '../exceptions/file-not-found.exception';
-import { FileRepository } from '../repositories';
 
 @Injectable()
 export class FileService extends AbstractService {
@@ -23,7 +23,7 @@ export class FileService extends AbstractService {
 
   constructor(
     @Inject(fileConfig.KEY) fileConfigApi: ConfigType<typeof fileConfig>,
-    private readonly fileRepository: FileRepository,
+    private readonly prisma: PrismaService,
     logger: AppLogger,
   ) {
     super(logger);
@@ -57,7 +57,7 @@ export class FileService extends AbstractService {
     offset: number,
   ): Promise<FileOutputDto[]> {
     this.logCaller(ctx, this.listFiles);
-    const files = await this.fileRepository.find({
+    const files = await this.prisma.file.findMany({
       where: {
         createdBy: ctx.account.id,
       },
@@ -65,6 +65,14 @@ export class FileService extends AbstractService {
       skip: offset,
     });
     return this.outputArray(FileOutputDto, files);
+  }
+
+  async getById(id: number) {
+    return this.prisma.file.findUnique({ where: { id: id } });
+  }
+
+  async getByIds(ids: number[]) {
+    return this.prisma.file.findMany({ where: { id: { in: ids } } });
   }
 
   async uploadFile(
@@ -94,7 +102,7 @@ export class FileService extends AbstractService {
 
     this.uploadFileToS3(ctx, upload);
 
-    const file: Partial<File> = {
+    const file = {
       name: originalname,
       internalName: key,
       mimetype: mimetype,
@@ -102,7 +110,7 @@ export class FileService extends AbstractService {
       createdBy: ctx.account.id,
     };
 
-    const res = await this.fileRepository.save(file);
+    const res = await this.prisma.file.create({ data: file });
     return this.output(UploadFileOutputDto, res);
   }
 
@@ -122,7 +130,7 @@ export class FileService extends AbstractService {
   ): Promise<{ stream: Readable; file: FileOutputDto }> {
     this.logCaller(ctx, this.downloadFileById);
 
-    const file = await this.fileRepository.findOneBy({ id: id });
+    const file = await this.prisma.file.findUnique({ where: { id: id } });
     if (!file) {
       throw new FileNotFoundException();
     }

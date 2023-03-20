@@ -1,46 +1,29 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 
-import { CreateOrganizationInputDto } from '../dto/create-organization-input.dto';
-import { OrganizationService } from '../organization.service';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { PaginationParamsDto } from '../../common/dtos';
+import { ReqContext, RequestContext } from '../../common/request-context';
+import { CreateOrganizationInputDto } from '../dtos/create-organization.input.dto';
+import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
+import { OrganizationService } from '../services';
 
-@Controller('organization')
+@Controller('organizations')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
-  create(@Body() createOrganizationDto: CreateOrganizationInputDto) {
-    return this.organizationService.create(createOrganizationDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.organizationService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.organizationService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateOrganizationDto: UpdateOrganizationDto,
+  create(
+    @ReqContext() context: RequestContext,
+    @Body() createOrganizationDto: CreateOrganizationInputDto,
   ) {
-    return this.organizationService.update(+id, updateOrganizationDto);
+    return this.organizationService.create(context, createOrganizationDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.organizationService.remove(+id);
+  @Put(':id')
+  getAll(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+    @Body() dto: UpdateOrganizationInputDto,
+  ) {
+    console.log('');
   }
 }

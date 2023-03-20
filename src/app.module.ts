@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { CommonModule } from './common/common.module';
 import { ResponseInterceptor } from './common/interceptors';
+import { VALIDATION_PIPE_OPTIONS } from './common/pipes';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
 import { LocationModule } from './location/location.module';
@@ -37,6 +38,10 @@ import { ProfileModule } from './profile/profile.module';
     {
       provide: 'APP_INTERCEPTOR',
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: 'APP_PIPE',
+      useFactory: () => new ValidationPipe(VALIDATION_PIPE_OPTIONS),
     },
   ],
 })

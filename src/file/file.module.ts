@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from 'src/common/common.module';
 
 import { FileController } from './controllers';
-import { File } from './entities';
-import { FileRepository } from './repositories';
 import { FileService } from './services';
+import { IsFileIdValidator } from './validators';
 
 @Module({
-  imports: [CommonModule, TypeOrmModule.forFeature([File])],
+  imports: [CommonModule],
   controllers: [FileController],
-  providers: [FileService, FileRepository],
+  providers: [FileService, IsFileIdValidator],
+  exports: [FileService],
 })
 export class FileModule {}
