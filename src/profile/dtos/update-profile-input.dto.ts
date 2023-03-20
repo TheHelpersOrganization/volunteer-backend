@@ -49,14 +49,4 @@ export class UpdateProfileInputDto {
   @IsOptional()
   @MaxLength(BIO_MAX_LENGTH)
   bio: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(ADDRESS_MAX_LENGTH)
-  addressLine1: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(ADDRESS_MAX_LENGTH)
-  addressLine2: string;
 }

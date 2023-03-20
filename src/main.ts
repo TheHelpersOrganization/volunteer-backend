@@ -1,19 +1,20 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { useContainer } from 'class-validator';
 
 import { AppModule } from './app.module';
 import { RequestIdMiddleware } from './common/middlewares/request-id/request-id.middleware';
-import { VALIDATION_PIPE_OPTIONS } from './common/pipes/pipe-options';
+import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
-
-  app.useGlobalPipes(new ValidationPipe(VALIDATION_PIPE_OPTIONS));
   app.use(RequestIdMiddleware);
   app.enableCors();
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
 
   /** Swagger configuration*/
   const options = new DocumentBuilder()

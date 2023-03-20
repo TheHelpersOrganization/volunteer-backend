@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DB_URL")
+  shadowDatabaseUrl = env("DB_SHADOW_URL")
+}
+
+model Account {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  password          String
+  isAccountDisabled Boolean   @default(false)
+  isAccountVerified Boolean   @default(false)
+  createdAt         DateTime? @default(now())
+  updatedAt         DateTime? @default(now()) @updatedAt
+  file              File[]
+  profile           Profile?
+  tokens            Token[]
+}
+
+model Profile {
+  accountId   Int       @id @unique
+  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  username    String?
+  firstName   String?
+  lastName    String?
+  dateOfBirth DateTime?
+  gender      String?
+  bio         String?
+  phoneNumber String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now()) @updatedAt
+}
+
+model Token {
+  accountId Int
+  type      String
+  token     String
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  deletedAt DateTime?
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@id([accountId, type])
+}
+
+model File {
+  id                 Int               @id @default(autoincrement())
+  name               String
+  internalName       String            @unique
+  mimetype           String
+  path               String
+  createdAt          DateTime?         @default(now())
+  updatedAt          DateTime?         @default(now()) @updatedAt
+  createdBy          Int
+  account            Account           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  organizationLogo   Organization?     @relation(name: "logo")
+  organizationBanner Organization?     @relation(name: "banner")
+  organizationFile   OrganizationFile?
+}
+
+model Location {
+  id                   Int                   @id @default(autoincrement())
+  addressLine1         String?
+  addressLine2         String?
+  locality             String?
+  region               String?
+  country              String?
+  latitude             Int?
+  longitude            Int?
+  createdAt            DateTime?             @default(now())
+  updatedAt            DateTime?             @default(now()) @updatedAt
+  organizationLocation OrganizationLocation?
+}
+
+model Contact {
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  phoneNumber         String?
+  email               String?
+  organizationContact OrganizationContact?
+}
+
+model Organization {
+  id                    Int                    @id @default(autoincrement())
+  name                  String?
+  phoneNumber           String?
+  email                 String?
+  description           String?
+  website               String?
+  isVerified            Boolean                @default(false)
+  isDisabled            Boolean                @default(false)
+  logo                  Int?                   @unique
+  logoRelation          File?                  @relation(name: "logo", fields: [logo], references: [id], onDelete: SetNull)
+  banner                Int?                   @unique
+  bannerRelation        File?                  @relation(name: "banner", fields: [banner], references: [id], onDelete: SetNull)
+  createdAt             DateTime?              @default(now())
+  updatedAt             DateTime?              @default(now()) @updatedAt
+  organizationFiles     OrganizationFile[]
+  organizationLocations OrganizationLocation[]
+  organizationContacts  OrganizationContact[]
+}
+
+model OrganizationFile {
+  organizationId Int
+  fileId         Int          @id @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  file           File         @relation(fields: [fileId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationLocation {
+  organizationId Int
+  locationId     Int          @id @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationContact {
+  organizationId Int
+  contactId      Int          @id @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
