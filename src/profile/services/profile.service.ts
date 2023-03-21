@@ -48,7 +48,6 @@ export class ProfileService extends AbstractService {
     const profile = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
     });
-    console.log(profile);
     const updatedProfile = {
       ...profile,
       ...plainToInstance(Profile, input),

@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request, Response } from 'express';
 
 import { Environment, REQUEST_ID_TOKEN_HEADER } from '../constants';
@@ -57,6 +58,16 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       message = exception.message;
       details = exception.getResponse();
       stack = exception.stack;
+    } else if (
+      exception instanceof PrismaClientKnownRequestError ||
+      exception.constructor.name == 'PrismaClientKnownRequestError'
+    ) {
+      const ex = exception as PrismaClientKnownRequestError;
+      statusCode = 400;
+      errorName = 'DatabaseException';
+      errorCode = 'database-exception';
+      message = String(ex.meta?.cause ?? 'An error has happened');
+      stack = ex.stack;
     } else if (exception instanceof Error) {
       errorName = exception.constructor.name;
       message = exception.message;

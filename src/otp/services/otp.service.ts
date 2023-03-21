@@ -93,7 +93,6 @@ export class OtpService extends AbstractService {
 
     // Generate 6-digit OTP and hash it
     const otp = gen(6);
-    console.log(otp);
     const hashed = await hash(otp, 10);
 
     await this.prisma.token.create({

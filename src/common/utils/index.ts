@@ -17,7 +17,6 @@ export function toKebabCase(str): string {
 
 export function getFileExtension(name: string, full = true) {
   const parts = name.split('.').filter(Boolean);
-  console.log(parts);
   if (parts.length == 1) {
     return;
   }
