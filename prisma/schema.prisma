@@ -9,16 +9,17 @@ datasource db {
 }
 
 model Account {
-  id                Int       @id @default(autoincrement())
-  email             String    @unique
+  id                Int            @id @default(autoincrement())
+  email             String         @unique
   password          String
-  isAccountDisabled Boolean   @default(false)
-  isAccountVerified Boolean   @default(false)
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @default(now()) @updatedAt
+  isAccountDisabled Boolean        @default(false)
+  isAccountVerified Boolean        @default(false)
+  createdAt         DateTime?      @default(now())
+  updatedAt         DateTime?      @default(now()) @updatedAt
   file              File[]
   profile           Profile?
   tokens            Token[]
+  organizations     Organization[]
 }
 
 model Profile {
@@ -31,6 +32,8 @@ model Profile {
   gender      String?
   bio         String?
   phoneNumber String?
+  locationId  Int?      @unique
+  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @default(now()) @updatedAt
 }
@@ -74,6 +77,7 @@ model Location {
   createdAt            DateTime?             @default(now())
   updatedAt            DateTime?             @default(now()) @updatedAt
   organizationLocation OrganizationLocation?
+  profile              Profile?
 }
 
 model Contact {
@@ -99,6 +103,8 @@ model Organization {
   bannerRelation        File?                  @relation(name: "banner", fields: [banner], references: [id], onDelete: SetNull)
   createdAt             DateTime?              @default(now())
   updatedAt             DateTime?              @default(now()) @updatedAt
+  ownerId               Int
+  owner                 Account                @relation(fields: [ownerId], references: [id])
   organizationFiles     OrganizationFile[]
   organizationLocations OrganizationLocation[]
   organizationContacts  OrganizationContact[]

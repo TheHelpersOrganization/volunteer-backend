@@ -1,5 +1,6 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
+import { LocationOutputDto } from '../../location/dtos';
 import { Gender } from '../constants/profile.constant';
 
 export class ProfileOutputDto {
@@ -25,8 +26,6 @@ export class ProfileOutputDto {
   bio: string;
 
   @Expose()
-  addressLine1: string;
-
-  @Expose()
-  addressLine2: string;
+  @Type(() => LocationOutputDto)
+  location: LocationOutputDto;
 }

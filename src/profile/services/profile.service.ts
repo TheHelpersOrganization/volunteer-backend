@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
+import { LocationOutputDto } from '../../location/dtos';
+import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma';
 import { ProfileOutputDto, UpdateProfileInputDto } from '../dtos';
-import { Profile } from '../entities/profile.entity';
 
 @Injectable()
 export class ProfileService extends AbstractService {
-  constructor(private readonly prisma: PrismaService, logger: AppLogger) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly locationService: LocationService,
+  ) {
     super(logger);
     this.logger.setContext(ProfileService.name);
   }
@@ -19,14 +23,19 @@ export class ProfileService extends AbstractService {
     this.logger.log(ctx, `${this.getProfile.name} was called`);
     const accountId = ctx.account.id;
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
-    let profile = await this.prisma.profile.findUnique({
+    let profile: any = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
+      include: {
+        location: true,
+      },
     });
-    this.logger.log(ctx, `account profile does not exist, create one`);
     if (!profile) {
+      this.logger.log(ctx, `account profile does not exist, create one`);
       this.logger.log(ctx, `calling prisma.profile create`);
       profile = await this.prisma.profile.create({
-        data: { accountId: accountId },
+        data: {
+          accountId: accountId,
+        },
       });
     }
     return this.output(ProfileOutputDto, profile);
@@ -44,21 +53,48 @@ export class ProfileService extends AbstractService {
   ): Promise<ProfileOutputDto> {
     this.logger.log(ctx, `${this.updateProfile.name} was called`);
     const accountId = ctx.account.id;
+
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
     const profile = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
     });
-    const updatedProfile = {
-      ...profile,
-      ...plainToInstance(Profile, input),
-      accountId: accountId,
+
+    let location: LocationOutputDto = undefined;
+    if (input.location != null) {
+      if (profile == null || profile.locationId == null) {
+        location = await this.locationService.create(ctx, input.location);
+      } else {
+        location = await this.locationService.update(
+          ctx,
+          profile.locationId,
+          input.location,
+        );
+      }
+    }
+
+    const updatedProfile: any = {
+      ...input,
+      location: undefined,
     };
+
     this.logger.log(ctx, `calling prisma.profile save`);
     const res = await this.prisma.profile.upsert({
       where: { accountId: accountId },
-      create: updatedProfile,
-      update: updatedProfile,
+      create: {
+        ...updatedProfile,
+        accountId: accountId,
+        locationId: location?.id,
+      },
+      update: {
+        ...updatedProfile,
+        accountId: accountId,
+        locationId: location?.id,
+      },
+      include: {
+        location: true,
+      },
     });
+
     return this.output(ProfileOutputDto, res);
   }
 }
