@@ -6,7 +6,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/library';
 import { Request, Response } from 'express';
 
 import { Environment, REQUEST_ID_TOKEN_HEADER } from '../constants';
@@ -71,6 +74,12 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
         statusCode = 500;
         message = 'Unknown error';
       }
+      stack = exception.stack;
+    } else if (exception instanceof PrismaClientValidationError) {
+      errorName = 'DatabaseException';
+      errorCode = 'database-exception';
+      statusCode = 400;
+      message = 'Input constraint/validation failed';
       stack = exception.stack;
     } else if (exception instanceof Error) {
       errorName = exception.constructor.name;

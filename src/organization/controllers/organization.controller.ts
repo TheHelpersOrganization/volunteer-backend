@@ -18,6 +18,11 @@ export class OrganizationController {
     return this.organizationService.getAll(context, query);
   }
 
+  @Get(':id')
+  getById(@ReqContext() context: RequestContext, @Param('id') id: number) {
+    return this.organizationService.getById(context, id);
+  }
+
   @Put(':id')
   async updateById(
     @ReqContext() context: RequestContext,

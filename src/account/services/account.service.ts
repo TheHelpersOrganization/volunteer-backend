@@ -40,13 +40,17 @@ export class AccountService {
     delete account['roles'];
 
     this.logger.log(ctx, `creating account`);
-    await this.prisma.account.create({
+    const { id } = await this.prisma.account.create({
       data: account,
     });
 
-    return plainToInstance(AccountOutputDto, account, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      AccountOutputDto,
+      { account, id },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async validateEmailPassword(

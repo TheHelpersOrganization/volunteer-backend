@@ -53,7 +53,6 @@ export class OrganizationService extends AbstractService {
     this.logCaller(context, this.create);
     const raw = {
       ...dto,
-      banner: undefined,
       locations: undefined,
       files: undefined,
       contacts: undefined,
@@ -64,6 +63,7 @@ export class OrganizationService extends AbstractService {
         const organization = await this.prisma.organization.create({
           data: {
             ...raw,
+            ownerId: context.account.id,
             organizationLocations: {
               createMany: {
                 data: dto.locations.map((l) => ({ locationId: l })),

@@ -1,7 +1,8 @@
+import { Type } from 'class-transformer';
 import {
-  IsDate,
   IsDateString,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -9,9 +10,9 @@ import {
   MaxLength,
 } from 'class-validator';
 
+import { CreateLocationInputDto } from '../../location/dtos';
 import { Gender } from '../constants/profile.constant';
 import {
-  ADDRESS_MAX_LENGTH,
   BIO_MAX_LENGTH,
   NAME_REGEX,
   USERNAME_REGEX,
@@ -23,30 +24,34 @@ export class UpdateProfileInputDto {
     message: USERNAME_INVALID_MESSAGE,
   })
   @IsOptional()
-  username: string;
+  username?: string;
 
   @IsPhoneNumber()
   @IsOptional()
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @Matches(NAME_REGEX, { context: { generalMessage: true } })
   @IsOptional()
-  firstName: string;
+  firstName?: string;
 
   @Matches(NAME_REGEX, { context: { generalMessage: true } })
   @IsOptional()
-  lastName: string;
+  lastName?: string;
 
   @IsDateString()
   @IsOptional()
-  dateOfBirth: Date;
+  dateOfBirth?: Date;
 
   @IsEnum(Gender)
   @IsOptional()
-  gender: Gender;
+  gender?: Gender;
 
   @IsString()
   @IsOptional()
   @MaxLength(BIO_MAX_LENGTH)
-  bio: string;
+  bio?: string;
+
+  @Type(() => CreateLocationInputDto)
+  @IsOptional()
+  location?: CreateLocationInputDto;
 }
