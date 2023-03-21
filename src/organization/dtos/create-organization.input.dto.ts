@@ -1,20 +1,17 @@
-import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEmail,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
   IsUrl,
   Matches,
   MaxLength,
-  ValidateNested,
 } from 'class-validator';
 import { IsFileId } from 'src/file/validators';
 import { NAME_MAX_LENGTH, NAME_REGEX } from 'src/profile/constants';
 
-import { ContactInputDto } from '../../contact/dtos';
-import { LocationInputDto } from '../../location/dtos';
 import { DESCRIPTION_MAX_LENGTH, EMAIL_MAX_LENGTH } from '../constants';
 
 export class CreateOrganizationInputDto {
@@ -44,17 +41,13 @@ export class CreateOrganizationInputDto {
   @IsFileId()
   banner: number;
 
-  @Type(() => LocationInputDto)
-  @IsArray()
-  @ValidateNested({ each: true })
-  locations: LocationInputDto[];
+  @IsNumber(undefined, { each: true })
+  locations: number[];
 
   @IsArray()
   @IsFileId({ each: true })
   files: number[];
 
-  @Type(() => ContactInputDto)
-  @IsArray()
-  @ValidateNested({ each: true })
-  contacts: ContactInputDto[];
+  @IsNumber(undefined, { each: true })
+  contacts: number[];
 }

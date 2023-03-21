@@ -15,7 +15,6 @@ export class OrganizationFilesPipe
   ): Promise<OrganizationFilesInputDto> {
     const logo = await this.fileService.getById(value.logo);
     const banner = await this.fileService.getById(value.banner);
-    console.log(value);
     const files = await this.fileService.getByIds(value.files);
 
     return {

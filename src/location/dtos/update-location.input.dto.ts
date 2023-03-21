@@ -1,9 +1,11 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsNumber, IsOptional } from 'class-validator';
 
-import { LocationInputDto } from './location-input.dto';
+import { CreateLocationInputDto } from './create-location-input.dto';
 
-export class UpdateLocationInputDto extends PartialType(LocationInputDto) {
+export class UpdateLocationInputDto extends PartialType(
+  CreateLocationInputDto,
+) {
   @IsOptional()
   @IsNumber()
   id: number;

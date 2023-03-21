@@ -5,8 +5,10 @@ import googleMapsConfig from 'src/common/configs/subconfigs/google-maps.config';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 
+import { RequestContext } from '../../common/request-context';
 import { PrismaService } from '../../prisma';
-import { LocationInputDto } from '../dtos/location-input.dto';
+import { UpdateLocationInputDto } from '../dtos';
+import { CreateLocationInputDto } from '../dtos/create-location-input.dto';
 import { LocationOutputDto } from '../dtos/location-output.dto';
 import { InvalidCoordinateException } from '../exceptions';
 
@@ -26,7 +28,11 @@ export class LocationService extends AbstractService {
     this.apiKey = googleMapsConfigApi.apiKey;
   }
 
-  async createLocation(dto: LocationInputDto): Promise<LocationOutputDto> {
+  async create(
+    context: RequestContext,
+    dto: CreateLocationInputDto,
+  ): Promise<LocationOutputDto> {
+    this.logCaller(context, this.create);
     if (
       (dto.longitude == null && dto.latitude != null) ||
       (dto.longitude != null && dto.latitude == null)
@@ -37,8 +43,8 @@ export class LocationService extends AbstractService {
     return this.output(LocationOutputDto, location);
   }
 
-  async createLocations(
-    dtos: LocationInputDto[],
+  async createMany(
+    dtos: CreateLocationInputDto[],
   ): Promise<LocationOutputDto[]> {
     for (const dto of dtos) {
       if (
@@ -54,7 +60,11 @@ export class LocationService extends AbstractService {
     return this.outputArray(LocationOutputDto, locations);
   }
 
-  async getById(id: number): Promise<LocationOutputDto> {
+  async getById(
+    context: RequestContext,
+    id: number,
+  ): Promise<LocationOutputDto> {
+    this.logCaller(context, this.getById);
     return this.output(
       LocationOutputDto,
       await this.prisma.location.findUnique({ where: { id: id } }),
@@ -66,5 +76,33 @@ export class LocationService extends AbstractService {
       LocationOutputDto,
       await this.prisma.location.findMany({ where: { id: { in: ids } } }),
     );
+  }
+
+  async update(
+    context: RequestContext,
+    id: number,
+    dto: UpdateLocationInputDto,
+  ): Promise<LocationOutputDto> {
+    this.logCaller(context, this.update);
+    const location = await this.prisma.location.update({
+      where: {
+        id: id,
+      },
+      data: dto,
+    });
+    return this.output(LocationOutputDto, location);
+  }
+
+  async delete(
+    context: RequestContext,
+    id: number,
+  ): Promise<LocationOutputDto> {
+    this.logCaller(context, this.delete);
+    const location = this.prisma.location.delete({
+      where: {
+        id: id,
+      },
+    });
+    return this.output(LocationOutputDto, location);
   }
 }

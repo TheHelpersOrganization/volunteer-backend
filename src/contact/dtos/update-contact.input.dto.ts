@@ -8,7 +8,8 @@ import {
 
 import { NAME_MAX_LENGTH, NAME_REGEX } from '../../profile/constants';
 
-export class ContactInputDto {
+export class UpdateContactInputDto {
+  @IsOptional()
   @Matches(NAME_REGEX)
   @MaxLength(NAME_MAX_LENGTH)
   name: string;

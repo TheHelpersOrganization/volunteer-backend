@@ -6,7 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class LocationInputDto {
+export class CreateLocationInputDto {
   @IsOptional()
   @IsString()
   addressLine1?: string;

@@ -10,20 +10,28 @@ import { OrganizationService } from '../services';
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
-  @Post()
-  create(
+  @Get()
+  getAll(
     @ReqContext() context: RequestContext,
-    @Body() createOrganizationDto: CreateOrganizationInputDto,
+    @Query() query: PaginationParamsDto,
   ) {
-    return this.organizationService.create(context, createOrganizationDto);
+    return this.organizationService.getAll(context, query);
   }
 
   @Put(':id')
-  getAll(
+  async updateById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
     @Body() dto: UpdateOrganizationInputDto,
   ) {
-    console.log('');
+    return this.organizationService.update(context, id, dto);
+  }
+
+  @Post()
+  async create(
+    @ReqContext() context: RequestContext,
+    @Body() createOrganizationDto: CreateOrganizationInputDto,
+  ) {
+    return this.organizationService.create(context, createOrganizationDto);
   }
 }
