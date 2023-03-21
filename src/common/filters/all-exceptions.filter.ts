@@ -58,16 +58,20 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       message = exception.message;
       details = exception.getResponse();
       stack = exception.stack;
-    } else if (
-      exception instanceof PrismaClientKnownRequestError ||
-      exception.constructor.name == 'PrismaClientKnownRequestError'
-    ) {
-      const ex = exception as PrismaClientKnownRequestError;
-      statusCode = 400;
+    } else if (exception instanceof PrismaClientKnownRequestError) {
       errorName = 'DatabaseException';
       errorCode = 'database-exception';
-      message = String(ex.meta?.cause ?? 'An error has happened');
-      stack = ex.stack;
+      if (exception.code.startsWith('P1')) {
+        statusCode = 500;
+        message = 'Connection error';
+      } else if (exception.code.startsWith('P2')) {
+        statusCode = 400;
+        message = 'Input constraint/validation failed';
+      } else {
+        statusCode = 500;
+        message = 'Unknown error';
+      }
+      stack = exception.stack;
     } else if (exception instanceof Error) {
       errorName = exception.constructor.name;
       message = exception.message;
