@@ -28,4 +28,7 @@ export class ProfileOutputDto {
   @Expose()
   @Type(() => LocationOutputDto)
   location: LocationOutputDto;
+
+  @Expose()
+  avatarId: number;
 }
