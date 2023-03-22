@@ -15,6 +15,7 @@ import { Express, Response } from 'express';
 import { PaginationParamsDto } from 'src/common/dtos';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
+import { Public } from '../../auth/decorators';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
 import { FileService } from '../services';
 
@@ -54,6 +55,40 @@ export class FileController {
     return new StreamableFile(fileInfo.stream, {
       type: fileInfo.file.mimetype,
       disposition: `attachment; filename="${fileInfo.file.name}"`,
+    });
+  }
+
+  @Public()
+  @Get('public/image/i/:id')
+  async downloadPublicImageById(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ): Promise<StreamableFile> {
+    const fileInfo = await this.fileService.downloadFileById(context, id, {
+      type: 'image',
+    });
+    return new StreamableFile(fileInfo.stream, {
+      type: fileInfo.file.mimetype,
+      disposition: `inline`,
+    });
+  }
+
+  @Public()
+  @Get('public/image/n/:name')
+  async downloadPublicImageByName(
+    @ReqContext() context: RequestContext,
+    @Param('name') internalName: string,
+  ): Promise<StreamableFile> {
+    const fileInfo = await this.fileService.downloadFileByInternalName(
+      context,
+      internalName,
+      {
+        type: 'image',
+      },
+    );
+    return new StreamableFile(fileInfo.stream, {
+      type: fileInfo.file.mimetype,
+      disposition: `inline`,
     });
   }
 }

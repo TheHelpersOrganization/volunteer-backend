@@ -2,6 +2,7 @@ import { BucketAlreadyExists, NoSuchKey, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import fileConfig from 'src/common/configs/subconfigs/file.config';
 import { AppLogger } from 'src/common/logger';
@@ -10,6 +11,7 @@ import { AbstractService } from 'src/common/services';
 import { Readable } from 'stream';
 
 import { PrismaService } from '../../prisma';
+import { DownloadFileQueryDto } from '../dtos/download-file.query.dto';
 import { FileOutputDto } from '../dtos/file-output.dto';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
 import { File } from '../entities';
@@ -127,14 +129,30 @@ export class FileService extends AbstractService {
   async downloadFileById(
     ctx: RequestContext,
     id: number,
+    query?: DownloadFileQueryDto,
   ): Promise<{ stream: Readable; file: FileOutputDto }> {
     this.logCaller(ctx, this.downloadFileById);
-
     const file = await this.prisma.file.findUnique({ where: { id: id } });
-    if (!file) {
-      throw new FileNotFoundException();
-    }
+    return this.downloadFile(file, query);
+  }
 
+  async downloadFileByInternalName(
+    context: RequestContext,
+    name: string,
+    query?: DownloadFileQueryDto,
+  ): Promise<{ stream: Readable; file: FileOutputDto }> {
+    this.logCaller(context, this.downloadFileByInternalName);
+    const file = await this.prisma.file.findUnique({
+      where: { internalName: name },
+    });
+    return this.downloadFile(file, query);
+  }
+
+  private async downloadFile(
+    file: File,
+    query?: DownloadFileQueryDto,
+  ): Promise<{ stream: Readable; file: FileOutputDto }> {
+    await this.validateDownloadFile(file, query);
     try {
       const stream = await this.downloadFileFromS3(file);
       return {
@@ -149,7 +167,27 @@ export class FileService extends AbstractService {
     }
   }
 
-  async downloadFileFromS3(file: File): Promise<Readable> {
+  private async validateDownloadFile(file: File, query?: DownloadFileQueryDto) {
+    if (!file) {
+      throw new FileNotFoundException();
+    }
+
+    if (query) {
+      const type = query.type;
+      const subtype = query.subtype;
+
+      if (type != null) {
+        if (!file.mimetype.startsWith(type)) {
+          throw new FileNotFoundException();
+        }
+        if (subtype != null && file.mimetype !== `${type}/${subtype}`) {
+          throw new FileNotFoundException();
+        }
+      }
+    }
+  }
+
+  private async downloadFileFromS3(file: File): Promise<Readable> {
     const res = await this.client.getObject({
       Bucket: this.bucket,
       Key: file.internalName,

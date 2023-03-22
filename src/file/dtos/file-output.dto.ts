@@ -8,5 +8,8 @@ export class FileOutputDto {
   name: string;
 
   @Expose()
+  internalName: string;
+
+  @Expose()
   mimetype: string;
 }

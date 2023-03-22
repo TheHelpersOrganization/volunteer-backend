@@ -5,6 +5,9 @@ import { LocationOutputDto } from '../../location/dtos/location-output.dto';
 
 export class OrganizationOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   name: string;
 
   @Expose()
