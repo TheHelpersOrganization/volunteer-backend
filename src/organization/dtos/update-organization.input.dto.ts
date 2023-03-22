@@ -13,13 +13,13 @@ import {
 } from 'class-validator';
 
 import {
-  CreateContactInputDto,
   UpdateContactInputDto,
+  UpdateContactInputWithIdDto,
 } from '../../contact/dtos';
 import { IsFileId } from '../../file/validators';
 import {
-  CreateLocationInputDto,
   UpdateLocationInputDto,
+  UpdateLocationInputDtoWithIdDto,
 } from '../../location/dtos';
 import { NAME_MAX_LENGTH, NAME_REGEX } from '../../profile/constants';
 import { DESCRIPTION_MAX_LENGTH, EMAIL_MAX_LENGTH } from '../constants';
@@ -54,13 +54,14 @@ export class UpdateOrganizationInputDto {
   logo?: number;
 
   @IsOptional()
-  @IsOptional()
   @IsFileId()
   banner?: number;
 
   @IsOptional()
-  @IsNumber(undefined, { each: true })
-  locations: number[];
+  @Type(() => UpdateLocationInputDto)
+  @IsArray()
+  @ValidateNested({ each: true })
+  locations: UpdateLocationInputDtoWithIdDto[];
 
   @IsOptional()
   @IsArray()
@@ -68,6 +69,8 @@ export class UpdateOrganizationInputDto {
   files: number[];
 
   @IsOptional()
-  @IsNumber(undefined, { each: true })
-  contacts: number[];
+  @Type(() => UpdateContactInputDto)
+  @IsArray()
+  @ValidateNested({ each: true })
+  contacts: UpdateContactInputWithIdDto[];
 }

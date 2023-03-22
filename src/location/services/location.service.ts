@@ -44,8 +44,10 @@ export class LocationService extends AbstractService {
   }
 
   async createMany(
+    context: RequestContext,
     dtos: CreateLocationInputDto[],
   ): Promise<LocationOutputDto[]> {
+    this.logCaller(context, this.createMany);
     for (const dto of dtos) {
       if (
         (dto.longitude == null && dto.latitude != null) ||
