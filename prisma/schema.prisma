@@ -34,6 +34,8 @@ model Profile {
   phoneNumber String?
   locationId  Int?      @unique
   location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  avatarId    Int?      @unique
+  avatar      File?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @default(now()) @updatedAt
 }
@@ -63,6 +65,7 @@ model File {
   organizationLogo   Organization?     @relation(name: "logo")
   organizationBanner Organization?     @relation(name: "banner")
   organizationFile   OrganizationFile?
+  profile            Profile?
 }
 
 model Location {
@@ -72,8 +75,8 @@ model Location {
   locality             String?
   region               String?
   country              String?
-  latitude             Int?
-  longitude            Int?
+  latitude             Float?
+  longitude            Float?
   createdAt            DateTime?             @default(now())
   updatedAt            DateTime?             @default(now()) @updatedAt
   organizationLocation OrganizationLocation?

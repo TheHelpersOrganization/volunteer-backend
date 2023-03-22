@@ -2,14 +2,15 @@ import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
   Matches,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 
+import { IsFileId } from '../../file/validators';
 import { CreateLocationInputDto } from '../../location/dtos';
 import { Gender } from '../constants/profile.constant';
 import {
@@ -53,5 +54,10 @@ export class UpdateProfileInputDto {
 
   @Type(() => CreateLocationInputDto)
   @IsOptional()
+  @ValidateNested()
   location?: CreateLocationInputDto;
+
+  @IsOptional()
+  @IsFileId()
+  avatarId?: number;
 }
