@@ -26,8 +26,8 @@ export class OrganizationOutputDto {
   banner: number;
 
   @Expose()
-  locations: LocationOutputDto[];
+  locations: LocationOutputDto[] | number[];
 
   @Expose()
-  contacts: ContactOutputDto[];
+  contacts: ContactOutputDto[] | number[];
 }
