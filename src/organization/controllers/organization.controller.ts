@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 
 import { ReqContext, RequestContext } from '../../common/request-context';
-import { GetOrganizationQueryDto } from '../dtos';
+import { OrganizationQueryDto } from '../dtos';
 import { CreateOrganizationInputDto } from '../dtos/create-organization.input.dto';
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
 import { OrganizationService } from '../services';
@@ -13,18 +13,14 @@ export class OrganizationController {
   @Get()
   getAll(
     @ReqContext() context: RequestContext,
-    @Query() query: GetOrganizationQueryDto,
+    @Query() query: OrganizationQueryDto,
   ) {
     return this.organizationService.getAll(context, query);
   }
 
   @Get(':id')
-  getById(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-    @Query() query: GetOrganizationQueryDto,
-  ) {
-    return this.organizationService.getById(context, id, query);
+  getById(@ReqContext() context: RequestContext, @Param('id') id: number) {
+    return this.organizationService.getById(context, id);
   }
 
   @Put(':id')
@@ -32,21 +28,15 @@ export class OrganizationController {
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
     @Body() dto: UpdateOrganizationInputDto,
-    @Query() query: GetOrganizationQueryDto,
   ) {
-    return this.organizationService.update(context, id, dto, query);
+    return this.organizationService.update(context, id, dto);
   }
 
   @Post()
   async create(
     @ReqContext() context: RequestContext,
     @Body() createOrganizationDto: CreateOrganizationInputDto,
-    @Query() query: GetOrganizationQueryDto,
   ) {
-    return this.organizationService.create(
-      context,
-      createOrganizationDto,
-      query,
-    );
+    return this.organizationService.create(context, createOrganizationDto);
   }
 }

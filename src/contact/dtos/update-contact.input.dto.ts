@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   Matches,
@@ -21,4 +22,10 @@ export class UpdateContactInputDto {
   @IsOptional()
   @IsEmail()
   email: string;
+}
+
+export class UpdateContactInputWithIdDto extends UpdateContactInputDto {
+  @IsOptional()
+  @IsNumber()
+  id: number;
 }

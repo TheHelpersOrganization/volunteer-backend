@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Organization, Prisma } from '@prisma/client';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 
@@ -9,9 +8,8 @@ import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateOrganizationInputDto,
-  GetOrganizationQueryDto,
-  GetOrganizationQueryInclude,
   OrganizationOutputDto,
+  OrganizationQueryDto,
 } from '../dtos';
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
 
@@ -28,33 +26,28 @@ export class OrganizationService extends AbstractService {
 
   async getAll(
     context: RequestContext,
-    query: GetOrganizationQueryDto,
+    query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
     this.logCaller(context, this.getAll);
 
     const organizations = await this.prisma.organization.findMany({
+      where: {
+        name: query.name,
+      },
       take: query.limit,
       skip: query.offset,
-      ...(query.includes && {
-        include: {
-          ...(query.includes.includes(GetOrganizationQueryInclude.Contacts) && {
-            organizationContacts: {
-              include: {
-                contact: true,
-              },
-            },
-          }),
-          ...(query.includes.includes(
-            GetOrganizationQueryInclude.Locations,
-          ) && {
-            organizationLocations: {
-              include: {
-                location: true,
-              },
-            },
-          }),
+      include: {
+        organizationContacts: {
+          include: {
+            contact: true,
+          },
         },
-      }),
+        organizationLocations: {
+          include: {
+            location: true,
+          },
+        },
+      },
     });
 
     const res = organizations.map((o) => ({
@@ -65,51 +58,45 @@ export class OrganizationService extends AbstractService {
       locations: o.organizationLocations?.map((l) => l.location),
     }));
 
-    console.log(res);
-
     return this.outputArray(OrganizationOutputDto, res);
   }
 
   async getById(
     context: RequestContext,
     id: number,
-    query: GetOrganizationQueryDto,
   ): Promise<OrganizationOutputDto> {
     this.logCaller(context, this.getAll);
     const organization = await this.prisma.organization.findUnique({
       where: {
         id: id,
-        ...(query.includes && {
+      },
+      include: {
+        organizationContacts: {
           include: {
-            ...(query.includes.includes(
-              GetOrganizationQueryInclude.Contacts,
-            ) && {
-              organizationContacts: {
-                include: {
-                  contact: true,
-                },
-              },
-            }),
-            ...(query.includes.includes(
-              GetOrganizationQueryInclude.Locations,
-            ) && {
-              organizationLocations: {
-                include: {
-                  location: true,
-                },
-              },
-            }),
+            contact: true,
           },
-        }),
+        },
+        organizationLocations: {
+          include: {
+            location: true,
+          },
+        },
       },
     });
-    return this.output(OrganizationOutputDto, organization);
+    const res = {
+      ...organization,
+      organizationContacts: undefined,
+      organizationLocations: undefined,
+      contacts: organization.organizationContacts?.map((c) => c.contact),
+      locations: organization.organizationLocations?.map((l) => l.location),
+    };
+
+    return this.output(OrganizationOutputDto, res);
   }
 
   async create(
     context: RequestContext,
     dto: CreateOrganizationInputDto,
-    query: GetOrganizationQueryDto,
   ): Promise<OrganizationOutputDto> {
     this.logCaller(context, this.create);
     const raw = {
@@ -121,13 +108,23 @@ export class OrganizationService extends AbstractService {
     const org = await this.prisma.$transaction(
       async () => {
         const fileIds = dto.files.map((f) => ({ fileId: f }));
+        const locationIds = (
+          await this.locationService.createMany(context, dto.locations)
+        ).map((l) => ({
+          locationId: l.id,
+        }));
+        const contactIds = (
+          await this.contactService.createMany(context, dto.contacts)
+        ).map((d) => ({
+          contactId: d.id,
+        }));
         const organization = await this.prisma.organization.create({
           data: {
             ...raw,
             ownerId: context.account.id,
             organizationLocations: {
               createMany: {
-                data: dto.locations.map((l) => ({ locationId: l })),
+                data: locationIds,
               },
             },
             organizationFiles: {
@@ -137,32 +134,22 @@ export class OrganizationService extends AbstractService {
             },
             organizationContacts: {
               createMany: {
-                data: dto.locations.map((c) => ({ contactId: c })),
+                data: contactIds,
               },
             },
           },
-          ...(query.includes && {
-            include: {
-              ...(query.includes.includes(
-                GetOrganizationQueryInclude.Contacts,
-              ) && {
-                organizationContacts: {
-                  include: {
-                    contact: true,
-                  },
-                },
-              }),
-              ...(query.includes.includes(
-                GetOrganizationQueryInclude.Locations,
-              ) && {
-                organizationLocations: {
-                  include: {
-                    location: true,
-                  },
-                },
-              }),
+          include: {
+            organizationContacts: {
+              include: {
+                contact: true,
+              },
             },
-          }),
+            organizationLocations: {
+              include: {
+                location: true,
+              },
+            },
+          },
         });
         return organization;
       },
@@ -174,8 +161,8 @@ export class OrganizationService extends AbstractService {
       ...org,
       organizationContacts: undefined,
       organizationLocations: undefined,
-      contacts: org.organizationContacts?.map((c) => c.contact),
-      locations: org.organizationLocations?.map((l) => l.location),
+      contacts: org.organizationContacts?.map((c) => c.contact) ?? [],
+      locations: org.organizationLocations?.map((l) => l.location) ?? [],
     };
     return this.output(OrganizationOutputDto, res);
   }
@@ -184,12 +171,10 @@ export class OrganizationService extends AbstractService {
     context: RequestContext,
     id: number,
     dto: UpdateOrganizationInputDto,
-    query: GetOrganizationQueryDto,
   ): Promise<OrganizationOutputDto> {
     this.logCaller(context, this.update);
     const raw = {
       ...dto,
-      banner: undefined,
       locations: undefined,
       files: undefined,
       contacts: undefined,
@@ -201,49 +186,40 @@ export class OrganizationService extends AbstractService {
           data: {
             ...raw,
             organizationLocations: {
-              upsert: dto.locations.map((l) => ({
-                where: { locationId: l },
-                update: {},
-                create: { locationId: l },
+              deleteMany: {},
+              create: dto.locations.map((d) => ({
+                location: {
+                  create: d,
+                },
               })),
             },
             organizationFiles: {
-              upsert: dto.files.map((l) => ({
-                where: { fileId: l },
-                update: {},
-                create: { fileId: l },
+              deleteMany: {},
+              create: dto.files.map((d) => ({
+                fileId: d,
               })),
             },
             organizationContacts: {
-              upsert: dto.contacts.map((l) => ({
-                where: { contactId: l },
-                update: {},
-                create: { contactId: l },
+              deleteMany: {},
+              create: dto.contacts.map((d) => ({
+                contact: {
+                  create: d,
+                },
               })),
             },
           },
-          ...(query.includes && {
-            include: {
-              ...(query.includes.includes(
-                GetOrganizationQueryInclude.Contacts,
-              ) && {
-                organizationContacts: {
-                  include: {
-                    contact: true,
-                  },
-                },
-              }),
-              ...(query.includes.includes(
-                GetOrganizationQueryInclude.Locations,
-              ) && {
-                organizationLocations: {
-                  include: {
-                    location: true,
-                  },
-                },
-              }),
+          include: {
+            organizationContacts: {
+              include: {
+                contact: true,
+              },
             },
-          }),
+            organizationLocations: {
+              include: {
+                location: true,
+              },
+            },
+          },
         });
         return organization;
       },
@@ -255,8 +231,8 @@ export class OrganizationService extends AbstractService {
       ...org,
       organizationContacts: undefined,
       organizationLocations: undefined,
-      contacts: org.organizationContacts?.map((c) => c.contact),
-      locations: org.organizationLocations?.map((l) => l.location),
+      contacts: org.organizationContacts?.map((c) => c.contact) ?? [],
+      locations: org.organizationLocations?.map((l) => l.location) ?? [],
     };
     return this.output(OrganizationOutputDto, res);
   }

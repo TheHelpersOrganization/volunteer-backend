@@ -7,7 +7,7 @@ export class UpdateLocationInputDto extends PartialType(
   CreateLocationInputDto,
 ) {}
 
-export class UpdateLocationInputDtoWithId extends UpdateLocationInputDto {
+export class UpdateLocationInputDtoWithIdDto extends UpdateLocationInputDto {
   @IsOptional()
   @IsNumber()
   id: number;
