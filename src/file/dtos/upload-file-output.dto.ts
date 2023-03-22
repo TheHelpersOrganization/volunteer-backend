@@ -8,5 +8,8 @@ export class UploadFileOutputDto {
   name: string;
 
   @Expose()
+  internalName: string;
+
+  @Expose()
   mimetype: string;
 }
