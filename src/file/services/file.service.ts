@@ -102,7 +102,16 @@ export class FileService extends AbstractService {
       leavePartsOnError: false, // optional manually handle dropped parts
     });
 
-    this.uploadFileToS3(ctx, upload);
+    upload.on('httpUploadProgress', (progress) => {
+      this.logger.log(
+        ctx,
+        `file upload progress: ${Math.round(
+          (progress.loaded / progress.total) * 100,
+        )}%`,
+      );
+    });
+
+    await this.uploadFileToS3(ctx, upload);
 
     const file = {
       name: originalname,
