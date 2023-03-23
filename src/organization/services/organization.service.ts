@@ -29,10 +29,13 @@ export class OrganizationService extends AbstractService {
     query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
     this.logCaller(context, this.getAll);
-
+    console.log(query.name);
     const organizations = await this.prisma.organization.findMany({
       where: {
-        name: query.name,
+        name: {
+          contains: query.name?.trim(),
+          mode: 'insensitive',
+        },
       },
       take: query.limit,
       skip: query.offset,
