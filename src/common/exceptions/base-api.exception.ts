@@ -4,8 +4,8 @@ import { createExceptionErrorCode } from '../utils';
 
 export class BaseApiException extends HttpException {
   public errorCode: string;
-  public localizedMessage: Record<string, string>;
-  public details: string | Record<string, any>;
+  public localizedMessage: Record<string, string> | null | undefined;
+  public details: string | Record<string, any> | null | undefined;
 
   constructor(
     message: string,

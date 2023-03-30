@@ -163,7 +163,7 @@ export class AccountService {
       throw new AccountNotFoundException();
     }
 
-    const verifiedAccount: Account = {
+    const verifiedAccount = {
       ...account,
       isAccountVerified: true,
     };

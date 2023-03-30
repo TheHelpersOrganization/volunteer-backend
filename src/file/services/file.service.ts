@@ -2,7 +2,7 @@ import { BucketAlreadyExists, NoSuchKey, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { File } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import fileConfig from 'src/common/configs/subconfigs/file.config';
 import { AppLogger } from 'src/common/logger';
@@ -14,7 +14,6 @@ import { PrismaService } from '../../prisma';
 import { DownloadFileQueryDto } from '../dtos/download-file.query.dto';
 import { FileOutputDto } from '../dtos/file-output.dto';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
-import { File } from '../entities';
 import { FileProcessingHasNotFinished } from '../exceptions';
 import { FileNotFoundException } from '../exceptions/file-not-found.exception';
 
@@ -103,12 +102,14 @@ export class FileService extends AbstractService {
     });
 
     upload.on('httpUploadProgress', (progress) => {
-      this.logger.log(
-        ctx,
-        `file upload progress: ${Math.round(
-          (progress.loaded / progress.total) * 100,
-        )}%`,
-      );
+      if (progress.loaded != null && progress.total != null) {
+        this.logger.log(
+          ctx,
+          `file upload progress: ${Math.round(
+            (progress.loaded / progress.total) * 100,
+          )}%`,
+        );
+      }
     });
 
     await this.uploadFileToS3(ctx, upload);
@@ -158,15 +159,15 @@ export class FileService extends AbstractService {
   }
 
   private async downloadFile(
-    file: File,
+    file: File | null,
     query?: DownloadFileQueryDto,
   ): Promise<{ stream: Readable; file: FileOutputDto }> {
-    await this.validateDownloadFile(file, query);
+    const safeFile = await this.validateDownloadFile(file, query);
     try {
-      const stream = await this.downloadFileFromS3(file);
+      const stream = await this.downloadFileFromS3(safeFile);
       return {
         stream: stream,
-        file: file,
+        file: safeFile,
       };
     } catch (err) {
       if (err instanceof NoSuchKey) {
@@ -176,7 +177,10 @@ export class FileService extends AbstractService {
     }
   }
 
-  private async validateDownloadFile(file: File, query?: DownloadFileQueryDto) {
+  private validateDownloadFile(
+    file: File | null,
+    query?: DownloadFileQueryDto,
+  ): File {
     if (!file) {
       throw new FileNotFoundException();
     }
@@ -194,6 +198,8 @@ export class FileService extends AbstractService {
         }
       }
     }
+
+    return file;
   }
 
   private async downloadFileFromS3(file: File): Promise<Readable> {

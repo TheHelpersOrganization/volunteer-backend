@@ -56,7 +56,6 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
   async login(
     @ReqContext() ctx: RequestContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -9,35 +9,44 @@ datasource db {
 }
 
 model Account {
-  id                Int            @id @default(autoincrement())
-  email             String         @unique
-  password          String
-  isAccountDisabled Boolean        @default(false)
-  isAccountVerified Boolean        @default(false)
-  createdAt         DateTime?      @default(now())
-  updatedAt         DateTime?      @default(now()) @updatedAt
-  file              File[]
-  profile           Profile?
-  tokens            Token[]
-  organizations     Organization[]
+  id                    Int               @id @default(autoincrement())
+  email                 String            @unique
+  password              String
+  isAccountDisabled     Boolean           @default(false)
+  isAccountVerified     Boolean           @default(false)
+  createdAt             DateTime?         @default(now())
+  updatedAt             DateTime?         @default(now()) @updatedAt
+  file                  File[]
+  profile               Profile?
+  tokens                Token[]
+  organizationOwners    Organization[]    @relation(name: "organizationOwner")
+  member                Member[]          @relation(name: "memberAccount")
+  memberCensors         Member[]          @relation(name: "memberCensor")
+  activityManagers      ActivityManager[]
+  organizationVerifiers Organization[]    @relation(name: "organizationVerifier")
+  volunteerSkill        VolunteerSkill[]
+  volunteerShifts       VolunteerShift[]  @relation(name: "volunteerShiftAccount")
+  volunteerShiftCensors VolunteerShift[]  @relation(name: "volunteerShiftCensor")
+  shiftManagers         ShiftManager[]
 }
 
 model Profile {
-  accountId   Int       @id @unique
-  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  username    String?
-  firstName   String?
-  lastName    String?
-  dateOfBirth DateTime?
-  gender      String?
-  bio         String?
-  phoneNumber String?
-  locationId  Int?      @unique
-  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  avatarId    Int?      @unique
-  avatar      File?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @default(now()) @updatedAt
+  accountId                    Int                           @id @unique
+  account                      Account                       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  username                     String?
+  firstName                    String?
+  lastName                     String?
+  dateOfBirth                  DateTime?
+  gender                       String?
+  bio                          String?
+  phoneNumber                  String?
+  locationId                   Int?                          @unique
+  location                     Location?                     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  avatarId                     Int?                          @unique
+  avatar                       File?                         @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  profileInterestActivityTypes ProfileInterestActivityType[]
+  createdAt                    DateTime?                     @default(now())
+  updatedAt                    DateTime?                     @default(now()) @updatedAt
 }
 
 model Token {
@@ -66,6 +75,7 @@ model File {
   organizationBanner Organization?     @relation(name: "banner")
   organizationFile   OrganizationFile?
   profile            Profile?
+  activityThumbnail  Activity?
 }
 
 model Location {
@@ -81,6 +91,7 @@ model Location {
   updatedAt            DateTime?             @default(now()) @updatedAt
   organizationLocation OrganizationLocation?
   profile              Profile?
+  shiftLocation        ShiftLocation?
 }
 
 model Contact {
@@ -89,28 +100,99 @@ model Contact {
   phoneNumber         String?
   email               String?
   organizationContact OrganizationContact?
+  shiftContact        ShiftContact?
 }
 
 model Organization {
+  id                        Int                        @id @default(autoincrement())
+  name                      String?
+  phoneNumber               String?
+  email                     String?
+  description               String?
+  website                   String?
+  status                    String                     @default("pending")
+  isDisabled                Boolean                    @default(false)
+  logo                      Int?                       @unique
+  logoRelation              File?                      @relation(name: "logo", fields: [logo], references: [id], onDelete: SetNull)
+  banner                    Int?                       @unique
+  bannerRelation            File?                      @relation(name: "banner", fields: [banner], references: [id], onDelete: SetNull)
+  createdAt                 DateTime?                  @default(now())
+  updatedAt                 DateTime?                  @default(now()) @updatedAt
+  ownerId                   Int
+  owner                     Account                    @relation(name: "organizationOwner", fields: [ownerId], references: [id])
+  verifierId                Int?
+  verifier                  Account?                   @relation(name: "organizationVerifier", fields: [verifierId], references: [id])
+  organizationFiles         OrganizationFile[]
+  organizationLocations     OrganizationLocation[]
+  organizationContacts      OrganizationContact[]
+  members                   Member[]
+  organizationActivityTypes OrganizationActivityType[]
+  organizationActivities    Activity[]
+}
+
+model ActivityType {
+  id                           Int                           @id @default(autoincrement())
+  name                         String
+  description                  String?
+  createdAt                    DateTime?                     @default(now())
+  updatedAt                    DateTime?                     @default(now()) @updatedAt
+  activityActivityTypes        ActivityActivityType[]
+  organizationActivityTypes    OrganizationActivityType[]
+  profileInterestActivityTypes ProfileInterestActivityType[]
+}
+
+model Skill {
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String?
+  createdAt      DateTime?        @default(now())
+  updatedAt      DateTime?        @default(now()) @updatedAt
+  shiftSkills    ShiftSkill[]
+  VolunteerSkill VolunteerSkill[]
+}
+
+model Activity {
   id                    Int                    @id @default(autoincrement())
-  name                  String?
-  phoneNumber           String?
-  email                 String?
+  name                  String
   description           String?
-  website               String?
-  isVerified            Boolean                @default(false)
-  isDisabled            Boolean                @default(false)
-  logo                  Int?                   @unique
-  logoRelation          File?                  @relation(name: "logo", fields: [logo], references: [id], onDelete: SetNull)
-  banner                Int?                   @unique
-  bannerRelation        File?                  @relation(name: "banner", fields: [banner], references: [id], onDelete: SetNull)
   createdAt             DateTime?              @default(now())
   updatedAt             DateTime?              @default(now()) @updatedAt
-  ownerId               Int
-  owner                 Account                @relation(fields: [ownerId], references: [id])
-  organizationFiles     OrganizationFile[]
-  organizationLocations OrganizationLocation[]
-  organizationContacts  OrganizationContact[]
+  activityActivityTypes ActivityActivityType[]
+  thumbnail             Int?                   @unique
+  activityThumbnail     File?                  @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
+  organizationId        Int
+  organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shifts                Shift[]
+  activityManagers      ActivityManager[]
+}
+
+model Shift {
+  id                   Int              @id @default(autoincrement())
+  name                 String
+  description          String?
+  startTime            DateTime
+  endTime              DateTime
+  numberOfParticipants Int?
+  createdAt            DateTime?        @default(now())
+  updatedAt            DateTime?        @default(now()) @updatedAt
+  activityId           Int
+  activity             Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  shiftLocations       ShiftLocation[]
+  shiftContacts        ShiftContact[]
+  shiftSkills          ShiftSkill[]
+  shiftVolunteers      VolunteerShift[]
+  shiftManagers        ShiftManager[]
+}
+
+model ProfileInterestActivityType {
+  profileId      Int
+  activityTypeId Int
+  profile        Profile      @relation(fields: [profileId], references: [accountId], onDelete: Cascade)
+  activityType   ActivityType @relation(fields: [activityTypeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime?    @default(now())
+  updatedAt      DateTime?    @default(now()) @updatedAt
+
+  @@id([profileId, activityTypeId])
 }
 
 model OrganizationFile {
@@ -132,4 +214,122 @@ model OrganizationContact {
   contactId      Int          @id @unique
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationActivityType {
+  organizationId Int
+  activityTypeId Int
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activityType   ActivityType @relation(fields: [activityTypeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime?    @default(now())
+  updatedAt      DateTime?    @default(now()) @updatedAt
+
+  @@id([organizationId, activityTypeId])
+}
+
+model Member {
+  accountId      Int
+  organizationId Int
+  status         String
+  account        Account      @relation(name: "memberAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  censorId       Int?
+  censor         Account?     @relation(name: "memberCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  createdAt      DateTime?    @default(now())
+  updatedAt      DateTime?    @default(now()) @updatedAt
+
+  @@id([accountId, organizationId])
+}
+
+model ActivityActivityType {
+  activityId     Int
+  activityTypeId Int
+  activity       Activity     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  type           ActivityType @relation(fields: [activityTypeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime?    @default(now())
+  updatedAt      DateTime?    @default(now()) @updatedAt
+
+  @@id([activityId, activityTypeId])
+}
+
+model ActivityManager {
+  activityId Int
+  accountId  Int
+  activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  account    Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+
+  @@id([activityId, accountId])
+}
+
+model VolunteerSkill {
+  accountId Int
+  skillId   Int
+  hours     Float
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  @@id([accountId, skillId])
+}
+
+model ShiftLocation {
+  shiftId    Int
+  locationId Int       @id @unique
+  shift      Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+}
+
+model ShiftContact {
+  shiftId   Int
+  contactId Int       @id @unique
+  shift     Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+}
+
+model ShiftSkill {
+  shiftId   Int
+  skillId   Int
+  hours     Float
+  shift     Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  @@id([shiftId, skillId])
+}
+
+model VolunteerShift {
+  shiftId    Int
+  accountId  Int
+  attendant  Boolean   @default(false)
+  status     String
+  completion Float     @default(0)
+  censorId   Int?
+  shift      Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  account    Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  censor     Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+
+  @@id([shiftId, accountId])
+}
+
+model ShiftManager {
+  shiftId     Int
+  accountId   Int
+  name        String?
+  description String?
+  shift       Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@id([shiftId, accountId])
 }
