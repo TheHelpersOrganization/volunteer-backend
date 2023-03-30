@@ -11,7 +11,7 @@ export const RequestIdMiddleware = (
   /** set request id, if not being set yet */
   if (
     !req.headers[REQUEST_ID_TOKEN_HEADER] ||
-    !validate(req.header(REQUEST_ID_TOKEN_HEADER))
+    !validate(req.header(REQUEST_ID_TOKEN_HEADER)!)
   ) {
     req.headers[REQUEST_ID_TOKEN_HEADER] = uuidv4();
   }

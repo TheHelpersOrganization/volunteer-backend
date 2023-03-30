@@ -18,7 +18,7 @@ export class JwtAuthGuard extends AuthGuard(STRATEGY_JWT_AUTH) {
     super();
   }
 
-  canActivate(
+  override canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -32,7 +32,7 @@ export class JwtAuthGuard extends AuthGuard(STRATEGY_JWT_AUTH) {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  handleRequest(err, user, info) {
+  override handleRequest(err, user, info) {
     // You can throw an exception based on either "info" or "err" arguments
     if (err) {
       throw err;

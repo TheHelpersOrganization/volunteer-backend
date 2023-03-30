@@ -15,7 +15,7 @@ export class AppLogger {
   }
 
   constructor(configService: ConfigService) {
-    let loggerFormat = undefined;
+    let loggerFormat: any | null = undefined;
     if (configService.get('app.env') == Environment.Development) {
       loggerFormat = format.prettyPrint();
     }

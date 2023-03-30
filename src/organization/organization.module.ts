@@ -5,12 +5,11 @@ import { ContactModule } from '../contact/contact.module';
 import { FileModule } from '../file/file.module';
 import { LocationModule } from '../location/location.module';
 import { OrganizationController } from './controllers';
-import { OrganizationFilesPipe } from './pipes';
 import { OrganizationService } from './services';
 
 @Module({
   imports: [CommonModule, FileModule, LocationModule, ContactModule],
   controllers: [OrganizationController],
-  providers: [OrganizationService, OrganizationFilesPipe],
+  providers: [OrganizationService],
 })
 export class OrganizationModule {}

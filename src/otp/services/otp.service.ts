@@ -126,6 +126,7 @@ export class OtpService extends AbstractService {
     // Check if otp exists and not expires yet
     if (
       !exist ||
+      !exist.createdAt ||
       dayjs(exist.createdAt.getTime()).add(lifeSec, 'second').isBefore(dayjs())
     ) {
       throw new InvalidTokenException();

@@ -4,16 +4,14 @@ import { NestFactory } from '@nestjs/core';
 import { CreateAccountInput } from './account/dtos/account-create-input.dto';
 import { AccountService } from './account/services/account.service';
 import { AppModule } from './app.module';
-import { ROLE } from './auth/constants/role.constant';
 import { RequestContext } from './common/request-context/request-context.dto';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   const configService = app.get(ConfigService);
-  const defaultAdminUserPassword = configService.get<string>(
-    'defaultAdminUserPassword',
-  );
+  const defaultAdminUserPassword =
+    configService.get<string>('defaultAdminUserPassword') ?? 'admin';
 
   const userService = app.get(AccountService);
 

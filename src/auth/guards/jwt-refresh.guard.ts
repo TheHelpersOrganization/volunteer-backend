@@ -10,7 +10,7 @@ import { STRATEGY_JWT_REFRESH } from '../constants/strategy.constant';
 
 @Injectable()
 export class JwtRefreshGuard extends AuthGuard(STRATEGY_JWT_REFRESH) {
-  canActivate(
+  override canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     // Add your custom authentication logic here
@@ -19,7 +19,7 @@ export class JwtRefreshGuard extends AuthGuard(STRATEGY_JWT_REFRESH) {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  handleRequest(err, user, info) {
+  override handleRequest(err, user, info) {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || !user) {
       throw err || new UnauthorizedException(`${info}`);

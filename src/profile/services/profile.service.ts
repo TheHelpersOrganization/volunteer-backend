@@ -59,7 +59,7 @@ export class ProfileService extends AbstractService {
       where: { accountId: accountId },
     });
 
-    let location: LocationOutputDto = undefined;
+    let location: LocationOutputDto | undefined = undefined;
     if (input.location != null) {
       if (profile == null || profile.locationId == null) {
         location = await this.locationService.create(ctx, input.location);

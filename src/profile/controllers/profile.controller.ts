@@ -5,7 +5,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AbstractController } from 'src/common/controllers';
 import { SwaggerBaseApiResponse } from 'src/common/dtos';
 import { AppLogger } from 'src/common/logger';
 import { ReqContext, RequestContext } from 'src/common/request-context';
@@ -15,12 +14,11 @@ import { ProfileService } from '../services';
 
 @ApiTags('profiles')
 @Controller('profiles')
-export class ProfileController extends AbstractController {
+export class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
     private readonly logger: AppLogger,
   ) {
-    super();
     this.logger.setContext(ProfileController.name);
   }
 
@@ -46,7 +44,7 @@ export class ProfileController extends AbstractController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse(ProfileOutputDto),
+    type: ProfileOutputDto,
   })
   async updateProfile(
     @ReqContext() ctx: RequestContext,

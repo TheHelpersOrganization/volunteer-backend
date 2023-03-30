@@ -19,12 +19,12 @@ export class ResponseInterceptor implements NestInterceptor {
           return res;
         }
         const size = Array.isArray(res) ? res.length : undefined;
-        return {
-          data: res ?? {},
-          meta: {
-            size,
-          },
+        const mapped = new BaseApiResponse();
+        mapped.data = res;
+        mapped.meta = {
+          size,
         };
+        return mapped;
       }),
     );
   }

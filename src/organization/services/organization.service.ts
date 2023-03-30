@@ -6,17 +6,20 @@ import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma/prisma.service';
+import { OrganizationStatus } from '../constants';
 import {
   CreateOrganizationInputDto,
+  DisableOrganizationInputDto,
   OrganizationOutputDto,
   OrganizationQueryDto,
+  VerifyOrganizationInputDto,
 } from '../dtos';
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
 
 @Injectable()
 export class OrganizationService extends AbstractService {
   constructor(
-    readonly logger: AppLogger,
+    override readonly logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
@@ -29,7 +32,6 @@ export class OrganizationService extends AbstractService {
     query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
     this.logCaller(context, this.getAll);
-    console.log(query.name);
     const organizations = await this.prisma.organization.findMany({
       where: {
         name: {
@@ -67,7 +69,7 @@ export class OrganizationService extends AbstractService {
   async getById(
     context: RequestContext,
     id: number,
-  ): Promise<OrganizationOutputDto> {
+  ): Promise<OrganizationOutputDto | null> {
     this.logCaller(context, this.getAll);
     const organization = await this.prisma.organization.findUnique({
       where: {
@@ -86,6 +88,9 @@ export class OrganizationService extends AbstractService {
         },
       },
     });
+    if (organization == null) {
+      return null;
+    }
     const res = {
       ...organization,
       organizationContacts: undefined,
@@ -238,5 +243,39 @@ export class OrganizationService extends AbstractService {
       locations: org.organizationLocations?.map((l) => l.location) ?? [],
     };
     return this.output(OrganizationOutputDto, res);
+  }
+
+  async updateStatus(
+    context: RequestContext,
+    id: number,
+    dto: VerifyOrganizationInputDto,
+  ): Promise<OrganizationOutputDto> {
+    this.logCaller(context, this.updateStatus);
+    const verifierId = context.account.id;
+    const org = await this.prisma.organization.update({
+      where: { id: id },
+      data: {
+        status: dto.isVerified
+          ? OrganizationStatus.Verified
+          : OrganizationStatus.Rejected,
+        verifierId: verifierId,
+      },
+    });
+    return this.output(OrganizationOutputDto, org);
+  }
+
+  async updateDisable(
+    context: RequestContext,
+    id: number,
+    dto: DisableOrganizationInputDto,
+  ): Promise<OrganizationOutputDto> {
+    this.logCaller(context, this.updateDisable);
+    const org = await this.prisma.organization.update({
+      where: { id: id },
+      data: {
+        isDisabled: dto.isDisabled,
+      },
+    });
+    return this.output(OrganizationOutputDto, org);
   }
 }

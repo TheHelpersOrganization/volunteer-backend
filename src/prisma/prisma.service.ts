@@ -1,5 +1,6 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { RequestContext } from 'src/common/request-context';
 
 import { AppLogger } from '../common/logger';
 
@@ -24,7 +25,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         }
         this.retries++;
         this.logger.warn(
-          null,
+          new RequestContext(),
           `Connection failed. Retrying... Attempt ${this.retries}`,
         );
       }

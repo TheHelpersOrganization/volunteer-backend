@@ -19,5 +19,20 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": true
+      },
+      "previewLimit": 50,
+      "server": "db.bit.io",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "the-helpers",
+      "database": "cyberproton.volunteer",
+      "username": "cyberproton",
+      "password": "v2_42cU6_DXyffcaAVtDxPscHbCdmZk5"
+    }
+  ]
 }

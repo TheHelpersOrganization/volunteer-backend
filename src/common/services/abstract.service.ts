@@ -22,6 +22,7 @@ export abstract class AbstractService {
   ): T[] {
     return plainToInstance(cls, plain, {
       excludeExtraneousValues: true,
+      enableImplicitConversion: true,
       ...options,
     });
   }
@@ -33,6 +34,7 @@ export abstract class AbstractService {
   ): T {
     return plainToInstance(cls, plain, {
       excludeExtraneousValues: true,
+      enableImplicitConversion: true,
       ...options,
     });
   }

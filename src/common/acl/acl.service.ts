@@ -32,7 +32,7 @@ export class BaseAclService<Resource> {
 
         actor.roles.forEach((actorRole) => {
           //If already has access, return
-          if (canDoAction) return true;
+          if (canDoAction) return;
 
           //find all rules for given user role
           const aclRules = this.aclRules.filter(
@@ -42,7 +42,7 @@ export class BaseAclService<Resource> {
           //for each rule, check action permission
           aclRules.forEach((aclRule) => {
             //If already has access, return
-            if (canDoAction) return true;
+            if (canDoAction) return;
 
             //check action permission
             const hasActionPermission =
@@ -52,7 +52,9 @@ export class BaseAclService<Resource> {
             //check for custom `ruleCallback` callback
             canDoAction =
               hasActionPermission &&
-              (!aclRule.ruleCallback || aclRule.ruleCallback(resource, actor));
+              (!aclRule.ruleCallback ||
+                !resource ||
+                aclRule.ruleCallback(resource, actor));
           });
         });
 
