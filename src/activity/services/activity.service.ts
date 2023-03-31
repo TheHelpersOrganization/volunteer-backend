@@ -3,15 +3,21 @@ import {
   Activity,
   ActivityActivityType,
   ActivityManager,
+  Location,
+  Shift,
+  ShiftLocation,
 } from '@prisma/client';
-import { PaginationParamsDto } from 'src/common/dtos';
+import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
+import { unionLocationsTransform } from 'src/common/transformers';
 import { PrismaService } from 'src/prisma';
+import { VolunteerShiftStatus } from 'src/shift/constants';
 
 import {
   ActivityOutputDto,
+  ActivityQueryDto,
   CreateActivityInputDto,
   UpdateActivityInputDto,
 } from '../dtos';
@@ -24,20 +30,127 @@ export class ActivityService extends AbstractService {
 
   async getAll(
     context: RequestContext,
-    query: PaginationParamsDto,
+    query: ActivityQueryDto,
   ): Promise<ActivityOutputDto[]> {
     this.logCaller(context, this.getAll);
+
+    const res = await this.internalGet(context, query);
+    const updated = res.map((activity) => this.mapToDto(activity));
+
+    return this.outputArray(ActivityOutputDto, updated);
+  }
+
+  private async internalGet(context: RequestContext, query: ActivityQueryDto) {
+    this.logCaller(context, this.internalGet);
+
     const res = await this.prisma.activity.findMany({
+      where: {
+        name: {
+          contains: query.n?.trim(),
+          mode: 'insensitive',
+        },
+        organizationId: {
+          in: query.org,
+        },
+
+        shifts: {
+          some: {
+            startTime: {
+              gte: query.st,
+            },
+            endTime: {
+              lte: query.et,
+            },
+            shiftSkills: {
+              some: {
+                skillId: {
+                  in: query.sk,
+                },
+              },
+            },
+            shiftLocations: {
+              some: {
+                location: {
+                  locality: {
+                    contains: query.lc?.trim(),
+                    mode: 'insensitive',
+                  },
+                  region: {
+                    contains: query.rg?.trim(),
+                    mode: 'insensitive',
+                  },
+                  country: query.ct,
+                },
+              },
+            },
+          },
+        },
+        activityActivityTypes: {
+          some: {
+            activityTypeId: {
+              in: query.at,
+            },
+          },
+        },
+      },
       take: query.limit,
       skip: query.offset,
       include: {
+        shifts: {
+          include: {
+            shiftLocations: {
+              include: {
+                location: true,
+              },
+            },
+            shiftVolunteers: true,
+          },
+        },
         activityActivityTypes: true,
         activityManagers: true,
       },
     });
-    const updated = res.map((activity) => this.mapToDto(activity));
 
-    return this.outputArray(ActivityOutputDto, updated);
+    const withParticipants = res.map((activity) => {
+      let maxParticipants: number | null = 0;
+      let joinedParticipants = 0;
+
+      for (const shift of activity.shifts) {
+        if (maxParticipants != null) {
+          if (shift.numberOfParticipants == null) {
+            maxParticipants = null;
+          } else {
+            maxParticipants += shift.numberOfParticipants;
+          }
+        }
+        for (const shiftVolunteer of shift.shiftVolunteers) {
+          if (
+            shiftVolunteer.status == VolunteerShiftStatus.Approved ||
+            shiftVolunteer.status == VolunteerShiftStatus.Pending
+          ) {
+            joinedParticipants++;
+          }
+        }
+      }
+
+      return { ...activity, maxParticipants, joinedParticipants };
+    });
+
+    const filtered = withParticipants.filter((activity) => {
+      const availableSlots =
+        activity.maxParticipants == null || activity.maxParticipants == 0
+          ? null
+          : activity.maxParticipants - activity.joinedParticipants;
+      if (availableSlots == null) {
+        return true;
+      }
+      if (query.av == null) {
+        return true;
+      }
+      return availableSlots >= query.av;
+    });
+
+    return filtered;
   }
 
   async getById(
@@ -158,8 +271,22 @@ export class ActivityService extends AbstractService {
     activity: Activity & {
       activityActivityTypes?: ActivityActivityType[];
       activityManagers?: ActivityManager[];
+      shifts?: (Shift & {
+        shiftLocations: (ShiftLocation & {
+          location: Location;
+        })[];
+      })[];
+      maxParticipants?: number | null;
+      joinedParticipants?: number;
     },
   ): ActivityOutputDto {
+    const locations = activity.shifts?.flatMap((s) =>
+      s.shiftLocations.map((sl) => sl.location),
+    );
+    const unionLocation = locations
+      ? unionLocationsTransform(locations)
+      : undefined;
+
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
@@ -172,6 +299,15 @@ export class ActivityService extends AbstractService {
         (activityManager) => activityManager.accountId,
       ),
       organizationId: activity.organizationId,
+      startTime: activity.shifts
+        ? _.min(activity.shifts.map((s) => s.startTime))
+        : undefined,
+      endTime: activity.shifts
+        ? _.max(activity.shifts.map((s) => s.endTime))
+        : undefined,
+      location: unionLocation,
+      maxParticipants: activity.maxParticipants,
+      joinedParticipants: activity.joinedParticipants,
     });
   }
 }
