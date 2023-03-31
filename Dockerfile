@@ -12,6 +12,8 @@ COPY . .
 ARG APP_ENV=development
 ENV NODE_ENV=${APP_ENV}
 
+RUN npm run prisma:generate
+
 RUN npm run build
 
 RUN npm prune
