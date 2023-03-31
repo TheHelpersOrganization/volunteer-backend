@@ -6,10 +6,13 @@ import {
   IsLatitude,
   IsLongitude,
   IsNumber,
+  IsNumberString,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
+import { separatedCommaNumberArrayTransform } from 'src/common/transformers';
 
 export class ActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
@@ -25,22 +28,35 @@ export class ActivityQueryDto extends PaginationParamsDto {
   // Start date
   @IsOptional()
   @IsDate()
-  sd?: Date;
+  @Transform(({ value }) => new Date(Number(value)))
+  st?: Date;
 
   // End date
   @IsOptional()
   @IsDate()
-  ed?: Date;
+  @Transform(({ value }) => new Date(Number(value)))
+  et?: Date;
 
   // Number of participants
   @IsOptional()
   @IsNumber()
   nofp?: number;
 
+  // Available slots
+  @IsOptional()
+  @IsNumberString()
+  av?: number;
+
+  // Activity types
+  @IsOptional()
+  @IsNumber(undefined, { each: true })
+  @Transform(separatedCommaNumberArrayTransform)
+  at?: number[];
+
   // Skills
   @IsOptional()
   @IsNumber(undefined, { each: true })
-  @Transform(({ value }) => value.split(',').map(Number))
+  @Transform(separatedCommaNumberArrayTransform)
   sk?: number[];
 
   // Locality
@@ -65,4 +81,9 @@ export class ActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsLongitude()
   lng: number;
+
+  @IsOptional()
+  @IsNumberString()
+  @Min(0)
+  rd: number;
 }

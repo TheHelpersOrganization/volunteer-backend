@@ -8,10 +8,13 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { PaginationParamsDto } from 'src/common/dtos';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
-import { ActivityOutputDto, UpdateActivityInputDto } from '../dtos';
+import {
+  ActivityOutputDto,
+  ActivityQueryDto,
+  UpdateActivityInputDto,
+} from '../dtos';
 import { CreateActivityInputDto } from '../dtos/create-activity.input.dto';
 import { ActivityService } from '../services';
 
@@ -22,7 +25,7 @@ export class ActivityController {
   @Get()
   async getAll(
     @ReqContext() context: RequestContext,
-    @Query() query: PaginationParamsDto,
+    @Query() query: ActivityQueryDto,
   ): Promise<ActivityOutputDto[]> {
     return this.activityService.getAll(context, query);
   }

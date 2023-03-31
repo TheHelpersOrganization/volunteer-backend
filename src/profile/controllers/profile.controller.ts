@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Put } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -31,10 +31,18 @@ export class ProfileController {
     status: HttpStatus.OK,
     type: SwaggerBaseApiResponse(ProfileOutputDto),
   })
-  async getProfile(
+  async getMyProfile(
     @ReqContext() ctx: RequestContext,
   ): Promise<ProfileOutputDto> {
-    return this.profileService.getProfile(ctx);
+    return this.profileService.getProfile(ctx, ctx.account.id);
+  }
+
+  @Get(':id')
+  async getProfile(
+    @ReqContext() ctx: RequestContext,
+    @Param('id') id: number,
+  ): Promise<ProfileOutputDto> {
+    return this.profileService.getProfile(ctx, id);
   }
 
   @Put('me')

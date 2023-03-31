@@ -19,9 +19,11 @@ export class ProfileService extends AbstractService {
     this.logger.setContext(ProfileService.name);
   }
 
-  async getProfile(ctx: RequestContext): Promise<ProfileOutputDto> {
+  async getProfile(
+    ctx: RequestContext,
+    accountId: number,
+  ): Promise<ProfileOutputDto> {
     this.logger.log(ctx, `${this.getProfile.name} was called`);
-    const accountId = ctx.account.id;
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
     let profile: any = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
