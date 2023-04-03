@@ -1,4 +1,4 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
@@ -29,8 +29,10 @@ export class OrganizationOutputDto {
   banner: number;
 
   @Expose()
-  locations: LocationOutputDto[] | number[];
+  @Type(() => LocationOutputDto)
+  locations: LocationOutputDto[];
 
   @Expose()
-  contacts: ContactOutputDto[] | number[];
+  @Type(() => ContactOutputDto)
+  contacts: ContactOutputDto[];
 }
