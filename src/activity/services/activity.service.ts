@@ -13,7 +13,7 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { unionLocationsTransform } from 'src/common/transformers';
 import { PrismaService } from 'src/prisma';
-import { VolunteerShiftStatus } from 'src/shift/constants';
+import { ShiftVolunteerStatus } from 'src/shift/constants';
 
 import {
   ActivityOutputDto,
@@ -125,8 +125,8 @@ export class ActivityService extends AbstractService {
         }
         for (const shiftVolunteer of shift.shiftVolunteers) {
           if (
-            shiftVolunteer.status == VolunteerShiftStatus.Approved ||
-            shiftVolunteer.status == VolunteerShiftStatus.Pending
+            shiftVolunteer.status == ShiftVolunteerStatus.Approved ||
+            shiftVolunteer.status == ShiftVolunteerStatus.Pending
           ) {
             joinedParticipants++;
           }

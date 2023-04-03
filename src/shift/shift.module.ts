@@ -8,7 +8,11 @@ import {
   ShiftController,
   ShiftVolunteerController,
 } from './controllers';
-import { ShiftService, ShiftVolunteerService } from './services';
+import {
+  ShiftService,
+  ShiftVolunteerService,
+  ShiftVolunteerTaskService,
+} from './services';
 
 @Module({
   imports: [CommonModule, LocationModule, ContactModule],
@@ -17,6 +21,7 @@ import { ShiftService, ShiftVolunteerService } from './services';
     ShiftController,
     ShiftVolunteerController,
   ],
-  providers: [ShiftService, ShiftVolunteerService],
+  providers: [ShiftService, ShiftVolunteerService, ShiftVolunteerTaskService],
+  exports: [ShiftService, ShiftVolunteerService],
 })
 export class ShiftModule {}

@@ -1,6 +1,6 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createLogger, format, Logger, transports } from 'winston';
+import { Logger, createLogger, format, transports } from 'winston';
 
 import { Environment } from '../constants';
 import { RequestContext } from '../request-context/request-context.dto';
@@ -90,7 +90,7 @@ export class AppLogger {
   }
 
   log(
-    ctx: RequestContext,
+    ctx: RequestContext | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {

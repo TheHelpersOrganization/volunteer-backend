@@ -40,7 +40,7 @@ export abstract class AbstractService {
   }
 
   protected logCaller(
-    ctx: RequestContext, // eslint-disable-next-line @typescript-eslint/ban-types
+    ctx: RequestContext | undefined, // eslint-disable-next-line @typescript-eslint/ban-types
     func: Function | string,
   ) {
     const funcName = typeof func === 'string' ? func : func.name;
