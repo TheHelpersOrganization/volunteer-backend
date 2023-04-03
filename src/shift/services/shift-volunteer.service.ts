@@ -3,7 +3,7 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
-import { VolunteerShiftStatus } from '../constants';
+import { ShiftVolunteerStatus } from '../constants';
 import {
   CreateShiftVolunteerInputDto,
   ShiftVolunteerOutputDto,
@@ -11,9 +11,12 @@ import {
   UpdateShiftVolunteerStatus,
 } from '../dtos';
 import {
+  InvalidStatusException,
   ShiftIsFullException,
   ShiftNotFoundException,
   VolunteerHasAlreadyJoinedShiftException,
+  VolunteerHasNotJoinedShiftException,
+  VolunteerStatusNotApprovedException,
 } from '../exceptions';
 import { ShiftHasAlreadyStartedException } from '../exceptions/shift-has-already-started.exception';
 
@@ -37,18 +40,30 @@ export class ShiftVolunteerService extends AbstractService {
     return this.outputArray(ShiftVolunteerOutputDto, res);
   }
 
+  async getMe(
+    context: RequestContext,
+    shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto[]> {
+    this.logCaller(context, this.getMe);
+    const res = await this.prisma.volunteerShift.findMany({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+      },
+    });
+    return this.outputArray(ShiftVolunteerOutputDto, res);
+  }
+
   async getById(
     context: RequestContext,
     shiftId: number,
     id: number,
   ): Promise<ShiftVolunteerOutputDto | null> {
     this.logCaller(context, this.getById);
-    const res = await this.prisma.volunteerShift.findUnique({
+    const res = await this.prisma.volunteerShift.findFirst({
       where: {
-        shiftId_accountId: {
-          shiftId: shiftId,
-          accountId: id,
-        },
+        shiftId: shiftId,
+        id: id,
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
@@ -73,11 +88,16 @@ export class ShiftVolunteerService extends AbstractService {
       throw new ShiftNotFoundException();
     }
 
-    if (
-      shift.shiftVolunteers.findIndex(
-        (x) => x.accountId == context.account.id,
-      ) != -1
-    ) {
+    const shiftVolunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+        status: {
+          in: [ShiftVolunteerStatus.Pending, ShiftVolunteerStatus.Approved],
+        },
+      },
+    });
+    if (shiftVolunteer != null) {
       throw new VolunteerHasAlreadyJoinedShiftException();
     }
 
@@ -97,8 +117,87 @@ export class ShiftVolunteerService extends AbstractService {
     const res = await this.prisma.volunteerShift.create({
       data: {
         accountId: context.account.id,
-        status: VolunteerShiftStatus.Pending,
+        status: ShiftVolunteerStatus.Pending,
         shiftId: shiftId,
+      },
+    });
+
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async cancelJoin(
+    context: RequestContext,
+    shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    this.logCaller(context, this.cancelJoin);
+
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+
+    const shiftVolunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+        status: ShiftVolunteerStatus.Pending,
+      },
+    });
+    if (shiftVolunteer == null) {
+      throw new InvalidStatusException();
+    }
+
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: shiftVolunteer.id,
+      },
+      data: {
+        status: ShiftVolunteerStatus.Cancelled,
+      },
+    });
+
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async leave(
+    context: RequestContext,
+    shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    this.logCaller(context, this.leave);
+    const shift = await this.prisma.shift.findFirst({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const shiftVolunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+        status: ShiftVolunteerStatus.Approved,
+      },
+    });
+    if (shiftVolunteer == null) {
+      throw new InvalidStatusException();
+    }
+
+    const currentDate = new Date();
+    if (shift.startTime < currentDate) {
+      throw new ShiftHasAlreadyStartedException();
+    }
+
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: shiftVolunteer.id,
+      },
+      data: {
+        status: ShiftVolunteerStatus.Leaved,
       },
     });
 
@@ -115,7 +214,7 @@ export class ShiftVolunteerService extends AbstractService {
     const res = await this.prisma.volunteerShift.create({
       data: {
         ...dto,
-        status: VolunteerShiftStatus.Pending,
+        status: ShiftVolunteerStatus.Pending,
         shiftId: shiftId,
       },
     });
@@ -131,12 +230,30 @@ export class ShiftVolunteerService extends AbstractService {
   ): Promise<ShiftVolunteerOutputDto> {
     this.logCaller(context, this.update);
 
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+
+    const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (shiftVolunteer == null) {
+      throw new InvalidStatusException();
+    }
+    if (shiftVolunteer.status != ShiftVolunteerStatus.Approved) {
+      throw new InvalidStatusException();
+    }
+
     const res = await this.prisma.volunteerShift.update({
       where: {
-        shiftId_accountId: {
-          shiftId: shiftId,
-          accountId: id,
-        },
+        id: id,
       },
       data: dto,
     });
@@ -144,20 +261,38 @@ export class ShiftVolunteerService extends AbstractService {
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  async updateStatus(
+  async updateRegistrationStatus(
     context: RequestContext,
     shiftId: number,
     id: number,
     dto: UpdateShiftVolunteerStatus,
   ): Promise<ShiftVolunteerOutputDto> {
-    this.logCaller(context, this.updateStatus);
+    this.logCaller(context, this.updateRegistrationStatus);
+
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+
+    const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (shiftVolunteer == null) {
+      throw new InvalidStatusException();
+    }
+    if (shiftVolunteer.status != ShiftVolunteerStatus.Pending) {
+      throw new InvalidStatusException();
+    }
 
     const res = await this.prisma.volunteerShift.update({
       where: {
-        shiftId_accountId: {
-          shiftId: shiftId,
-          accountId: id,
-        },
+        id: id,
       },
       data: {
         status: dto.status,
@@ -168,47 +303,44 @@ export class ShiftVolunteerService extends AbstractService {
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  async delete(
+  async remove(
     context: RequestContext,
     shiftId: number,
     id: number,
   ): Promise<ShiftVolunteerOutputDto> {
-    this.logCaller(context, this.delete);
+    this.logCaller(context, this.remove);
 
-    const res = await this.prisma.volunteerShift.delete({
-      where: {
-        shiftId_accountId: {
-          shiftId: shiftId,
-          accountId: id,
-        },
-      },
-    });
-
-    return this.output(ShiftVolunteerOutputDto, res);
-  }
-
-  async leave(
-    context: RequestContext,
-    shiftId: number,
-  ): Promise<ShiftVolunteerOutputDto> {
-    this.logCaller(context, this.leave);
-    const shift = await this.prisma.shift.findFirst({
+    const shift = await this.prisma.shift.findUnique({
       where: {
         id: shiftId,
-        shiftVolunteers: {
-          some: {
-            accountId: context.account.id,
-          },
-        },
       },
     });
     if (shift == null) {
       throw new ShiftNotFoundException();
     }
-    const currentDate = new Date();
-    if (shift.startTime < currentDate) {
-      throw new ShiftHasAlreadyStartedException();
+
+    const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (shiftVolunteer == null) {
+      throw new VolunteerHasNotJoinedShiftException();
     }
-    return this.delete(context, shiftId, context.account.id);
+    if (shiftVolunteer.status != ShiftVolunteerStatus.Approved) {
+      throw new VolunteerStatusNotApprovedException();
+    }
+
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: id,
+      },
+      data: {
+        status: ShiftVolunteerStatus.Removed,
+        censorId: context.account.id,
+      },
+    });
+
+    return this.output(ShiftVolunteerOutputDto, res);
   }
 }

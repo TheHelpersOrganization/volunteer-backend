@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateShiftVolunteerInputDto,
@@ -20,21 +12,21 @@ import { ShiftVolunteerService } from '../services';
 export class ShiftVolunteerController {
   constructor(private readonly shiftVolunteerService: ShiftVolunteerService) {}
 
-  @Get()
-  async getByShiftId(
+  // @Get(':id')
+  // async getById(
+  //   @ReqContext() context: RequestContext,
+  //   @Param('shiftId') shiftId: number,
+  //   @Param('id') id: number,
+  // ): Promise<ShiftVolunteerOutputDto | null> {
+  //   return this.shiftVolunteerService.getById(context, shiftId, id);
+  // }
+
+  @Get('me')
+  async getMe(
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
   ): Promise<ShiftVolunteerOutputDto[]> {
-    return this.shiftVolunteerService.getByShiftId(context, shiftId);
-  }
-
-  @Get(':id')
-  async getById(
-    @ReqContext() context: RequestContext,
-    @Param('shiftId') shiftId: number,
-    @Param('id') id: number,
-  ): Promise<ShiftVolunteerOutputDto | null> {
-    return this.shiftVolunteerService.getById(context, shiftId, id);
+    return this.shiftVolunteerService.getMe(context, shiftId);
   }
 
   @Post('join')
@@ -45,12 +37,30 @@ export class ShiftVolunteerController {
     return this.shiftVolunteerService.join(context, shiftId);
   }
 
-  @Post('leave')
+  @Put('cancel-join')
+  async cancelJoin(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    return this.shiftVolunteerService.cancelJoin(context, shiftId);
+  }
+
+  @Put('leave')
   async leave(
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
   ): Promise<ShiftVolunteerOutputDto> {
     return this.shiftVolunteerService.leave(context, shiftId);
+  }
+
+  // -- Mod --
+
+  @Get()
+  async getByShiftId(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto[]> {
+    return this.shiftVolunteerService.getByShiftId(context, shiftId);
   }
 
   @Post()
@@ -72,22 +82,27 @@ export class ShiftVolunteerController {
     return this.shiftVolunteerService.update(context, shiftId, id, dto);
   }
 
-  @Put(':id/status')
+  @Put(':id/registration/status')
   async updateStatus(
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
     @Param('id') id: number,
     @Body() dto: UpdateShiftVolunteerStatus,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.updateStatus(context, shiftId, id, dto);
+    return this.shiftVolunteerService.updateRegistrationStatus(
+      context,
+      shiftId,
+      id,
+      dto,
+    );
   }
 
-  @Delete(':id')
+  @Put(':id/status')
   async delete(
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
     @Param('id') id: number,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.delete(context, shiftId, id);
+    return this.shiftVolunteerService.remove(context, shiftId, id);
   }
 }

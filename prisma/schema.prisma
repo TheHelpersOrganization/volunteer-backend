@@ -228,17 +228,17 @@ model OrganizationActivityType {
 }
 
 model Member {
-  accountId      Int
-  organizationId Int
-  status         String
-  account        Account      @relation(name: "memberAccount", fields: [accountId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  censorId       Int?
-  censor         Account?     @relation(name: "memberCensor", fields: [censorId], references: [id], onDelete: SetNull)
-  createdAt      DateTime?    @default(now())
-  updatedAt      DateTime?    @default(now()) @updatedAt
-
-  @@id([accountId, organizationId])
+  id              Int          @id @default(autoincrement())
+  accountId       Int
+  organizationId  Int
+  status          String
+  account         Account      @relation(name: "memberAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  censorId        Int?
+  censor          Account?     @relation(name: "memberCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  rejectionReason String?
+  createdAt       DateTime?    @default(now())
+  updatedAt       DateTime?    @default(now()) @updatedAt
 }
 
 model ActivityActivityType {
@@ -306,19 +306,19 @@ model ShiftSkill {
 }
 
 model VolunteerShift {
-  shiftId    Int
-  accountId  Int
-  attendant  Boolean   @default(false)
-  status     String
-  completion Float     @default(0)
-  censorId   Int?
-  shift      Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
-  account    Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
-  censor     Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
-  createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @default(now()) @updatedAt
-
-  @@id([shiftId, accountId])
+  id              Int       @id @default(autoincrement())
+  shiftId         Int
+  accountId       Int
+  attendant       Boolean   @default(false)
+  status          String
+  completion      Float     @default(0)
+  censorId        Int?
+  shift           Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  account         Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  censor          Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  rejectionReason String?
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @default(now()) @updatedAt
 }
 
 model ShiftManager {

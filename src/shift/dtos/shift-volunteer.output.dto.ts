@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { VolunteerShiftStatus } from '../constants';
+import { ShiftVolunteerStatus } from '../constants';
 
 export class ShiftVolunteerOutputDto {
   @Expose()
@@ -15,5 +15,5 @@ export class ShiftVolunteerOutputDto {
   completion: number;
 
   @Expose()
-  status: VolunteerShiftStatus;
+  status: ShiftVolunteerStatus;
 }
