@@ -1,0 +1,36 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: 'latest'
+        addPipelineData: false
+        addBaseImageData: false
+    - task: AzureWebAppContainer@1
+      inputs:
+        azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
+        appName: 'thehelpers'
+        containers: 'registry.hub.docker.com/cyberproton/volunteer-backend:latest'
