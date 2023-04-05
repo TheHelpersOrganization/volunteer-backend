@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 
+import { Prisma } from '@prisma/client';
 import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
@@ -12,9 +13,13 @@ import {
   DisableOrganizationInputDto,
   OrganizationOutputDto,
   OrganizationQueryDto,
-  VerifyOrganizationInputDto,
+  RejectOrganizationInputDto,
 } from '../dtos';
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
+import {
+  InvalidOrganizationStatusException,
+  OrganizationNotFoundException,
+} from '../exceptions';
 
 @Injectable()
 export class OrganizationService extends AbstractService {
@@ -27,17 +32,98 @@ export class OrganizationService extends AbstractService {
     super(logger);
   }
 
-  async getAll(
+  async getVerifiedOrganizations(
     context: RequestContext,
     query: OrganizationQueryDto,
-  ): Promise<OrganizationOutputDto[]> {
+  ) {
     this.logCaller(context, this.getAll);
+    const accountId = context.account.id;
+
+    let whereMember: Prisma.MemberListRelationFilter | undefined;
+    if (query.joined == null) {
+      whereMember = undefined;
+    } else if (query.joined === true) {
+      whereMember = {
+        some: {
+          accountId: accountId,
+        },
+      };
+    } else {
+      whereMember = {
+        none: {
+          accountId: accountId,
+        },
+      };
+    }
+
     const organizations = await this.prisma.organization.findMany({
       where: {
         name: {
           contains: query.name?.trim(),
           mode: 'insensitive',
         },
+        members: whereMember,
+        status: OrganizationStatus.Verified,
+      },
+      take: query.limit,
+      skip: query.offset,
+      include: {
+        organizationContacts: {
+          include: {
+            contact: true,
+          },
+        },
+        organizationLocations: {
+          include: {
+            location: true,
+          },
+        },
+      },
+    });
+
+    const res = organizations.map((o) => ({
+      ...o,
+      organizationContacts: undefined,
+      organizationLocations: undefined,
+      contacts: o.organizationContacts?.map((c) => c.contact),
+      locations: o.organizationLocations?.map((l) => l.location),
+    }));
+
+    return this.outputArray(OrganizationOutputDto, res);
+  }
+
+  async getAll(
+    context: RequestContext,
+    query: OrganizationQueryDto,
+  ): Promise<OrganizationOutputDto[]> {
+    this.logCaller(context, this.getAll);
+    const accountId = context.account.id;
+
+    let whereMember: Prisma.MemberListRelationFilter | undefined;
+    if (query.joined == null) {
+      whereMember = undefined;
+    } else if (query.joined === true) {
+      whereMember = {
+        some: {
+          accountId: accountId,
+        },
+      };
+    } else {
+      whereMember = {
+        none: {
+          accountId: accountId,
+        },
+      };
+    }
+
+    const organizations = await this.prisma.organization.findMany({
+      where: {
+        name: {
+          contains: query.name?.trim(),
+          mode: 'insensitive',
+        },
+        members: whereMember,
+        status: query.status,
       },
       take: query.limit,
       skip: query.offset,
@@ -248,20 +334,45 @@ export class OrganizationService extends AbstractService {
   async updateStatus(
     context: RequestContext,
     id: number,
-    dto: VerifyOrganizationInputDto,
+    status: OrganizationStatus,
+    dto?: RejectOrganizationInputDto,
   ): Promise<OrganizationOutputDto> {
     this.logCaller(context, this.updateStatus);
-    const verifierId = context.account.id;
-    const org = await this.prisma.organization.update({
+    let verifierId: number | undefined = undefined;
+
+    const org = await this.prisma.organization.findUnique({
+      where: { id: id },
+    });
+    if (org == null) {
+      throw new OrganizationNotFoundException();
+    }
+
+    if (status === OrganizationStatus.Cancelled) {
+      if (org.status !== OrganizationStatus.Pending) {
+        throw new InvalidOrganizationStatusException();
+      }
+    }
+    if (
+      status === OrganizationStatus.Verified ||
+      status === OrganizationStatus.Rejected
+    ) {
+      if (org.status !== OrganizationStatus.Pending) {
+        throw new InvalidOrganizationStatusException();
+      }
+      verifierId = context.account.id;
+    }
+
+    const updated = await this.prisma.organization.update({
       where: { id: id },
       data: {
-        status: dto.isVerified
-          ? OrganizationStatus.Verified
-          : OrganizationStatus.Rejected,
+        status: status,
         verifierId: verifierId,
+        verifierComment: OrganizationStatus.Rejected
+          ? dto?.verifierComment
+          : undefined,
       },
     });
-    return this.output(OrganizationOutputDto, org);
+    return this.output(OrganizationOutputDto, updated);
   }
 
   async updateDisable(

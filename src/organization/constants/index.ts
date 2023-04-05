@@ -9,5 +9,5 @@ export enum OrganizationMemberStatus {
   Approved = 'approved',
   Rejected = 'rejected',
   Removed = 'removed',
-  Leaved = 'leaved',
+  Left = 'left',
 }

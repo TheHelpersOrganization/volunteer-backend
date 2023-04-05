@@ -1,6 +1,12 @@
 import { HttpStatus } from '@nestjs/common';
 import { BaseApiException } from 'src/common/exceptions';
 
+export class InvalidOrganizationStatusException extends BaseApiException {
+  constructor() {
+    super('Invalid organization status');
+  }
+}
+
 export class OrganizationNotFoundException extends BaseApiException {
   constructor() {
     super('Organization not found', undefined, HttpStatus.NOT_FOUND);

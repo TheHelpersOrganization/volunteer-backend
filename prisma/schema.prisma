@@ -122,6 +122,7 @@ model Organization {
   owner                     Account                    @relation(name: "organizationOwner", fields: [ownerId], references: [id])
   verifierId                Int?
   verifier                  Account?                   @relation(name: "organizationVerifier", fields: [verifierId], references: [id])
+  verifierComment           String?
   organizationFiles         OrganizationFile[]
   organizationLocations     OrganizationLocation[]
   organizationContacts      OrganizationContact[]
