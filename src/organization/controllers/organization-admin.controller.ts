@@ -21,7 +21,7 @@ export class OrganizationAdminController {
     @ReqContext() context: RequestContext,
     @Query() query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
-    return this.organizationService.getAll(context, query);
+    return this.organizationService.get(context, query);
   }
 
   @Get(':id')

@@ -1,4 +1,6 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Role } from 'src/auth/constants';
+import { RequireRoles } from 'src/auth/decorators';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateOrganizationInputDto,
@@ -8,6 +10,7 @@ import {
 } from '../dtos';
 import { OrganizationService } from '../services';
 
+@RequireRoles(Role.Moderator)
 @Controller('mod/organizations')
 export class OrganizationModController {
   constructor(private readonly organizationService: OrganizationService) {}
@@ -20,12 +23,21 @@ export class OrganizationModController {
     return this.organizationService.getVerifiedOrganizations(context, query);
   }
 
-  @Get(':id')
+  @Get('me')
   async getVerifiedById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
+    @Query() query: OrganizationQueryDto,
   ) {
-    return this.organizationService.getById(context, id);
+    return this.organizationService.getOwnedOrganizations(context, query);
+  }
+
+  @Get(':id')
+  async getOrganizationById(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ) {
+    return this.organizationService.getOwnedOrganizationById(context, id);
   }
 
   @Put(':id')

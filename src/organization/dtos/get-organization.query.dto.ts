@@ -19,4 +19,8 @@ export class OrganizationQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsBooleanString()
   joined?: boolean;
+
+  @IsOptional()
+  @IsBooleanString()
+  owner?: boolean;
 }
