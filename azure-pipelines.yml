@@ -1,0 +1,34 @@
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: BuildAndDeploy
+  displayName: Build docker image and deploy to AppService
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: 'latest'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
+        appType: 'webAppContainer'
+        WebAppName: 'thehelpers'
+        DockerNamespace: 'registry.hub.docker.com'
+        DockerRepository: 'cyberproton/volunteer-backend'
+        DockerImageTag: 'latest'
