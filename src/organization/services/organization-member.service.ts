@@ -171,7 +171,7 @@ export class OrganizationMemberService extends AbstractService {
         id: member.id,
       },
       data: {
-        status: OrganizationMemberStatus.Leaved,
+        status: OrganizationMemberStatus.Left,
       },
     });
 

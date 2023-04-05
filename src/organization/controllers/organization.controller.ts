@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 
 import { ReqContext, RequestContext } from '../../common/request-context';
+import { OrganizationStatus } from '../constants';
 import {
   DisableOrganizationInputDto,
   OrganizationOutputDto,
   OrganizationQueryDto,
-  VerifyOrganizationInputDto,
+  RejectOrganizationInputDto,
 } from '../dtos';
 import { CreateOrganizationInputDto } from '../dtos/create-organization.input.dto';
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
@@ -16,19 +17,11 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Get()
-  getAll(
+  getVerified(
     @ReqContext() context: RequestContext,
     @Query() query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
-    return this.organizationService.getAll(context, query);
-  }
-
-  @Get(':id')
-  getById(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-  ): Promise<OrganizationOutputDto | null> {
-    return this.organizationService.getById(context, id);
+    return this.organizationService.getVerifiedOrganizations(context, query);
   }
 
   @Put(':id')
@@ -49,14 +42,50 @@ export class OrganizationController {
   }
 
   // -- Admin --
+  @Get('all')
+  getAll(
+    @ReqContext() context: RequestContext,
+    @Query() query: OrganizationQueryDto,
+  ): Promise<OrganizationOutputDto[]> {
+    return this.organizationService.getAll(context, query);
+  }
 
-  @Put(':id/verify')
+  @Post(':id/verify')
   async verify(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
-    @Body() dto: VerifyOrganizationInputDto,
   ): Promise<OrganizationOutputDto> {
-    return this.organizationService.updateStatus(context, id, dto);
+    return this.organizationService.updateStatus(
+      context,
+      id,
+      OrganizationStatus.Verified,
+    );
+  }
+
+  @Post(':id/cancel-verify')
+  async cancelVerify(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ): Promise<OrganizationOutputDto> {
+    return this.organizationService.updateStatus(
+      context,
+      id,
+      OrganizationStatus.Cancelled,
+    );
+  }
+
+  @Post(':id/reject')
+  async reject(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+    @Body() dto: RejectOrganizationInputDto,
+  ): Promise<OrganizationOutputDto> {
+    return this.organizationService.updateStatus(
+      context,
+      id,
+      OrganizationStatus.Rejected,
+      dto,
+    );
   }
 
   @Put(':id/disable')
