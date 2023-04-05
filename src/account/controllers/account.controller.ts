@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
   UseInterceptors,
@@ -17,8 +18,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ROLE } from '../../auth/constants/role.constant';
-import { Roles } from '../../auth/decorators/role.decorator';
+import { Role } from '../../auth/constants/role.constant';
+import { RequireRoles } from '../../auth/decorators/role.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import {
@@ -29,6 +30,7 @@ import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
+import { UpdateAccountRolesInputDto } from '../dtos';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
@@ -81,7 +83,7 @@ export class AccountController {
     type: BaseApiErrorResponse,
   })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(ROLE.ADMIN, ROLE.USER)
+  @RequireRoles(Role.Admin, Role.Volunteer)
   async getAccounts(
     @ReqContext() ctx: RequestContext,
     @Query() query: PaginationParamsDto,
@@ -146,5 +148,14 @@ export class AccountController {
 
     const account = await this.accountService.updateAccount(ctx, userId, input);
     return account;
+  }
+
+  @Post(':id/roles')
+  async updateAccountRoles(
+    @ReqContext() ctx: RequestContext,
+    @Param('id') userId: number,
+    @Body() dto: UpdateAccountRolesInputDto,
+  ): Promise<AccountOutputDto> {
+    return this.accountService.updateAccountRoles(ctx, userId, dto);
   }
 }

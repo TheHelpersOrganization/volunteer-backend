@@ -5,7 +5,7 @@ import { createConnection, getConnection } from 'typeorm';
 import { CreateAccountInput } from '../src/account/dtos/account-create-input.dto';
 import { AccountOutputDto } from '../src/account/dtos/account-output.dto';
 import { AccountService } from '../src/account/services/account.service';
-import { ROLE } from '../src/auth/constants/role.constant';
+import { Role } from '../src/auth/constants/role.constant';
 import { LoginInput } from '../src/auth/dtos/auth-login-input.dto';
 import { AccountTokenOutputDto } from '../src/auth/dtos/auth-token-output.dto';
 import { RequestContext } from '../src/common/request-context/request-context.dto';
@@ -58,7 +58,7 @@ export const seedAdminAccount = async (
 }> => {
   const defaultAdmin: CreateAccountInput = {
     password: 'default-admin-password',
-    roles: [ROLE.ADMIN],
+    roles: [Role.Admin],
     isAccountDisabled: false,
     email: 'default-admin@example.com',
   };

@@ -3,7 +3,7 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
-import { OrganizationMemberStatus } from '../constants';
+import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 import { MemberOutputDto } from '../dtos';
 import {
   OrganizationNotFoundException,
@@ -62,9 +62,10 @@ export class OrganizationMemberService extends AbstractService {
     this.logCaller(context, this.join);
     const accountId = context.account.id;
 
-    const organization = await this.prisma.organization.findUnique({
+    const organization = await this.prisma.organization.findFirst({
       where: {
         id: organizationId,
+        status: OrganizationStatus.Verified,
       },
     });
     if (organization == null) {
@@ -106,9 +107,10 @@ export class OrganizationMemberService extends AbstractService {
     this.logCaller(context, this.cancel);
     const accountId = context.account.id;
 
-    const organization = await this.prisma.organization.findUnique({
+    const organization = await this.prisma.organization.findFirst({
       where: {
         id: organizationId,
+        status: OrganizationStatus.Verified,
       },
     });
     if (organization == null) {
@@ -146,9 +148,10 @@ export class OrganizationMemberService extends AbstractService {
     this.logCaller(context, this.leave);
     const accountId = context.account.id;
 
-    const organization = await this.prisma.organization.findUnique({
+    const organization = await this.prisma.organization.findFirst({
       where: {
         id: organizationId,
+        status: OrganizationStatus.Verified,
       },
     });
     if (organization == null) {
@@ -189,9 +192,10 @@ export class OrganizationMemberService extends AbstractService {
   ): Promise<MemberOutputDto> {
     this.logCaller(context, this.approveOrRejectMember);
 
-    const organization = await this.prisma.organization.findUnique({
+    const organization = await this.prisma.organization.findFirst({
       where: {
         id: organizationId,
+        status: OrganizationStatus.Verified,
       },
     });
     if (organization == null) {

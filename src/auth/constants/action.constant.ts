@@ -1,11 +1,7 @@
-/**
- * ACL action list
- */
 export enum Action {
+  Manage = 'manage',
   Create = 'create',
   Read = 'read',
   Update = 'update',
   Delete = 'delete',
-  Manage = 'manage',
-  List = 'list',
 }
