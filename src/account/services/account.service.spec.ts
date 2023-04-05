@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 
-import { ROLE } from '../../auth/constants/role.constant';
+import { Role } from '../../auth/constants/role.constant';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
@@ -24,7 +24,7 @@ describe(AccountService.name, () => {
     id: 6,
     username: 'jhon',
     name: 'Jhon doe',
-    roles: [ROLE.USER],
+    roles: [Role.Volunteer],
   };
 
   const mockedLogger = { setContext: jest.fn(), log: jest.fn() };
@@ -66,7 +66,7 @@ describe(AccountService.name, () => {
         name: user.name,
         username: user.username,
         password: 'plain-password',
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
       };
@@ -80,7 +80,7 @@ describe(AccountService.name, () => {
         name: user.name,
         username: user.username,
         password: 'plain-password',
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
       };
@@ -91,7 +91,7 @@ describe(AccountService.name, () => {
         name: user.name,
         username: user.username,
         password: 'hashed-password',
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
       });
@@ -107,7 +107,7 @@ describe(AccountService.name, () => {
         name: user.name,
         username: user.username,
         password: 'plain-password',
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
       };
@@ -118,7 +118,7 @@ describe(AccountService.name, () => {
         id: user.id,
         name: userInput.name,
         username: userInput.username,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
       });
@@ -151,7 +151,7 @@ describe(AccountService.name, () => {
         id: user.id,
         name: user.name,
         username: user.username,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
       });
     });
 
@@ -179,7 +179,7 @@ describe(AccountService.name, () => {
         id: user.id,
         name: user.name,
         username: user.username,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
       });
     });
 
@@ -237,7 +237,7 @@ describe(AccountService.name, () => {
         id: user.id,
         name: user.name,
         username: user.username,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
       });
     });
   });
@@ -275,7 +275,7 @@ describe(AccountService.name, () => {
         id: user.id,
         name: user.name,
         username: user.username,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
       });
     });
 
@@ -299,7 +299,7 @@ describe(AccountService.name, () => {
         name: 'Default User',
         username: 'default-user',
         password: 'random-password',
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
         createdAt: currentDate,
@@ -314,7 +314,7 @@ describe(AccountService.name, () => {
         name: input.name,
         username: 'default-user',
         password: input.password,
-        roles: [ROLE.USER],
+        roles: [Role.Volunteer],
         isAccountDisabled: false,
         email: 'randomUser@random.com',
         createdAt: currentDate,

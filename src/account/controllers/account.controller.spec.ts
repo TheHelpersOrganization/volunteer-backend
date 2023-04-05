@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ROLE } from '../../auth/constants/role.constant';
+import { Role } from '../../auth/constants/role.constant';
 import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
@@ -55,7 +55,7 @@ describe('UserController', () => {
     id: 1,
     username: 'default-user',
     name: 'default-name',
-    roles: [ROLE.USER],
+    roles: [Role.Volunteer],
     isAccountDisabled: false,
     email: 'e2etester@random.com',
     createdAt: currentDate,

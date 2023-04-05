@@ -10,7 +10,6 @@ import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { ROLE } from '../constants/role.constant';
 import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
@@ -88,8 +87,6 @@ export class AuthService {
   ): Promise<RegisterOutput> {
     this.logger.log(ctx, `${this.register.name} was called`);
 
-    // TODO : Setting default role as USER here. Will add option to change this later via ADMIN users.
-    input.roles = [ROLE.USER];
     input.isAccountDisabled = false;
     input.isAccountVerified = false;
 

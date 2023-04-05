@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 
-import { ROLE } from '../../auth/constants/role.constant';
+import { Role } from '../../auth/constants/role.constant';
 
 export class AccountOutputDto {
   @Expose()
@@ -9,8 +9,8 @@ export class AccountOutputDto {
   id: number;
 
   @Expose()
-  @ApiProperty({ example: [ROLE.USER] })
-  roles: ROLE[];
+  @ApiProperty({ example: [Role.Volunteer] })
+  roles: Role[];
 
   @Expose()
   @ApiProperty()

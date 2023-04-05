@@ -40,20 +40,26 @@ export class OrganizationService extends AbstractService {
     const accountId = context.account.id;
 
     let whereMember: Prisma.MemberListRelationFilter | undefined;
-    if (query.joined == null) {
+    if (query.joined == null && query.memberStatus == null) {
       whereMember = undefined;
-    } else if (query.joined === true) {
-      whereMember = {
-        some: {
-          accountId: accountId,
-        },
-      };
     } else {
-      whereMember = {
-        none: {
-          accountId: accountId,
-        },
-      };
+      whereMember = {};
+      if (query.joined != null) {
+        if (query.joined === true) {
+          whereMember.some = {
+            accountId: accountId,
+          };
+        } else {
+          whereMember.none = {
+            accountId: accountId,
+          };
+        }
+      }
+      if (query.memberStatus != null) {
+        whereMember.every = {
+          status: query.memberStatus,
+        };
+      }
     }
 
     const organizations = await this.prisma.organization.findMany({
@@ -81,13 +87,7 @@ export class OrganizationService extends AbstractService {
       },
     });
 
-    const res = organizations.map((o) => ({
-      ...o,
-      organizationContacts: undefined,
-      organizationLocations: undefined,
-      contacts: o.organizationContacts?.map((c) => c.contact),
-      locations: o.organizationLocations?.map((l) => l.location),
-    }));
+    const res = organizations.map(this.mapRawToDto);
 
     return this.outputArray(OrganizationOutputDto, res);
   }
@@ -141,15 +141,39 @@ export class OrganizationService extends AbstractService {
       },
     });
 
-    const res = organizations.map((o) => ({
-      ...o,
-      organizationContacts: undefined,
-      organizationLocations: undefined,
-      contacts: o.organizationContacts?.map((c) => c.contact),
-      locations: o.organizationLocations?.map((l) => l.location),
-    }));
+    const res = organizations.map(this.mapRawToDto);
 
     return this.outputArray(OrganizationOutputDto, res);
+  }
+
+  async getVerifiedById(
+    context: RequestContext,
+    id: number,
+  ): Promise<OrganizationOutputDto | null> {
+    this.logCaller(context, this.getVerifiedById);
+    this.logCaller(context, this.getAll);
+    const organization = await this.prisma.organization.findFirst({
+      where: {
+        id: id,
+        status: OrganizationStatus.Verified,
+      },
+      include: {
+        organizationContacts: {
+          include: {
+            contact: true,
+          },
+        },
+        organizationLocations: {
+          include: {
+            location: true,
+          },
+        },
+      },
+    });
+    if (organization == null) {
+      return null;
+    }
+    return this.mapRawToDto(organization);
   }
 
   async getById(
@@ -177,15 +201,7 @@ export class OrganizationService extends AbstractService {
     if (organization == null) {
       return null;
     }
-    const res = {
-      ...organization,
-      organizationContacts: undefined,
-      organizationLocations: undefined,
-      contacts: organization.organizationContacts?.map((c) => c.contact),
-      locations: organization.organizationLocations?.map((l) => l.location),
-    };
-
-    return this.output(OrganizationOutputDto, res);
+    return this.mapRawToDto(organization);
   }
 
   async create(
@@ -251,14 +267,7 @@ export class OrganizationService extends AbstractService {
         timeout: 15000,
       },
     );
-    const res = {
-      ...org,
-      organizationContacts: undefined,
-      organizationLocations: undefined,
-      contacts: org.organizationContacts?.map((c) => c.contact) ?? [],
-      locations: org.organizationLocations?.map((l) => l.location) ?? [],
-    };
-    return this.output(OrganizationOutputDto, res);
+    return this.mapRawToDto(org);
   }
 
   async update(
@@ -321,14 +330,7 @@ export class OrganizationService extends AbstractService {
         timeout: 15000,
       },
     );
-    const res = {
-      ...org,
-      organizationContacts: undefined,
-      organizationLocations: undefined,
-      contacts: org.organizationContacts?.map((c) => c.contact) ?? [],
-      locations: org.organizationLocations?.map((l) => l.location) ?? [],
-    };
-    return this.output(OrganizationOutputDto, res);
+    return this.mapRawToDto(org);
   }
 
   async updateStatus(
@@ -388,5 +390,16 @@ export class OrganizationService extends AbstractService {
       },
     });
     return this.output(OrganizationOutputDto, org);
+  }
+
+  private mapRawToDto(raw: any): OrganizationOutputDto {
+    const res = {
+      ...raw,
+      organizationContacts: undefined,
+      organizationLocations: undefined,
+      contacts: raw.organizationContacts?.map((c) => c.contact) ?? [],
+      locations: raw.organizationLocations?.map((l) => l.location) ?? [],
+    };
+    return this.output(OrganizationOutputDto, res);
   }
 }

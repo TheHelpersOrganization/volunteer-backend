@@ -2,7 +2,7 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 
-import { ROLE } from '../../src/auth/constants/role.constant';
+import { Role } from '../../src/auth/constants/role.constant';
 import { LoginInput } from '../../src/auth/dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../../src/auth/dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../../src/auth/dtos/auth-register-input.dto';
@@ -44,7 +44,7 @@ describe('AuthController (e2e)', () => {
   describe('register a new user', () => {
     const registerInput: RegisterInput = {
       password: '12345678',
-      roles: [ROLE.USER],
+      roles: [Role.Volunteer],
       isAccountDisabled: false,
       email: 'e2etester@random.com',
     };
@@ -53,7 +53,7 @@ describe('AuthController (e2e)', () => {
       id: 2,
       name: 'e2etester',
       username: 'e2etester',
-      roles: [ROLE.USER],
+      roles: [Role.Volunteer],
       isAccountDisabled: false,
       email: 'e2etester@random.com',
     };

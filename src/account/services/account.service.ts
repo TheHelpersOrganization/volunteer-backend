@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
+import { Role } from 'src/auth/constants';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UpdateAccountRolesInputDto } from '../dtos';
 import { CreateAccountInput } from '../dtos/account-create-input.dto';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
@@ -40,8 +42,21 @@ export class AccountService {
     delete account['roles'];
 
     this.logger.log(ctx, `creating account`);
+    const volunteerRoleId = await this.prisma.role.findUnique({
+      where: { name: Role.Volunteer },
+    });
+    if (volunteerRoleId == null) {
+      throw new InternalServerErrorException('Cannot register account');
+    }
     const { id } = await this.prisma.account.create({
-      data: account,
+      data: {
+        ...account,
+        accountRole: {
+          create: {
+            roleId: volunteerRoleId.id,
+          },
+        },
+      },
     });
 
     return plainToInstance(
@@ -63,13 +78,24 @@ export class AccountService {
     this.logger.log(ctx, `find account`);
     const account = await this.prisma.account.findUnique({
       where: { email: email },
+      include: {
+        accountRole: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
     if (!account) throw new AccountNotFoundException();
 
     const match = await compare(pass, account.password);
     if (!match) throw new AccountNotFoundException();
 
-    return plainToInstance(AccountOutputDto, account, {
+    const res = {
+      ...account,
+      roles: account.accountRole.map((r) => r.role.name),
+    };
+    return plainToInstance(AccountOutputDto, res, {
       excludeExtraneousValues: true,
     });
   }
@@ -174,6 +200,26 @@ export class AccountService {
     });
 
     return plainToInstance(AccountOutputDto, verifiedAccount, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async updateAccountRoles(
+    ctx: RequestContext,
+    id: number,
+    dto: UpdateAccountRolesInputDto,
+  ): Promise<AccountOutputDto> {
+    this.logger.log(ctx, `${this.updateAccountRoles.name} was called`);
+
+    const roles = dto.roles;
+    const account = await this.prisma.account.findUnique({
+      where: { id: id },
+    });
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    return plainToInstance(AccountOutputDto, account, {
       excludeExtraneousValues: true,
     });
   }

@@ -7,7 +7,7 @@ import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { ROLE } from '../constants/role.constant';
+import { Role } from '../constants/role.constant';
 import {
   AccountAccessTokenClaims,
   AccountTokenOutputDto,
@@ -20,14 +20,14 @@ describe('AuthService', () => {
   const accessTokenClaims: AccountAccessTokenClaims = {
     id: 6,
     username: 'jhon',
-    roles: [ROLE.USER],
+    roles: [Role.Volunteer],
   };
 
   const registerInput = {
     username: 'jhon',
     name: 'Jhon doe',
     password: 'any password',
-    roles: [ROLE.USER],
+    roles: [Role.Volunteer],
     isAccountDisabled: false,
     email: 'randomUser@random.com',
   };
@@ -37,7 +37,7 @@ describe('AuthService', () => {
   const userOutput: AccountOutputDto = {
     username: 'jhon',
     name: 'Jhon doe',
-    roles: [ROLE.USER],
+    roles: [Role.Volunteer],
     isAccountDisabled: false,
     email: 'randomUser@random.com',
     createdAt: currentDate,
@@ -181,13 +181,13 @@ describe('AuthService', () => {
   describe('getAuthToken', () => {
     const accessTokenExpiry = 100;
     const refreshTokenExpiry = 200;
-    const user = { id: 5, username: 'username', roles: [ROLE.USER] };
+    const user = { id: 5, username: 'username', roles: [Role.Volunteer] };
 
     const subject = { sub: user.id };
     const payload = {
       username: user.username,
       sub: user.id,
-      roles: [ROLE.USER],
+      roles: [Role.Volunteer],
     };
 
     beforeEach(() => {

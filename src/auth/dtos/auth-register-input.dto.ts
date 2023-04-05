@@ -12,7 +12,7 @@ import {
   PASSWORD_MIN_LENGTH,
 } from 'src/account/constants/account.constant';
 
-import { ROLE } from '../constants/role.constant';
+import { Role } from '../constants/role.constant';
 
 export class RegisterInput {
   @ApiProperty()
@@ -28,7 +28,7 @@ export class RegisterInput {
   password: string;
 
   // These keys can only be set by ADMIN user.
-  roles: ROLE[] = [ROLE.USER];
+  roles: Role[] = [Role.Volunteer];
   isAccountDisabled: boolean;
   isAccountVerified: boolean;
 }

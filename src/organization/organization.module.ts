@@ -5,14 +5,21 @@ import { ContactModule } from '../contact/contact.module';
 import { FileModule } from '../file/file.module';
 import { LocationModule } from '../location/location.module';
 import {
+  OrganizationAdminController,
   OrganizationController,
   OrganizationMemberController,
+  OrganizationModController,
 } from './controllers';
 import { OrganizationMemberService, OrganizationService } from './services';
 
 @Module({
   imports: [CommonModule, FileModule, LocationModule, ContactModule],
-  controllers: [OrganizationController, OrganizationMemberController],
+  controllers: [
+    OrganizationController,
+    OrganizationMemberController,
+    OrganizationAdminController,
+    OrganizationModController,
+  ],
   providers: [OrganizationService, OrganizationMemberService],
   exports: [OrganizationService, OrganizationMemberService],
 })
