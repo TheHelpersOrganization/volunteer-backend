@@ -1,7 +1,3 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
 - master
 
@@ -12,8 +8,8 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
-  displayName: Build image
+- stage: BuildAndDeploy
+  displayName: Build docker image and deploy to AppService
   jobs:
   - job: Build
     displayName: Build
@@ -21,9 +17,18 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      displayName: Build an image
       inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: |
-          $(tag)
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: 'latest'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
+        appType: 'webAppContainer'
+        WebAppName: 'thehelpers'
+        DockerNamespace: 'hub.docker.com'
+        DockerRepository: 'cyberproton/volunteer-backend'
+        DockerImageTag: 'latest'
