@@ -32,89 +32,12 @@ export class OrganizationService extends AbstractService {
     super(logger);
   }
 
-  async getVerifiedOrganizations(
-    context: RequestContext,
-    query: OrganizationQueryDto,
-  ) {
-    this.logCaller(context, this.getAll);
-    const accountId = context.account.id;
-
-    let whereMember: Prisma.MemberListRelationFilter | undefined;
-    if (query.joined == null && query.memberStatus == null) {
-      whereMember = undefined;
-    } else {
-      whereMember = {};
-      if (query.joined != null) {
-        if (query.joined === true) {
-          whereMember.some = {
-            accountId: accountId,
-          };
-        } else {
-          whereMember.none = {
-            accountId: accountId,
-          };
-        }
-      }
-      if (query.memberStatus != null) {
-        whereMember.every = {
-          status: query.memberStatus,
-        };
-      }
-    }
-
-    const organizations = await this.prisma.organization.findMany({
-      where: {
-        name: {
-          contains: query.name?.trim(),
-          mode: 'insensitive',
-        },
-        members: whereMember,
-        status: OrganizationStatus.Verified,
-      },
-      take: query.limit,
-      skip: query.offset,
-      include: {
-        organizationContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        organizationLocations: {
-          include: {
-            location: true,
-          },
-        },
-      },
-    });
-
-    const res = organizations.map(this.mapRawToDto);
-
-    return this.outputArray(OrganizationOutputDto, res);
-  }
-
-  async getAll(
+  async get(
     context: RequestContext,
     query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
-    this.logCaller(context, this.getAll);
+    this.logCaller(context, this.get);
     const accountId = context.account.id;
-
-    let whereMember: Prisma.MemberListRelationFilter | undefined;
-    if (query.joined == null) {
-      whereMember = undefined;
-    } else if (query.joined === true) {
-      whereMember = {
-        some: {
-          accountId: accountId,
-        },
-      };
-    } else {
-      whereMember = {
-        none: {
-          accountId: accountId,
-        },
-      };
-    }
 
     const organizations = await this.prisma.organization.findMany({
       where: {
@@ -122,8 +45,9 @@ export class OrganizationService extends AbstractService {
           contains: query.name?.trim(),
           mode: 'insensitive',
         },
-        members: whereMember,
+        members: this.getMemberQuery(query, accountId),
         status: query.status,
+        ownerId: query.owner ? accountId : undefined,
       },
       take: query.limit,
       skip: query.offset,
@@ -141,49 +65,30 @@ export class OrganizationService extends AbstractService {
       },
     });
 
-    const res = organizations.map(this.mapRawToDto);
+    const res = organizations.map((o) => this.mapRawToDto(o));
 
     return this.outputArray(OrganizationOutputDto, res);
-  }
-
-  async getVerifiedById(
-    context: RequestContext,
-    id: number,
-  ): Promise<OrganizationOutputDto | null> {
-    this.logCaller(context, this.getVerifiedById);
-    this.logCaller(context, this.getAll);
-    const organization = await this.prisma.organization.findFirst({
-      where: {
-        id: id,
-        status: OrganizationStatus.Verified,
-      },
-      include: {
-        organizationContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        organizationLocations: {
-          include: {
-            location: true,
-          },
-        },
-      },
-    });
-    if (organization == null) {
-      return null;
-    }
-    return this.mapRawToDto(organization);
   }
 
   async getById(
     context: RequestContext,
     id: number,
+    query?: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto | null> {
-    this.logCaller(context, this.getAll);
+    this.logCaller(context, this.get);
     const organization = await this.prisma.organization.findUnique({
       where: {
         id: id,
+        name: {
+          contains: query?.name?.trim(),
+          mode: 'insensitive',
+        },
+        members:
+          query != null
+            ? this.getMemberQuery(query, context.account.id)
+            : undefined,
+        status: query?.status,
+        ownerId: query?.owner ? context.account.id : undefined,
       },
       include: {
         organizationContacts: {
@@ -202,6 +107,72 @@ export class OrganizationService extends AbstractService {
       return null;
     }
     return this.mapRawToDto(organization);
+  }
+
+  private getMemberQuery(query: OrganizationQueryDto, accountId: number) {
+    if (query.joined == null && query.memberStatus == null) {
+      return undefined;
+    }
+    const whereMember: Prisma.MemberListRelationFilter | undefined = {};
+    if (query.joined != null) {
+      if (query.joined === true) {
+        whereMember.some = {
+          accountId: accountId,
+        };
+      } else {
+        whereMember.none = {
+          accountId: accountId,
+        };
+      }
+    }
+    if (query.memberStatus != null) {
+      whereMember.every = {
+        status: query.memberStatus,
+      };
+    }
+    return whereMember;
+  }
+
+  async getVerifiedOrganizations(
+    context: RequestContext,
+    query: OrganizationQueryDto,
+  ) {
+    this.logCaller(context, this.getVerifiedOrganizations);
+    query.status = OrganizationStatus.Verified;
+    return this.get(context, query);
+  }
+
+  async getVerifiedOrganizationById(
+    context: RequestContext,
+    id: number,
+  ): Promise<OrganizationOutputDto | null> {
+    this.logCaller(context, this.getVerifiedOrganizationById);
+    return this.getById(context, id, {
+      status: OrganizationStatus.Verified,
+      limit: 1,
+      offset: 0,
+    });
+  }
+
+  async getOwnedOrganizations(
+    context: RequestContext,
+    query: OrganizationQueryDto,
+  ) {
+    this.logCaller(context, this.getOwnedOrganizations);
+    query.owner = true;
+    return this.get(context, query);
+  }
+
+  async getOwnedOrganizationById(
+    context: RequestContext,
+    id: number,
+  ): Promise<OrganizationOutputDto | null> {
+    this.logCaller(context, this.getOwnedOrganizationById);
+    return this.getById(context, id, {
+      owner: true,
+      limit: 1,
+      offset: 0,
+    });
   }
 
   async create(
@@ -285,7 +256,8 @@ export class OrganizationService extends AbstractService {
     const org = await this.prisma.$transaction(
       async () => {
         const organization = await this.prisma.organization.update({
-          where: { id: id },
+          // Only update if the organization belongs to the user
+          where: { id: id, ownerId: context.account.id },
           data: {
             ...raw,
             organizationLocations: {

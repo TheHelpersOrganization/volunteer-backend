@@ -42,18 +42,21 @@ export class AccountService {
     delete account['roles'];
 
     this.logger.log(ctx, `creating account`);
-    const volunteerRoleId = await this.prisma.role.findUnique({
-      where: { name: Role.Volunteer },
+    const volunteerRoleId = await this.prisma.role.findMany({
+      where: { name: { in: [Role.Volunteer, Role.Moderator] } },
     });
-    if (volunteerRoleId == null) {
+    if (volunteerRoleId.length != 2) {
       throw new InternalServerErrorException('Cannot register account');
     }
     const { id } = await this.prisma.account.create({
       data: {
         ...account,
         accountRole: {
-          create: {
-            roleId: volunteerRoleId.id,
+          createMany: {
+            data: [
+              { roleId: volunteerRoleId[0].id },
+              { roleId: volunteerRoleId[1].id },
+            ],
           },
         },
       },

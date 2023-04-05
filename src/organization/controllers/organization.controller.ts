@@ -9,7 +9,7 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Get()
-  getVerified(
+  get(
     @ReqContext() context: RequestContext,
     @Query() query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
@@ -17,10 +17,10 @@ export class OrganizationController {
   }
 
   @Get(':id')
-  async getVerifiedById(
+  async getById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
   ) {
-    return this.organizationService.getVerifiedById(context, id);
+    return this.organizationService.getVerifiedOrganizationById(context, id);
   }
 }
