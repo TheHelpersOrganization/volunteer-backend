@@ -42,5 +42,5 @@ export class OrganizationOutputDto {
 
   @Expose()
   @Type(() => MemberOutputDto)
-  myMember: MemberOutputDto;
+  myMembers: MemberOutputDto[];
 }
