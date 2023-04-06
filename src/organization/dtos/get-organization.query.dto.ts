@@ -1,5 +1,7 @@
-import { IsBooleanString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
+import { Transform } from 'class-transformer';
+import { stringToBoolean } from 'src/common/transformers';
 import { PaginationParamsDto } from '../../common/dtos';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 
@@ -17,10 +19,12 @@ export class OrganizationQueryDto extends PaginationParamsDto {
   memberStatus?: OrganizationMemberStatus;
 
   @IsOptional()
-  @IsBooleanString()
+  @Transform(stringToBoolean)
+  @IsBoolean()
   joined?: boolean;
 
   @IsOptional()
-  @IsBooleanString()
+  @Transform(stringToBoolean)
+  @IsBoolean()
   owner?: boolean;
 }

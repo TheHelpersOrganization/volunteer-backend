@@ -62,3 +62,13 @@ export const unionLocationsTransform = (
   dto.country = country;
   return dto;
 };
+
+export const stringToBoolean = (params: TransformFnParams) => {
+  if (params.value === 'true') {
+    return true;
+  }
+  if (params.value === 'false') {
+    return false;
+  }
+  return params;
+};
