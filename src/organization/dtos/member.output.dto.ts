@@ -19,4 +19,7 @@ export class MemberOutputDto {
 
   @Expose()
   rejectionReason?: string;
+
+  @Expose()
+  updatedAt: Date;
 }

@@ -64,14 +64,19 @@ export class OrganizationService extends AbstractService {
         },
         members: {
           where: {
-            status: OrganizationMemberStatus.Approved,
+            OR: [
+              {
+                status: OrganizationMemberStatus.Approved,
+              },
+              {
+                accountId: accountId,
+              },
+            ],
           },
         },
       },
     });
-    const res = organizations.map((o) =>
-      this.mapRawToDto(o, context.account.id),
-    );
+    const res = organizations.map((o) => this.mapRawToDto(o, accountId));
 
     return this.outputArray(OrganizationOutputDto, res);
   }
@@ -402,11 +407,13 @@ export class OrganizationService extends AbstractService {
       organizationLocations: undefined,
       contacts: raw.organizationContacts?.map((c) => c.contact) ?? [],
       locations: raw.organizationLocations?.map((l) => l.location) ?? [],
-      numberOfMembers: raw.members?.length,
-      myMember:
+      numberOfMembers: raw.members?.filter(
+        (m) => m.status === OrganizationMemberStatus.Approved,
+      ).length,
+      myMembers:
         accountId == null
           ? undefined
-          : raw.members?.find((m) => m.accountId === accountId),
+          : raw.members?.filter((m) => m.accountId === accountId),
     };
     return this.output(OrganizationOutputDto, res);
   }
