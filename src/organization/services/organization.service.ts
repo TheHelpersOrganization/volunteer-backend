@@ -7,7 +7,7 @@ import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OrganizationStatus } from '../constants';
+import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 import {
   CreateOrganizationInputDto,
   DisableOrganizationInputDto,
@@ -118,10 +118,22 @@ export class OrganizationService extends AbstractService {
       if (query.joined === true) {
         whereMember.some = {
           accountId: accountId,
+          status: {
+            in: [
+              OrganizationMemberStatus.Pending,
+              OrganizationMemberStatus.Approved,
+            ],
+          },
         };
       } else {
         whereMember.none = {
           accountId: accountId,
+          status: {
+            in: [
+              OrganizationMemberStatus.Pending,
+              OrganizationMemberStatus.Approved,
+            ],
+          },
         };
       }
     }
