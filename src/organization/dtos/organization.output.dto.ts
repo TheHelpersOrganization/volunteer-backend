@@ -2,6 +2,7 @@ import { Expose, Type } from 'class-transformer';
 
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
+import { MemberOutputDto } from './member.output.dto';
 
 export class OrganizationOutputDto {
   @Expose()
@@ -35,4 +36,11 @@ export class OrganizationOutputDto {
   @Expose()
   @Type(() => ContactOutputDto)
   contacts: ContactOutputDto[];
+
+  @Expose()
+  numberOfMembers: number;
+
+  @Expose()
+  @Type(() => MemberOutputDto)
+  myMember: MemberOutputDto;
 }
