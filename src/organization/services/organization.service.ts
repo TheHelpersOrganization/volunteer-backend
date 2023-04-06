@@ -62,10 +62,16 @@ export class OrganizationService extends AbstractService {
             location: true,
           },
         },
+        members: {
+          where: {
+            status: OrganizationMemberStatus.Approved,
+          },
+        },
       },
     });
-
-    const res = organizations.map((o) => this.mapRawToDto(o));
+    const res = organizations.map((o) =>
+      this.mapRawToDto(o, context.account.id),
+    );
 
     return this.outputArray(OrganizationOutputDto, res);
   }
@@ -101,12 +107,17 @@ export class OrganizationService extends AbstractService {
             location: true,
           },
         },
+        members: {
+          where: {
+            status: OrganizationMemberStatus.Approved,
+          },
+        },
       },
     });
     if (organization == null) {
       return null;
     }
-    return this.mapRawToDto(organization);
+    return this.mapRawToDto(organization, context.account.id);
   }
 
   private getMemberQuery(query: OrganizationQueryDto, accountId: number) {
@@ -229,6 +240,13 @@ export class OrganizationService extends AbstractService {
             organizationContacts: {
               createMany: {
                 data: contactIds,
+              },
+            },
+            // Must be created after the organization is created
+            members: {
+              create: {
+                accountId: context.account.id,
+                status: OrganizationMemberStatus.Approved,
               },
             },
           },
@@ -377,13 +395,18 @@ export class OrganizationService extends AbstractService {
     return this.output(OrganizationOutputDto, org);
   }
 
-  private mapRawToDto(raw: any): OrganizationOutputDto {
+  private mapRawToDto(raw: any, accountId?: number): OrganizationOutputDto {
     const res = {
       ...raw,
       organizationContacts: undefined,
       organizationLocations: undefined,
       contacts: raw.organizationContacts?.map((c) => c.contact) ?? [],
       locations: raw.organizationLocations?.map((l) => l.location) ?? [],
+      numberOfMembers: raw.members?.length,
+      myMember:
+        accountId == null
+          ? undefined
+          : raw.members?.find((m) => m.accountId === accountId),
     };
     return this.output(OrganizationOutputDto, res);
   }
