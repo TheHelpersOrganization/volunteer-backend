@@ -26,7 +26,6 @@ export class OrganizationModController {
   @Get('me')
   async getVerifiedById(
     @ReqContext() context: RequestContext,
-    @Param('id') id: number,
     @Query() query: OrganizationQueryDto,
   ) {
     return this.organizationService.getOwnedOrganizations(context, query);
