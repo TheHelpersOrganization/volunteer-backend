@@ -126,7 +126,8 @@ export class OrganizationService extends AbstractService {
       }
     }
     if (query.memberStatus != null) {
-      whereMember.every = {
+      whereMember.some = {
+        accountId: accountId,
         status: query.memberStatus,
       };
     }
