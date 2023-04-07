@@ -8,6 +8,7 @@ import {
   OrganizationAdminController,
   OrganizationController,
   OrganizationMemberController,
+  OrganizationMemberModController,
   OrganizationModController,
 } from './controllers';
 import { OrganizationMemberService, OrganizationService } from './services';
@@ -16,9 +17,10 @@ import { OrganizationMemberService, OrganizationService } from './services';
   imports: [CommonModule, FileModule, LocationModule, ContactModule],
   controllers: [
     OrganizationController,
-    OrganizationMemberController,
     OrganizationAdminController,
     OrganizationModController,
+    OrganizationMemberController,
+    OrganizationMemberModController,
   ],
   providers: [OrganizationService, OrganizationMemberService],
   exports: [OrganizationService, OrganizationMemberService],

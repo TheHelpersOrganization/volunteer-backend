@@ -1,5 +1,6 @@
 export * from './ban-organization.input.dto';
 export * from './create-organization.input.dto';
+export * from './get-member.query.dto';
 export * from './get-organization.query.dto';
 export * from './member.output.dto';
 export * from './organization.output.dto';
