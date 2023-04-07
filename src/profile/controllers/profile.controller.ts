@@ -9,7 +9,11 @@ import { SwaggerBaseApiResponse } from 'src/common/dtos';
 import { AppLogger } from 'src/common/logger';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
-import { ProfileOutputDto, UpdateProfileInputDto } from '../dtos';
+import {
+  GetProfileInputDto,
+  ProfileOutputDto,
+  UpdateProfileInputDto,
+} from '../dtos';
 import { ProfileService } from '../services';
 
 @ApiTags('profiles')
@@ -20,6 +24,14 @@ export class ProfileController {
     private readonly logger: AppLogger,
   ) {
     this.logger.setContext(ProfileController.name);
+  }
+
+  @Get()
+  async getProfiles(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: GetProfileInputDto,
+  ): Promise<ProfileOutputDto[]> {
+    return this.profileService.getProfiles(ctx, dto);
   }
 
   @Get('me')

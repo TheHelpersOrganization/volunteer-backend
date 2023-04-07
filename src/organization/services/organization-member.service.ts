@@ -39,11 +39,11 @@ export class OrganizationMemberService extends AbstractService {
     return this.outputArray(MemberOutputDto, member);
   }
 
-  async getMany(
+  async getMembers(
     context: RequestContext,
     organizationId: number,
   ): Promise<MemberOutputDto[]> {
-    this.logCaller(context, this.getMany);
+    this.logCaller(context, this.getMembers);
 
     const members = await this.prisma.member.findMany({
       where: {
