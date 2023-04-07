@@ -127,9 +127,20 @@ export class AccountService {
     this.logger.log(ctx, `${this.findById.name} was called`);
     const account = await this.prisma.account.findUnique({
       where: { id: id },
+      include: {
+        accountRole: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
+    const res = {
+      ...account,
+      roles: account?.accountRole.map((r) => r.role.name),
+    };
 
-    return plainToInstance(AccountOutputDto, account, {
+    return plainToInstance(AccountOutputDto, res, {
       excludeExtraneousValues: true,
     });
   }
