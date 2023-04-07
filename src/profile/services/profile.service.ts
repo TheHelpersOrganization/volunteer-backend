@@ -3,10 +3,15 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
+import { Prisma } from '@prisma/client';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma';
-import { ProfileOutputDto, UpdateProfileInputDto } from '../dtos';
+import {
+  GetProfileInputDto,
+  ProfileOutputDto,
+  UpdateProfileInputDto,
+} from '../dtos';
 
 @Injectable()
 export class ProfileService extends AbstractService {
@@ -17,6 +22,32 @@ export class ProfileService extends AbstractService {
   ) {
     super(logger);
     this.logger.setContext(ProfileService.name);
+  }
+
+  async getProfiles(
+    ctx: RequestContext,
+    dto: GetProfileInputDto,
+  ): Promise<ProfileOutputDto[]> {
+    this.logCaller(ctx, this.getProfiles);
+    let where: Prisma.ProfileWhereInput | undefined;
+    if (dto.ids != null) {
+      where = {
+        accountId: {
+          in: dto.ids,
+        },
+      };
+    }
+    const profiles = await this.prisma.profile.findMany({
+      where: where,
+      include: {
+        location: true,
+      },
+    });
+    const res = profiles.map((profile) => ({
+      ...profile,
+      id: profile.accountId,
+    }));
+    return this.outputArray(ProfileOutputDto, res);
   }
 
   async getProfile(
@@ -40,7 +71,11 @@ export class ProfileService extends AbstractService {
         },
       });
     }
-    return this.output(ProfileOutputDto, profile);
+    const res = {
+      ...profile,
+      id: profile.accountId,
+    };
+    return this.output(ProfileOutputDto, res);
   }
 
   /**

@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ProfileOutputDto } from 'src/profile/dtos';
 import { OrganizationMemberStatus } from '../constants';
 
 export class MemberOutputDto {
@@ -7,6 +8,10 @@ export class MemberOutputDto {
 
   @Expose()
   accountId: number;
+
+  @Expose()
+  @Type(() => ProfileOutputDto)
+  accountProfile: ProfileOutputDto;
 
   @Expose()
   organizationId: number;

@@ -5,6 +5,9 @@ import { Gender } from '../constants/profile.constant';
 
 export class ProfileOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   username: string;
 
   @Expose()
