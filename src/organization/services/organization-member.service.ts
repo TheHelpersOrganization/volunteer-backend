@@ -4,7 +4,7 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
-import { MemberOutputDto } from '../dtos';
+import { GetMemberQueryDto, MemberOutputDto } from '../dtos';
 import {
   OrganizationNotFoundException,
   UserHaveAlreadyJoinedOrganizationException,
@@ -42,12 +42,18 @@ export class OrganizationMemberService extends AbstractService {
   async getMembers(
     context: RequestContext,
     organizationId: number,
+    dto?: GetMemberQueryDto,
   ): Promise<MemberOutputDto[]> {
     this.logCaller(context, this.getMembers);
 
     const members = await this.prisma.member.findMany({
       where: {
-        organizationId: organizationId,
+        organization: {
+          id: organizationId,
+        },
+        status: {
+          in: dto?.statuses,
+        },
       },
     });
 

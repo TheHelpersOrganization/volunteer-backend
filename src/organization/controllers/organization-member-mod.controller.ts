@@ -1,11 +1,15 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { OrganizationMemberStatus } from '../constants';
-import { MemberOutputDto, RejectMemberInputDto } from '../dtos';
+import {
+  GetMemberQueryDto,
+  MemberOutputDto,
+  RejectMemberInputDto,
+} from '../dtos';
 import { OrganizationMemberService } from '../services';
 
 @Controller('mod/organizations/:organizationId/members')
-export class ModOrganizationMemberController {
+export class OrganizationMemberModController {
   constructor(
     private readonly organizationMemberService: OrganizationMemberService,
   ) {}
@@ -14,8 +18,13 @@ export class ModOrganizationMemberController {
   async getMembers(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
+    @Body() dto: GetMemberQueryDto,
   ): Promise<MemberOutputDto[]> {
-    return this.organizationMemberService.getMembers(context, organizationId);
+    return this.organizationMemberService.getMembers(
+      context,
+      organizationId,
+      dto,
+    );
   }
 
   @Post(':id/approve')
