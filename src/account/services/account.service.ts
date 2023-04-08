@@ -4,11 +4,12 @@ import { plainToInstance } from 'class-transformer';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
+import { Prisma } from '@prisma/client';
 import { Role } from 'src/auth/constants';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateAccountRolesInputDto } from '../dtos';
+import { GetAccountQueryDto, UpdateAccountRolesInputDto } from '../dtos';
 import { CreateAccountInput } from '../dtos/account-create-input.dto';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
@@ -107,11 +108,17 @@ export class AccountService {
     ctx: RequestContext,
     limit: number,
     offset: number,
+    query?: GetAccountQueryDto,
   ): Promise<{ users: AccountOutputDto[]; count: number }> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     this.logger.log(ctx, `find accounts`);
+    let where: Prisma.AccountWhereInput | undefined = undefined;
+    if (query?.ids) {
+      where = { id: { in: query.ids } };
+    }
     const accounts = await this.prisma.account.findMany({
+      where: where,
       take: limit,
       skip: offset,
     });

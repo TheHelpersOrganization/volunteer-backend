@@ -26,11 +26,10 @@ import {
   BaseApiErrorResponse,
   SwaggerBaseApiResponse,
 } from '../../common/dtos/base-api-response.dto';
-import { PaginationParamsDto } from '../../common/dtos/pagination-params.dto';
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { UpdateAccountRolesInputDto } from '../dtos';
+import { GetAccountQueryDto, UpdateAccountRolesInputDto } from '../dtos';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
@@ -86,7 +85,7 @@ export class AccountController {
   @RequireRoles(Role.Admin, Role.Volunteer)
   async getAccounts(
     @ReqContext() ctx: RequestContext,
-    @Query() query: PaginationParamsDto,
+    @Query() query: GetAccountQueryDto,
   ): Promise<AccountOutputDto[]> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
@@ -94,6 +93,7 @@ export class AccountController {
       ctx,
       query.limit,
       query.offset,
+      query,
     );
 
     return accounts;
