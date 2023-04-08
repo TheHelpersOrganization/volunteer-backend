@@ -113,10 +113,12 @@ export class AccountService {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
     this.logger.log(ctx, `find accounts`);
-    let where: Prisma.AccountWhereInput | undefined = undefined;
+    const where: Prisma.AccountWhereInput | undefined = {};
     if (query?.ids) {
-      where = { id: { in: query.ids } };
+      where.id = { in: query.ids };
     }
+    where.isAccountDisabled = query?.isBanned;
+
     const accounts = await this.prisma.account.findMany({
       where: where,
       take: limit,
