@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { OrganizationMemberStatus } from '../constants';
 import {
@@ -18,7 +18,7 @@ export class OrganizationMemberModController {
   async getMembers(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
-    @Body() dto: GetMemberQueryDto,
+    @Query() dto: GetMemberQueryDto,
   ): Promise<MemberOutputDto[]> {
     return this.organizationMemberService.getMembers(
       context,
