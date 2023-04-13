@@ -22,7 +22,7 @@ stages:
     steps:
     - task: Docker@2
       name: BuildCacheImage
-      displayName: Build docker cache image
+      displayName: Build cache image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend-builder-stage'
@@ -63,7 +63,7 @@ stages:
         addBaseImageData: false
     - task: Docker@2
       name: PushMainImage
-      displayName: Push Main Image
+      displayName: Push main image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend'
