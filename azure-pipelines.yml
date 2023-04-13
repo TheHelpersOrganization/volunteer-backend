@@ -21,6 +21,12 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        command: 'login'
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
       name: BuildCacheImage
       displayName: Build cache image
       inputs:
@@ -71,6 +77,12 @@ stages:
         tags: |
           $(tag)
           latest
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        command: 'logout'
         addPipelineData: false
         addBaseImageData: false
     - task: AzureWebAppContainer@1
