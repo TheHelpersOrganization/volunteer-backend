@@ -21,17 +21,8 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      inputs:
-        containerRegistry: 'Docker Hub'
-        repository: 'cyberproton/volunteer-backend'
-        command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
-        tags: |
-          $(tag)
-          latest
-        addPipelineData: false
-        addBaseImageData: false
-    - task: Docker@2
+      name: BuildCacheImage
+      displayName: Build docker cache image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend-builder-stage'
@@ -41,19 +32,27 @@ stages:
         arguments: '--target builder --cache-from volunteer-backend-builder-stage:latest'
         addPipelineData: false
         addBaseImageData: false
+      env:
+        DOCKER_BUILDKIT: 1
     - task: Docker@2
+      name: BuildMainImage
+      displayName: Build main image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend'
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
-          $(Build.BuildId)
+          $(tag)
           latest
         arguments: '--cache-from volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
         addPipelineData: false
         addBaseImageData: false
+      env:
+        DOCKER_BUILDKIT: 1
     - task: Docker@2
+      name: PushCacheImage
+      displayName: Push cache image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend-builder-stage'
@@ -63,17 +62,17 @@ stages:
         addPipelineData: false
         addBaseImageData: false
     - task: Docker@2
+      name: PushMainImage
+      displayName: Push Main Image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend'
         command: 'push'
         tags: |
-          $(Build.BuildId)
+          $(tag)
           latest
         addPipelineData: false
         addBaseImageData: false
-      env:
-        DOCKER_BUILDKIT: 1
     - task: AzureWebAppContainer@1
       inputs:
         azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
