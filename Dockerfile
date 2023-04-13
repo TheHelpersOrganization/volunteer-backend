@@ -1,24 +1,24 @@
-# lts-gallium refers to v16
-# Using this instead of node:16 to avoid dependabot updates
-FROM node:lts-gallium as builder
+FROM node:18-alpine as builder
+RUN corepack enable && corepack prepare pnpm@latest-8 --activate
 
 WORKDIR /usr/src/app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 ARG APP_ENV=development
 ENV NODE_ENV=${APP_ENV}
 
-RUN npm run prisma:generate
+RUN pnpm run prisma:generate
 
-RUN npm run build
+RUN pnpm run build
 
-RUN npm prune
+RUN pnpm prune
 
-FROM node:lts-gallium
+
+FROM node:18-alpine
 
 ARG APP_ENV=development
 ENV NODE_ENV=${APP_ENV}
