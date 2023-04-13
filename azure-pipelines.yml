@@ -12,11 +12,11 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
-  displayName: Build image
+- stage: Build and push docker image
+  displayName: Build and push docker image
   jobs:
   - job: Build
-    displayName: Build
+    displayName: Build and push docker image
     pool:
       vmImage: ubuntu-latest
     steps:
@@ -26,7 +26,50 @@ stages:
         repository: 'cyberproton/volunteer-backend'
         command: 'buildAndPush'
         Dockerfile: '**/Dockerfile'
-        tags: 'latest'
+        tags: |
+          $(tag)
+          latest
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend-builder-stage'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: latest
+        arguments: '--target builder --cache-from volunteer-backend-builder-stage:latest'
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+        arguments: '--cache-from volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend-builder-stage'
+        command: 'push'
+        tags: |
+          latest
+        addPipelineData: false
+        addBaseImageData: false
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Docker Hub'
+        repository: 'cyberproton/volunteer-backend'
+        command: 'push'
+        tags: |
+          $(Build.BuildId)
+          latest
         addPipelineData: false
         addBaseImageData: false
     - task: AzureWebAppContainer@1
