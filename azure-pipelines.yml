@@ -35,7 +35,7 @@ stages:
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: latest
-        arguments: '--target builder --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/volunteer-backend-builder-stage:latest'
+        arguments: '--target builder --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest'
         addPipelineData: false
         addBaseImageData: false
       env:
@@ -51,7 +51,7 @@ stages:
         tags: |
           $(tag)
           latest
-        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
+        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
         addPipelineData: false
         addBaseImageData: false
       env:
