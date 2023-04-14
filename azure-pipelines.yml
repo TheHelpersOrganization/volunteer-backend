@@ -38,8 +38,6 @@ stages:
         arguments: '--target builder --cache-from volunteer-backend-builder-stage:latest'
         addPipelineData: false
         addBaseImageData: false
-      env:
-        DOCKER_BUILDKIT: 1
     - task: Docker@2
       name: BuildMainImage
       displayName: Build main image
@@ -54,8 +52,6 @@ stages:
         arguments: '--cache-from volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
         addPipelineData: false
         addBaseImageData: false
-      env:
-        DOCKER_BUILDKIT: 1
     - task: Docker@2
       name: PushCacheImage
       displayName: Push cache image
