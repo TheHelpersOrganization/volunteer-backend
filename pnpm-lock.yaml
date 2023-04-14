@@ -16,9 +16,6 @@ dependencies:
   '@googlemaps/google-maps-services-js':
     specifier: ^3.3.27
     version: 3.3.27
-  '@hapi/joi':
-    specifier: ^17.1.1
-    version: 17.1.1
   '@nestjs-modules/mailer':
     specifier: ^1.8.1
     version: 1.8.1(@nestjs/common@9.3.8)(@nestjs/core@9.3.8)(nodemailer@6.9.1)
@@ -49,15 +46,6 @@ dependencies:
   '@prisma/client':
     specifier: ^4.12.0
     version: 4.12.0(prisma@4.12.0)
-  '@types/jsonwebtoken':
-    specifier: ^9.0.1
-    version: 9.0.1
-  '@types/nodemailer':
-    specifier: ^6.4.7
-    version: 6.4.7
-  '@types/uuid':
-    specifier: ^9.0.0
-    version: 9.0.0
   bcrypt:
     specifier: ^5.1.0
     version: 5.1.0
@@ -80,8 +68,8 @@ dependencies:
     specifier: ^3.3.3
     version: 3.3.3
   joi:
-    specifier: ^17.7.1
-    version: 17.7.1
+    specifier: ^17.9.1
+    version: 17.9.1
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -165,6 +153,9 @@ devDependencies:
   '@types/jest':
     specifier: ^29.4.0
     version: 29.4.0
+  '@types/jsonwebtoken':
+    specifier: ^9.0.1
+    version: 9.0.1
   '@types/lodash':
     specifier: ^4.14.192
     version: 4.14.192
@@ -174,6 +165,9 @@ devDependencies:
   '@types/node':
     specifier: ^18.13.0
     version: 18.13.0
+  '@types/nodemailer':
+    specifier: ^6.4.7
+    version: 6.4.7
   '@types/passport-jwt':
     specifier: ^3.0.8
     version: 3.0.8
@@ -186,6 +180,9 @@ devDependencies:
   '@types/supertest':
     specifier: ^2.0.12
     version: 2.0.12
+  '@types/uuid':
+    specifier: ^9.0.0
+    version: 9.0.0
   '@typescript-eslint/eslint-plugin':
     specifier: ^5.51.0
     version: 5.51.0(@typescript-eslint/parser@5.51.0)(eslint@8.34.0)(typescript@4.9.5)
@@ -2902,35 +2899,8 @@ packages:
       crypto-js: 4.1.1
     dev: false
 
-  /@hapi/address@4.1.0:
-    resolution: {integrity: sha512-SkszZf13HVgGmChdHo/PxchnSaCJ6cetVqLzyciudzZRT0jcOouIF/Q93mgjw8cce+D+4F4C1Z/WrfFN+O3VHQ==}
-    deprecated: Moved to 'npm install @sideway/address'
-    dependencies:
-      '@hapi/hoek': 9.3.0
-    dev: false
-
-  /@hapi/formula@2.0.0:
-    resolution: {integrity: sha512-V87P8fv7PI0LH7LiVi8Lkf3x+KCO7pQozXRssAHNXXL9L1K+uyu4XypLXwxqVDKgyQai6qj3/KteNlrqDx4W5A==}
-    deprecated: Moved to 'npm install @sideway/formula'
-    dev: false
-
   /@hapi/hoek@9.3.0:
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
-    dev: false
-
-  /@hapi/joi@17.1.1:
-    resolution: {integrity: sha512-p4DKeZAoeZW4g3u7ZeRo+vCDuSDgSvtsB/NpfjXEHTUjSeINAi/RrVOWiVQ1isaoLzMvFEhe8n5065mQq1AdQg==}
-    deprecated: Switch to 'npm install joi'
-    dependencies:
-      '@hapi/address': 4.1.0
-      '@hapi/formula': 2.0.0
-      '@hapi/hoek': 9.3.0
-      '@hapi/pinpoint': 2.0.1
-      '@hapi/topo': 5.1.0
-    dev: false
-
-  /@hapi/pinpoint@2.0.1:
-    resolution: {integrity: sha512-EKQmr16tM8s16vTT3cA5L0kZZcTMU5DUOZTuvpnY738m+jyP3JIUj+Mm1xc1rsLkGBQ/gVnfKYPwOmPg1tUR4Q==}
     dev: false
 
   /@hapi/topo@5.1.0:
@@ -3842,7 +3812,7 @@ packages:
     resolution: {integrity: sha512-f5qCBGAn/f0qtRcd4SEn88c8Fp3Swct1731X4ryPKqS61/A3LmmzN8zaEz7hneJvpjFbUUgY7lru/B/7ODTazg==}
     dependencies:
       '@types/node': 18.13.0
-    dev: false
+    dev: true
 
   /@types/normalize-package-data@2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
@@ -3940,7 +3910,7 @@ packages:
 
   /@types/uuid@9.0.0:
     resolution: {integrity: sha512-kr90f+ERiQtKWMz5rP32ltJ/BtULDI5RVO0uavn1HQUOwjx0R1h0rnDYNL0CepF1zL5bSY6FISAfd9tOdDhU5Q==}
-    dev: false
+    dev: true
 
   /@types/validator@13.7.14:
     resolution: {integrity: sha512-J6OAed6rhN6zyqL9Of6ZMamhlsOEU/poBVvbHr/dKOYKTeuYYMlDkMv+b6UUV0o2i0tw73cgyv/97WTWaUl0/g==}
@@ -8014,8 +7984,8 @@ packages:
       - ts-node
     dev: true
 
-  /joi@17.7.1:
-    resolution: {integrity: sha512-teoLhIvWE298R6AeJywcjR4sX2hHjB3/xJX4qPjg+gTg+c0mzUDsziYlqPmLomq9gVsfaMcgPaGc7VxtD/9StA==}
+  /joi@17.9.1:
+    resolution: {integrity: sha512-FariIi9j6QODKATGBrEX7HZcja8Bsh3rfdGYy/Sb65sGlZWK/QWesU1ghk7aJWDj95knjXlQfSmzFSPPkLVsfw==}
     dependencies:
       '@hapi/hoek': 9.3.0
       '@hapi/topo': 5.1.0
