@@ -14,10 +14,10 @@ Commands:
 
 ```bash
 # development
-$ npm run start
+$ pnpm run start
 
 # production mode
-$ npm run start:prod
+$ pnpm run start:prod
 ```
 
 ### Docker
@@ -37,27 +37,27 @@ $ docker compose up
 
 ```bash
 # unit tests
-$ npm run test
+$ pnpm run test
 
 # e2e tests
-$ npm run test:e2e
+$ pnpm run test:e2e
 
 # test coverage
-$ npm run test:cov
+$ pnpm run test:cov
 ```
 
 ## Migrations
 
 ```bash
 # using docker
-$ docker compose exec app npm run migration:run
+$ docker compose exec app pnpm run migration:run
 
-# generate migration (replace CreateUsers with name of the migration)
-$ npm run migration:generate --name=CreateUsers
+# generate migration
+$ pnpm run migration:generate
 
 # run migration
-$ npm run migration:run
+$ pnpm run migration:run
 
 # revert migration
-$ npm run migration:revert
+$ pnpm run migration:revert
 ```
