@@ -21,12 +21,6 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      inputs:
-        containerRegistry: 'Docker Hub'
-        command: 'login'
-        addPipelineData: false
-        addBaseImageData: false
-    - task: Docker@2
       name: BuildCacheImage
       displayName: Build cache image
       inputs:
@@ -40,6 +34,7 @@ stages:
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
+        HUSKY: 0
     - task: Docker@2
       name: BuildMainImage
       displayName: Build main image
@@ -51,11 +46,12 @@ stages:
         tags: |
           $(tag)
           latest
-        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
+        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest --cache-from docker.io/cyberproton/volunteer-backend:latest'
         addPipelineData: false
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
+        HUSKY: 0
     - task: Docker@2
       name: PushCacheImage
       displayName: Push cache image
@@ -79,14 +75,8 @@ stages:
           latest
         addPipelineData: false
         addBaseImageData: false
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'Docker Hub'
-        command: 'logout'
-        addPipelineData: false
-        addBaseImageData: false
     - task: AzureWebAppContainer@1
       inputs:
         azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
         appName: 'thehelpers'
-        containers: 'registry.hub.docker.com/cyberproton/volunteer-backend:latest'
+        containers: 'docker.io/cyberproton/volunteer-backend:latest'
