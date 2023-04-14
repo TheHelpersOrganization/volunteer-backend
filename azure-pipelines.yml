@@ -35,9 +35,11 @@ stages:
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: latest
-        arguments: '--target builder --cache-from volunteer-backend-builder-stage:latest'
+        arguments: '--target builder --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from volunteer-backend-builder-stage:latest'
         addPipelineData: false
         addBaseImageData: false
+      env:
+        DOCKER_BUILDKIT: 1
     - task: Docker@2
       name: BuildMainImage
       displayName: Build main image
@@ -49,9 +51,11 @@ stages:
         tags: |
           $(tag)
           latest
-        arguments: '--cache-from volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
+        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --cache-from volunteer-backend-builder-stage:latest --cache-from volunteer-backend:latest'
         addPipelineData: false
         addBaseImageData: false
+      env:
+        DOCKER_BUILDKIT: 1
     - task: Docker@2
       name: PushCacheImage
       displayName: Push cache image
