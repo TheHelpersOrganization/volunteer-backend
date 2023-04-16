@@ -4,14 +4,14 @@ RUN corepack enable && corepack prepare pnpm@latest-8 --activate
 WORKDIR /usr/src/app
 
 COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma/
+
 RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 ARG APP_ENV=development
 ENV NODE_ENV=${APP_ENV}
-
-RUN pnpm run prisma:generate
 
 RUN pnpm run build
 
