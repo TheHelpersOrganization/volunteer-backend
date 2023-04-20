@@ -34,7 +34,6 @@ stages:
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
-        HUSKY: 0
     - task: Docker@2
       name: BuildMainImage
       displayName: Build main image
@@ -51,7 +50,6 @@ stages:
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
-        HUSKY: 0
     - task: Docker@2
       name: PushCacheImage
       displayName: Push cache image
