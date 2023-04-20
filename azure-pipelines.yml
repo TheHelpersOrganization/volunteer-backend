@@ -31,6 +31,8 @@ stages:
           latest
         addPipelineData: false
         addBaseImageData: false
+      env:
+        DOCKER_BUILDKIT: 1
     - task: AzureWebAppContainer@1
       inputs:
         azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
