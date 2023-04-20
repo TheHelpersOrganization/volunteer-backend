@@ -4,6 +4,7 @@ import {
   ActivityActivityType,
   ActivityManager,
   Location,
+  Prisma,
   Shift,
   ShiftLocation,
 } from '@prisma/client';
@@ -43,6 +44,8 @@ export class ActivityService extends AbstractService {
   private async internalGet(context: RequestContext, query: ActivityQueryDto) {
     this.logCaller(context, this.internalGet);
 
+    const shiftQuery = this.getShiftFilter(query);
+
     const res = await this.prisma.activity.findMany({
       where: {
         name: {
@@ -53,38 +56,7 @@ export class ActivityService extends AbstractService {
           in: query.org,
         },
 
-        shifts: {
-          some: {
-            startTime: {
-              gte: query.st,
-            },
-            endTime: {
-              lte: query.et,
-            },
-            shiftSkills: {
-              some: {
-                skillId: {
-                  in: query.sk,
-                },
-              },
-            },
-            shiftLocations: {
-              some: {
-                location: {
-                  locality: {
-                    contains: query.lc?.trim(),
-                    mode: 'insensitive',
-                  },
-                  region: {
-                    contains: query.rg?.trim(),
-                    mode: 'insensitive',
-                  },
-                  country: query.ct,
-                },
-              },
-            },
-          },
-        },
+        shifts: shiftQuery,
         activityActivityTypes: {
           some: {
             activityTypeId: {
@@ -151,6 +123,66 @@ export class ActivityService extends AbstractService {
     });
 
     return filtered;
+  }
+
+  private getShiftFilter(query: ActivityQueryDto) {
+    let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
+    if (query.st) {
+      shiftQuery = {
+        some: {
+          startTime: query.st && {
+            gte: query.st,
+          },
+        },
+      };
+    }
+    if (query.et) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          endTime: {
+            lte: query.et,
+          },
+        },
+      };
+    }
+    if (query.sk) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          shiftSkills: {
+            some: {
+              skillId: {
+                in: query.sk,
+              },
+            },
+          },
+        },
+      };
+    }
+    if (query.lc || query.rg || query.ct) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          shiftLocations: {
+            some: {
+              location: {
+                locality: {
+                  contains: query.lc?.trim(),
+                  mode: 'insensitive',
+                },
+                region: {
+                  contains: query.rg?.trim(),
+                  mode: 'insensitive',
+                },
+                country: query.ct,
+              },
+            },
+          },
+        },
+      };
+    }
+    return shiftQuery;
   }
 
   async getById(
