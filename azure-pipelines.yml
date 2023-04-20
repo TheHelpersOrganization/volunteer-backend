@@ -21,55 +21,13 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      name: BuildCacheImage
-      displayName: Build cache image
-      inputs:
-        containerRegistry: 'Docker Hub'
-        repository: 'cyberproton/volunteer-backend-builder-stage'
-        command: 'build'
-        Dockerfile: '**/Dockerfile'
-        tags: latest
-        arguments: '--target builder --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg HUSKY=0 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest'
-        addPipelineData: false
-        addBaseImageData: false
-      env:
-        DOCKER_BUILDKIT: 1
-    - task: Docker@2
-      name: BuildMainImage
-      displayName: Build main image
       inputs:
         containerRegistry: 'Docker Hub'
         repository: 'cyberproton/volunteer-backend'
-        command: 'build'
+        command: 'buildAndPush'
         Dockerfile: '**/Dockerfile'
         tags: |
-          $(tag)
-          latest
-        arguments: '--build-arg BUILDKIT_INLINE_CACHE=1 --build-arg HUSKY=0 --cache-from docker.io/cyberproton/volunteer-backend-builder-stage:latest --cache-from docker.io/cyberproton/volunteer-backend:latest'
-        addPipelineData: false
-        addBaseImageData: false
-      env:
-        DOCKER_BUILDKIT: 1
-    - task: Docker@2
-      name: PushCacheImage
-      displayName: Push cache image
-      inputs:
-        containerRegistry: 'Docker Hub'
-        repository: 'cyberproton/volunteer-backend-builder-stage'
-        command: 'push'
-        tags: |
-          latest
-        addPipelineData: false
-        addBaseImageData: false
-    - task: Docker@2
-      name: PushMainImage
-      displayName: Push main image
-      inputs:
-        containerRegistry: 'Docker Hub'
-        repository: 'cyberproton/volunteer-backend'
-        command: 'push'
-        tags: |
-          $(tag)
+          $(Build.BuildId)
           latest
         addPipelineData: false
         addBaseImageData: false
