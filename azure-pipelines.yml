@@ -33,8 +33,10 @@ stages:
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
-    - task: AzureWebAppContainer@1
+    - task: SSH@0
       inputs:
-        azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
-        appName: 'thehelpers'
-        containers: 'docker.io/cyberproton/volunteer-backend:latest'
+        sshEndpoint: 'VM SSH Service'
+        runOptions: 'commands'
+        commands: 'docker ps -q --filter "name=backend" | grep -q . && docker stop backend && docker rm -fv backend;docker pull cyberproton/volunteer-backend:latest;docker run --name backend -d cyberproton/volunteer'
+        readyTimeout: '20000'
+    
