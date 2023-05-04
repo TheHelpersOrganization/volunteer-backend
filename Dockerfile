@@ -29,7 +29,7 @@ COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 COPY --from=builder /usr/src/app/dist ./dist
 
-EXPOSE 80
+EXPOSE 3000
 
 USER node
 CMD [ "npm", "run", "start:prod" ]
