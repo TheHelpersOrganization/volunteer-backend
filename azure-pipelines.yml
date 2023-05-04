@@ -20,15 +20,6 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
-    - task: SSH@0
-      inputs:
-        sshEndpoint: 'VM SSH Service'
-        runOptions: 'inline'
-        inline: |
-          docker ps -q --filter "name=backend" | grep -q . && docker stop backend && docker rm -fv backend
-          docker pull cyberproton/volunteer-backend:latest
-          docker run --name backend -d cyberproton/volunteer-backend
-        readyTimeout: '20000'
     - task: Docker@2
       inputs:
         containerRegistry: 'Docker Hub'
@@ -49,5 +40,5 @@ stages:
         inline: |
           docker ps -q --filter "name=backend" | grep -q . && docker stop backend && docker rm -fv backend
           docker pull cyberproton/volunteer-backend:latest
-          docker run --name backend -d cyberproton/volunteer-backend
+          docker run --name backend --env-file=.env -d cyberproton/volunteer-backend
         readyTimeout: '20000'
