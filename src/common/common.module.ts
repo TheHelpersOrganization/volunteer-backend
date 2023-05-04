@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { configModuleOptions } from './configs/module-options';
-import { AllExceptionsFilter } from './filters/all-exceptions.filter';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { AppLoggerModule } from './logger/logger.module';
 
 @Module({
@@ -14,15 +12,11 @@ import { AppLoggerModule } from './logger/logger.module';
     ConfigModule.forRoot(configModuleOptions),
     AppLoggerModule,
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot({
+      wildcard: true,
+    }),
+    PrismaModule,
   ],
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
-    {
-      provide: APP_FILTER,
-      useClass: AllExceptionsFilter,
-    },
-    PrismaService,
-  ],
-  exports: [AppLoggerModule, ConfigModule, PrismaService, ScheduleModule],
+  exports: [AppLoggerModule, ConfigModule, PrismaModule, ScheduleModule],
 })
 export class CommonModule {}
