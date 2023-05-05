@@ -1,7 +1,6 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 
 import { AccountModule } from './account/account.module';
-import { ActivityTypeModule } from './activity-type/activity-type.module';
 import { ActivityModule } from './activity/activity.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -29,7 +28,6 @@ import { SkillModule } from './skill/skill.module';
     OrganizationModule,
     FileModule,
     LocationModule,
-    ActivityTypeModule,
     SkillModule,
     ShiftModule,
     ActivityModule,

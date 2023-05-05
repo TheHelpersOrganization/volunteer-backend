@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
   Activity,
-  ActivityActivityType,
   ActivityManager,
+  ActivitySkill,
   Location,
   Prisma,
   Shift,
@@ -57,10 +57,10 @@ export class ActivityService extends AbstractService {
         },
 
         shifts: shiftQuery,
-        activityActivityTypes: {
+        activitySkills: {
           some: {
-            activityTypeId: {
-              in: query.at,
+            skillId: {
+              in: query.as,
             },
           },
         },
@@ -78,7 +78,7 @@ export class ActivityService extends AbstractService {
             shiftVolunteers: true,
           },
         },
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -195,7 +195,7 @@ export class ActivityService extends AbstractService {
         id: id,
       },
       include: {
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -216,10 +216,10 @@ export class ActivityService extends AbstractService {
         name: dto.name,
         description: dto.description,
         thumbnail: dto.thumbnail,
-        activityActivityTypes: {
+        activitySkills: {
           createMany: {
-            data: dto.activityTypeIds.map((id) => ({
-              activityTypeId: id,
+            data: dto.skillIds.map((id) => ({
+              skillId: id,
             })),
           },
         },
@@ -233,7 +233,6 @@ export class ActivityService extends AbstractService {
         },
       },
       include: {
-        activityActivityTypes: true,
         activityManagers: true,
       },
     });
@@ -255,11 +254,11 @@ export class ActivityService extends AbstractService {
         name: dto.name,
         description: dto.description,
         thumbnail: dto.thumbnail,
-        activityActivityTypes: {
+        activitySkills: {
           deleteMany: {},
           createMany: {
-            data: dto.activityTypeIds.map((id) => ({
-              activityTypeId: id,
+            data: dto.skillIds.map((id) => ({
+              skillId: id,
             })),
           },
         },
@@ -274,7 +273,7 @@ export class ActivityService extends AbstractService {
         },
       },
       include: {
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -292,7 +291,6 @@ export class ActivityService extends AbstractService {
         id: id,
       },
       include: {
-        activityActivityTypes: true,
         activityManagers: true,
       },
     });
@@ -301,7 +299,7 @@ export class ActivityService extends AbstractService {
 
   mapToDto(
     activity: Activity & {
-      activityActivityTypes?: ActivityActivityType[];
+      activitySkills?: ActivitySkill[];
       activityManagers?: ActivityManager[];
       shifts?: (Shift & {
         shiftLocations: (ShiftLocation & {
@@ -324,8 +322,8 @@ export class ActivityService extends AbstractService {
       name: activity.name,
       description: activity.description,
       thumbnail: activity.thumbnail,
-      activityTypeIds: activity.activityActivityTypes?.map(
-        (activityActivityType) => activityActivityType.activityTypeId,
+      skillIds: activity.activitySkills?.map(
+        (activitySkill) => activitySkill.skillId,
       ),
       activityManagerIds: activity.activityManagers?.map(
         (activityManager) => activityManager.accountId,

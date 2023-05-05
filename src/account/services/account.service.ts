@@ -52,12 +52,9 @@ export class AccountService {
     const { id } = await this.prisma.account.create({
       data: {
         ...account,
-        accountRole: {
+        accountRoles: {
           createMany: {
-            data: [
-              { roleId: volunteerRoleId[0].id },
-              { roleId: volunteerRoleId[1].id },
-            ],
+            data: [{ roleId: volunteerRoleId[0].id }],
           },
         },
       },
@@ -83,7 +80,7 @@ export class AccountService {
     const account = await this.prisma.account.findUnique({
       where: { email: email },
       include: {
-        accountRole: {
+        accountRoles: {
           include: {
             role: true,
           },
@@ -97,7 +94,7 @@ export class AccountService {
 
     const res = {
       ...account,
-      roles: account.accountRole.map((r) => r.role.name),
+      roles: account.accountRoles.map((r) => r.role.name),
     };
     return plainToInstance(AccountOutputDto, res, {
       excludeExtraneousValues: true,
@@ -137,7 +134,7 @@ export class AccountService {
     const account = await this.prisma.account.findUnique({
       where: { id: id },
       include: {
-        accountRole: {
+        accountRoles: {
           include: {
             role: true,
           },
@@ -146,7 +143,7 @@ export class AccountService {
     });
     const res = {
       ...account,
-      roles: account?.accountRole.map((r) => r.role.name),
+      roles: account?.accountRoles.map((r) => r.role.name),
     };
 
     return plainToInstance(AccountOutputDto, res, {

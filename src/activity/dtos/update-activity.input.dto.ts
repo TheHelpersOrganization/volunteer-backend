@@ -13,7 +13,7 @@ export class UpdateActivityInputDto {
   @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
-  activityTypeIds: number[];
+  skillIds: number[];
 
   @IsOptional()
   @IsFileId()

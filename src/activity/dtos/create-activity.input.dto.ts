@@ -10,7 +10,7 @@ export class CreateActivityInputDto {
 
   @IsNumber(undefined, { each: true })
   @IsArray()
-  activityTypeIds: number[];
+  skillIds: number[];
 
   @IsFileId()
   thumbnail: number;
