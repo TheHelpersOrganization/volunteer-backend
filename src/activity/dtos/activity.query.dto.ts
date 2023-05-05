@@ -51,7 +51,7 @@ export class ActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsNumber(undefined, { each: true })
   @Transform(separatedCommaNumberArrayTransform)
-  at?: number[];
+  as?: number[];
 
   // Skills
   @IsOptional()
