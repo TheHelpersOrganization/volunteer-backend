@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:hydrogen-alpine as builder
 RUN corepack enable && corepack prepare pnpm@latest-8 --activate
 
 WORKDIR /usr/src/app
@@ -18,7 +18,7 @@ RUN pnpm run build
 RUN pnpm prune
 
 
-FROM node:18-alpine
+FROM node:hydrogen-alpine
 
 ARG APP_ENV=development
 ENV NODE_ENV=${APP_ENV}
