@@ -150,6 +150,9 @@ export class ActivityService extends AbstractService {
 
   private getShiftFilter(query: ActivityQueryDto) {
     let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
+    shiftQuery = {
+      some: {},
+    };
     if (query.st) {
       shiftQuery = {
         some: {
