@@ -44,27 +44,10 @@ export class ActivityService extends AbstractService {
   private async internalGet(context: RequestContext, query: ActivityQueryDto) {
     this.logCaller(context, this.internalGet);
 
-    const shiftQuery = this.getShiftFilter(query);
+    const activityQuery = this.getActivityFilter(query);
 
     const res = await this.prisma.activity.findMany({
-      where: {
-        name: {
-          contains: query.n?.trim(),
-          mode: 'insensitive',
-        },
-        organizationId: {
-          in: query.org,
-        },
-
-        shifts: shiftQuery,
-        activitySkills: {
-          some: {
-            skillId: {
-              in: query.as,
-            },
-          },
-        },
-      },
+      where: activityQuery,
       take: query.limit,
       skip: query.offset,
       include: {
@@ -123,6 +106,46 @@ export class ActivityService extends AbstractService {
     });
 
     return filtered;
+  }
+
+  private getActivityFilter(query: ActivityQueryDto) {
+    let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
+    if (query.n) {
+      activityQuery = {
+        name: {
+          contains: query.n.trim(),
+          mode: 'insensitive',
+        },
+      };
+    }
+    if (query.org) {
+      activityQuery = {
+        ...activityQuery,
+        organizationId: {
+          in: query.org,
+        },
+      };
+    }
+    if (query.as) {
+      activityQuery = {
+        ...activityQuery,
+        activitySkills: {
+          some: {
+            skillId: {
+              in: query.as,
+            },
+          },
+        },
+      };
+    }
+    const shiftQuery = this.getShiftFilter(query);
+    if (shiftQuery) {
+      activityQuery = {
+        ...activityQuery,
+        shifts: shiftQuery,
+      };
+    }
+    return activityQuery;
   }
 
   private getShiftFilter(query: ActivityQueryDto) {
