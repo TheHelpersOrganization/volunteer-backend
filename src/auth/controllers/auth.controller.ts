@@ -128,6 +128,6 @@ export class AuthController {
     @ReqContext() ctx: RequestContext,
     @Body() dto: VerifyAccountTokenInputDto,
   ): Promise<{ successful: boolean }> {
-    return this.authService.createVerifyAccountToken(ctx, dto);
+    return this.authService.sendVerifyAccountToken(ctx, dto);
   }
 }

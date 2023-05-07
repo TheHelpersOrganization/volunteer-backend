@@ -49,7 +49,7 @@ export class AccountService {
     if (volunteerRoleId.length != 2) {
       throw new InternalServerErrorException('Cannot register account');
     }
-    const { id } = await this.prisma.account.create({
+    const res = await this.prisma.account.create({
       data: {
         ...account,
         accountRoles: {
@@ -60,13 +60,9 @@ export class AccountService {
       },
     });
 
-    return plainToInstance(
-      AccountOutputDto,
-      { account, id },
-      {
-        excludeExtraneousValues: true,
-      },
-    );
+    return plainToInstance(AccountOutputDto, res, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async validateEmailPassword(

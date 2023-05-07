@@ -9,24 +9,28 @@ import { RequestContext } from '../request-context/request-context.dto';
 export class AppLogger {
   private context?: string;
   private logger: Logger;
+  private env: Environment;
 
   public setContext(context: string): void {
     this.context = context;
   }
 
   constructor(configService: ConfigService) {
+    this.env = configService.get('app.env') || Environment.Development;
     let loggerFormat: any | null = undefined;
-    if (configService.get('app.env') == Environment.Development) {
+    if (this.env === Environment.Development) {
       loggerFormat = format.prettyPrint();
     }
+    const silent = this.env === Environment.Test;
     this.logger = createLogger({
       transports: [new transports.Console()],
       format: loggerFormat,
+      silent: silent,
     });
   }
 
   error(
-    ctx: RequestContext,
+    ctx: RequestContext | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {
@@ -42,7 +46,7 @@ export class AppLogger {
   }
 
   warn(
-    ctx: RequestContext,
+    ctx: RequestContext | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {
@@ -58,7 +62,7 @@ export class AppLogger {
   }
 
   debug(
-    ctx: RequestContext,
+    ctx: RequestContext | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {
@@ -74,7 +78,7 @@ export class AppLogger {
   }
 
   verbose(
-    ctx: RequestContext,
+    ctx: RequestContext | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {
