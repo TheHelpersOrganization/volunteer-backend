@@ -26,6 +26,22 @@ export class ShiftVolunteerService extends AbstractService {
     super(logger);
   }
 
+  async getApprovedByActivityId(
+    context: RequestContext,
+    activityId: number,
+  ): Promise<ShiftVolunteerOutputDto[]> {
+    this.logCaller(context, this.getApprovedByActivityId);
+    const res = await this.prisma.volunteerShift.findMany({
+      where: {
+        shift: {
+          activityId: activityId,
+        },
+        status: ShiftVolunteerStatus.Approved,
+      },
+    });
+    return this.outputArray(ShiftVolunteerOutputDto, res);
+  }
+
   async getByShiftId(
     context: RequestContext,
     shiftId: number,

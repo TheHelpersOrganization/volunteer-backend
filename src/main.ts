@@ -4,13 +4,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 
 import { AppModule } from './app.module';
-import { RequestIdMiddleware } from './common/middlewares/request-id/request-id.middleware';
 import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
-  app.use(RequestIdMiddleware);
   app.enableCors();
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const prismaService = app.get(PrismaService);

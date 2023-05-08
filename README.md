@@ -2,6 +2,8 @@
 
 [![Build Status](https://dev.azure.com/TheHelpersOrg/The%20Helpers/_apis/build/status%2FTheHelpersOrganization.volunteer-backend?branchName=master)](https://dev.azure.com/TheHelpersOrg/The%20Helpers/_build/latest?definitionId=2&branchName=master)
 
+This project is implemented using [NestJS](https://nestjs.com/) and [Prisma](https://www.prisma.io/).
+
 ## Running the app
 
 ### Local
@@ -14,10 +16,10 @@ Commands:
 
 ```bash
 # development
-$ npm run start
+$ pnpm run start
 
 # production mode
-$ npm run start:prod
+$ pnpm run start:prod
 ```
 
 ### Docker
@@ -37,27 +39,27 @@ $ docker compose up
 
 ```bash
 # unit tests
-$ npm run test
+$ pnpm run test
 
 # e2e tests
-$ npm run test:e2e
+$ pnpm run test:e2e
 
 # test coverage
-$ npm run test:cov
+$ pnpm run test:cov
 ```
 
 ## Migrations
 
 ```bash
 # using docker
-$ docker compose exec app npm run migration:run
+$ docker compose exec app pnpm run migration:run
 
-# generate migration (replace CreateUsers with name of the migration)
-$ npm run migration:generate --name=CreateUsers
+# generate migration
+$ pnpm run migration:generate
 
 # run migration
-$ npm run migration:run
+$ pnpm run migration:run
 
 # revert migration
-$ npm run migration:revert
+$ pnpm run migration:revert
 ```

@@ -1,17 +1,13 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { RequestContext } from 'src/common/request-context';
-
-import { AppLogger } from '../common/logger';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   private retries = 0;
   private connected = false;
 
-  constructor(private readonly logger: AppLogger) {
+  constructor() {
     super();
-    logger.setContext(PrismaService.name);
   }
 
   async onModuleInit() {
@@ -24,10 +20,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
           throw err;
         }
         this.retries++;
-        this.logger.warn(
-          new RequestContext(),
-          `Connection failed. Retrying... Attempt ${this.retries}`,
-        );
+        console.warn(`Connection failed. Retrying... Attempt ${this.retries}`);
       }
     }
   }

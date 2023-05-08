@@ -18,7 +18,11 @@ type Location = {
 
 export const unionLocationsTransform = (
   locations: Location[],
-): ShortLocationOutputDto => {
+): ShortLocationOutputDto | undefined => {
+  if (locations.length === 0) {
+    return undefined;
+  }
+
   let locality: string | undefined = locations[0].locality || undefined;
   let region: string | undefined = locations[0].region || undefined;
   let country: string | undefined = locations[0].country || undefined;

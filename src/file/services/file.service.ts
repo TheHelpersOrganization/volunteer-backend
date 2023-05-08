@@ -167,7 +167,12 @@ export class FileService extends AbstractService {
       const stream = await this.downloadFileFromS3(safeFile);
       return {
         stream: stream,
-        file: safeFile,
+        file: {
+          id: safeFile.id,
+          name: safeFile.name,
+          internalName: safeFile.internalName,
+          mimetype: safeFile.mimetype ?? undefined,
+        },
       };
     } catch (err) {
       if (err instanceof NoSuchKey) {
@@ -190,7 +195,7 @@ export class FileService extends AbstractService {
       const subtype = query.subtype;
 
       if (type != null) {
-        if (!file.mimetype.startsWith(type)) {
+        if (!file.mimetype || !file.mimetype.startsWith(type)) {
           throw new FileNotFoundException();
         }
         if (subtype != null && file.mimetype !== `${type}/${subtype}`) {

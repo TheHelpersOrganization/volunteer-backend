@@ -5,6 +5,7 @@ import { LocationModule } from 'src/location/location.module';
 
 import {
   ActivityShiftController,
+  ActivityVolunteer,
   ShiftController,
   ShiftVolunteerController,
 } from './controllers';
@@ -18,6 +19,7 @@ import {
   imports: [CommonModule, LocationModule, ContactModule],
   controllers: [
     ActivityShiftController,
+    ActivityVolunteer,
     ShiftController,
     ShiftVolunteerController,
   ],

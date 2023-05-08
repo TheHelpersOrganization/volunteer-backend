@@ -28,7 +28,7 @@ export class RegisterInput {
   password: string;
 
   // These keys can only be set by ADMIN user.
-  roles: Role[] = [Role.Volunteer];
+  roles?: Role[] = [Role.Volunteer];
   isAccountDisabled: boolean;
-  isAccountVerified: boolean;
+  isAccountVerified?: boolean;
 }

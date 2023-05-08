@@ -2,10 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { EmailService } from 'src/email/services';
 import { OtpType } from 'src/otp/constants';
-import { OtpService } from 'src/otp/services';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EmailService } from 'src/email/services';
+import { OtpService } from 'src/otp/services';
 import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
@@ -19,6 +20,7 @@ import {
 } from '../dtos/auth-token-output.dto';
 import { TokenOutputDto } from '../dtos/token-output.dto';
 import { VerifyAccountOutputDto } from '../dtos/verify-account-output.dto';
+import { AccountRegisteredEvent } from '../events';
 import { AccountNotFoundException } from '../exceptions/account-not-found.exception';
 
 @Injectable()
@@ -30,6 +32,7 @@ export class AuthService {
     private emailService: EmailService,
     private configService: ConfigService,
     private readonly logger: AppLogger,
+    private eventEmitter: EventEmitter2,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -95,16 +98,10 @@ export class AuthService {
       input,
     );
 
-    // Generate OTP
-    const otp = await this.otpService.createOtp(
-      ctx,
-      registeredAccount.id,
-      OtpType.EmailVerification,
+    this.eventEmitter.emit(
+      AccountRegisteredEvent.eventName,
+      new AccountRegisteredEvent(ctx, registeredAccount),
     );
-
-    // Send OTP to account email
-    // No need to wait for sendOtp
-    this.emailService.sendEmailVerification(ctx, registeredAccount.email, otp);
 
     return plainToClass(RegisterOutput, registeredAccount, {
       excludeExtraneousValues: true,
@@ -184,26 +181,38 @@ export class AuthService {
     return updatedAccount;
   }
 
-  async createVerifyAccountToken(
+  async sendVerifyAccountToken(
     ctx: RequestContext,
     dto: VerifyAccountTokenInputDto,
   ): Promise<VerifyAccountOutputDto> {
-    this.logger.log(ctx, `${this.createVerifyAccountToken.name} was called`);
+    this.logger.log(ctx, `${this.sendVerifyAccountToken.name} was called`);
 
     const account = await this.accountService.findByEmail(ctx, dto.email);
     if (!account) {
       throw new AccountNotFoundException();
     }
 
-    const otp = await this.otpService.createOtp(
-      ctx,
-      account.id,
-      OtpType.EmailVerification,
-    );
+    const otp = await this.createVerifyAccountToken(ctx, account.id);
+
     this.emailService.sendEmailVerification(ctx, account.email, otp);
 
     return {
       successful: true,
     };
+  }
+
+  async createVerifyAccountToken(
+    ctx: RequestContext,
+    accountId: number,
+  ): Promise<string> {
+    this.logger.log(ctx, `${this.createVerifyAccountToken.name} was called`);
+
+    const otp = await this.otpService.createOtp(
+      ctx,
+      accountId,
+      OtpType.EmailVerification,
+    );
+
+    return otp;
   }
 }

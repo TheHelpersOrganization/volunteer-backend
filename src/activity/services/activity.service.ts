@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {
   Activity,
-  ActivityActivityType,
   ActivityManager,
+  ActivitySkill,
   Location,
+  Prisma,
   Shift,
   ShiftLocation,
 } from '@prisma/client';
@@ -43,56 +44,10 @@ export class ActivityService extends AbstractService {
   private async internalGet(context: RequestContext, query: ActivityQueryDto) {
     this.logCaller(context, this.internalGet);
 
-    const res = await this.prisma.activity.findMany({
-      where: {
-        name: {
-          contains: query.n?.trim(),
-          mode: 'insensitive',
-        },
-        organizationId: {
-          in: query.org,
-        },
+    const activityQuery = this.getActivityFilter(query);
 
-        shifts: {
-          some: {
-            startTime: {
-              gte: query.st,
-            },
-            endTime: {
-              lte: query.et,
-            },
-            shiftSkills: {
-              some: {
-                skillId: {
-                  in: query.sk,
-                },
-              },
-            },
-            shiftLocations: {
-              some: {
-                location: {
-                  locality: {
-                    contains: query.lc?.trim(),
-                    mode: 'insensitive',
-                  },
-                  region: {
-                    contains: query.rg?.trim(),
-                    mode: 'insensitive',
-                  },
-                  country: query.ct,
-                },
-              },
-            },
-          },
-        },
-        activityActivityTypes: {
-          some: {
-            activityTypeId: {
-              in: query.at,
-            },
-          },
-        },
-      },
+    const res = await this.prisma.activity.findMany({
+      where: activityQuery,
       take: query.limit,
       skip: query.offset,
       include: {
@@ -106,7 +61,7 @@ export class ActivityService extends AbstractService {
             shiftVolunteers: true,
           },
         },
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -153,6 +108,109 @@ export class ActivityService extends AbstractService {
     return filtered;
   }
 
+  private getActivityFilter(query: ActivityQueryDto) {
+    let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
+    if (query.n) {
+      activityQuery = {
+        name: {
+          contains: query.n.trim(),
+          mode: 'insensitive',
+        },
+      };
+    }
+    if (query.org) {
+      activityQuery = {
+        ...activityQuery,
+        organizationId: {
+          in: query.org,
+        },
+      };
+    }
+    if (query.as) {
+      activityQuery = {
+        ...activityQuery,
+        activitySkills: {
+          some: {
+            skillId: {
+              in: query.as,
+            },
+          },
+        },
+      };
+    }
+    const shiftQuery = this.getShiftFilter(query);
+    if (shiftQuery) {
+      activityQuery = {
+        ...activityQuery,
+        shifts: shiftQuery,
+      };
+    }
+    return activityQuery;
+  }
+
+  private getShiftFilter(query: ActivityQueryDto) {
+    let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
+    shiftQuery = {
+      some: {},
+    };
+    if (query.st) {
+      shiftQuery = {
+        some: {
+          startTime: query.st && {
+            gte: query.st,
+          },
+        },
+      };
+    }
+    if (query.et) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          endTime: {
+            lte: query.et,
+          },
+        },
+      };
+    }
+    if (query.sk) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          shiftSkills: {
+            some: {
+              skillId: {
+                in: query.sk,
+              },
+            },
+          },
+        },
+      };
+    }
+    if (query.lc || query.rg || query.ct) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          shiftLocations: {
+            some: {
+              location: {
+                locality: {
+                  contains: query.lc?.trim(),
+                  mode: 'insensitive',
+                },
+                region: {
+                  contains: query.rg?.trim(),
+                  mode: 'insensitive',
+                },
+                country: query.ct,
+              },
+            },
+          },
+        },
+      };
+    }
+    return shiftQuery;
+  }
+
   async getById(
     context: RequestContext,
     id: number,
@@ -163,7 +221,7 @@ export class ActivityService extends AbstractService {
         id: id,
       },
       include: {
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -184,10 +242,10 @@ export class ActivityService extends AbstractService {
         name: dto.name,
         description: dto.description,
         thumbnail: dto.thumbnail,
-        activityActivityTypes: {
+        activitySkills: {
           createMany: {
-            data: dto.activityTypeIds.map((id) => ({
-              activityTypeId: id,
+            data: dto.skillIds.map((id) => ({
+              skillId: id,
             })),
           },
         },
@@ -201,7 +259,6 @@ export class ActivityService extends AbstractService {
         },
       },
       include: {
-        activityActivityTypes: true,
         activityManagers: true,
       },
     });
@@ -223,11 +280,11 @@ export class ActivityService extends AbstractService {
         name: dto.name,
         description: dto.description,
         thumbnail: dto.thumbnail,
-        activityActivityTypes: {
+        activitySkills: {
           deleteMany: {},
           createMany: {
-            data: dto.activityTypeIds.map((id) => ({
-              activityTypeId: id,
+            data: dto.skillIds.map((id) => ({
+              skillId: id,
             })),
           },
         },
@@ -242,7 +299,7 @@ export class ActivityService extends AbstractService {
         },
       },
       include: {
-        activityActivityTypes: true,
+        activitySkills: true,
         activityManagers: true,
       },
     });
@@ -260,7 +317,6 @@ export class ActivityService extends AbstractService {
         id: id,
       },
       include: {
-        activityActivityTypes: true,
         activityManagers: true,
       },
     });
@@ -269,7 +325,7 @@ export class ActivityService extends AbstractService {
 
   mapToDto(
     activity: Activity & {
-      activityActivityTypes?: ActivityActivityType[];
+      activitySkills?: ActivitySkill[];
       activityManagers?: ActivityManager[];
       shifts?: (Shift & {
         shiftLocations: (ShiftLocation & {
@@ -292,8 +348,8 @@ export class ActivityService extends AbstractService {
       name: activity.name,
       description: activity.description,
       thumbnail: activity.thumbnail,
-      activityTypeIds: activity.activityActivityTypes?.map(
-        (activityActivityType) => activityActivityType.activityTypeId,
+      skillIds: activity.activitySkills?.map(
+        (activitySkill) => activitySkill.skillId,
       ),
       activityManagerIds: activity.activityManagers?.map(
         (activityManager) => activityManager.accountId,

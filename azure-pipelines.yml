@@ -14,11 +14,11 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
-  displayName: Build image
+- stage: BuildAndPushDockerImage
+  displayName: Build and push docker image
   jobs:
-  - job: Build
-    displayName: Build
+  - job: BuildAndPushDockerImage
+    displayName: Build and push docker image
     pool:
       vmImage: ubuntu-latest
     steps:
@@ -28,13 +28,21 @@ stages:
         repository: 'cyberproton/volunteer-backend'
         command: 'buildAndPush'
         Dockerfile: '**/Dockerfile'
-        tags: 'latest'
+        tags: |
+          $(Build.BuildId)
+          latest
         addPipelineData: false
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
-    - task: AzureWebAppContainer@1
+    - task: SSH@0
+      name: 'DeployToVM'
+      displayName: 'Deploy to VM'
       inputs:
-        azureSubscription: 'Azure subscription 1(a6573971-f85c-4631-90b6-623eee5a114d)'
-        appName: 'thehelpers'
-        containers: 'registry.hub.docker.com/cyberproton/volunteer-backend:latest'
+        sshEndpoint: 'VM SSH Service'
+        runOptions: 'inline'
+        inline: |
+          docker ps -q --filter "name=backend" | grep -q . && docker stop backend && docker rm -fv backend
+          docker pull cyberproton/volunteer-backend:latest
+          docker run --name backend --env-file=.env -p 3000:3000 -d cyberproton/volunteer-backend
+        readyTimeout: '20000'

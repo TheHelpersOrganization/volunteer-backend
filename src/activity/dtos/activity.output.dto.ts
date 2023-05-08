@@ -18,7 +18,7 @@ export class ActivityOutputDto {
   organizationId: number;
 
   @Expose()
-  activityTypeIds: number[];
+  skillIds: number[];
 
   @Expose()
   activityManagerIds: number[];

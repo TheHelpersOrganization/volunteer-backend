@@ -1,4 +1,4 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 
@@ -8,27 +8,18 @@ import { RefreshTokenInput } from '../../src/auth/dtos/auth-refresh-token-input.
 import { RegisterInput } from '../../src/auth/dtos/auth-register-input.dto';
 import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
 import { AppModule } from './../../src/app.module';
-import {
-  closeDBAfterTest,
-  createDBEntities,
-  resetDBBeforeTest,
-  seedAdminAccount,
-} from './../test-utils';
+import { closeDBAfterTest, seedAdminAccount } from './../test-utils';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let authTokenForAdmin: AccountTokenOutputDto;
 
   beforeAll(async () => {
-    await resetDBBeforeTest();
-    await createDBEntities();
-
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
     ({ authTokenForAdmin } = await seedAdminAccount(app));
