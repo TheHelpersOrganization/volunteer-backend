@@ -11,6 +11,7 @@ let memberId = 1;
 let activityId = 1;
 let shiftId = 1;
 let shiftVolunteerId = 1;
+let fileId = 1;
 
 export const getNextOrganizationId = () => organizationId++;
 export const getNextLocationId = () => locationId++;
@@ -19,6 +20,17 @@ export const getNextMemberId = () => memberId++;
 export const getNextActivityId = () => activityId++;
 export const getNextShiftId = () => shiftId++;
 export const getNextShiftVolunteerId = () => shiftVolunteerId++;
+export const getNextFileId = () => fileId++;
+
+export const throwIfNullish = <T>(
+  value: T | null | undefined,
+  message = 'Value is null',
+) => {
+  if (value == null) {
+    throw new Error(message);
+  }
+  return value;
+};
 
 export const randomDate = () => {
   return fakerVi.date.between('2018-01-01', new Date());

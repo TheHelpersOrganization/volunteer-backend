@@ -57,7 +57,7 @@ CREATE TABLE "File" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "internalName" TEXT NOT NULL,
-    "mimetype" TEXT NOT NULL,
+    "mimetype" TEXT,
     "path" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,

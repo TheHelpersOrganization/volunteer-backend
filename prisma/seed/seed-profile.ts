@@ -11,6 +11,7 @@ import {
 import { randomInt } from 'crypto';
 import * as _ from 'lodash';
 import { Gender } from '../../src/profile/constants';
+import { seedFiles } from './seed-file';
 import { generateViLocation, generateViName } from './utils';
 
 export const seedProfiles = async (
@@ -20,6 +21,13 @@ export const seedProfiles = async (
 ) => {
   const locations: Location[] = Array.from({ length: accounts.length }).map(
     () => generateViLocation(),
+  );
+
+  const avatars = await seedFiles(
+    prisma,
+    './tmp/images/profile-avatar',
+    accounts.length,
+    () => fakerEn.image.avatar(),
   );
 
   const profiles: Profile[] = accounts.map((account, i) => {
@@ -51,7 +59,7 @@ export const seedProfiles = async (
       createdAt: createdAt,
       updatedAt: updatedAt,
       locationId: locations[i].id,
-      avatarId: null,
+      avatarId: avatars[i]?.id ?? null,
     };
   });
 
