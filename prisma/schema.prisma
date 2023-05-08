@@ -76,7 +76,7 @@ model File {
   id                 Int               @id @default(autoincrement())
   name               String
   internalName       String            @unique
-  mimetype           String
+  mimetype           String?
   path               String
   createdAt          DateTime?         @default(now())
   updatedAt          DateTime?         @default(now()) @updatedAt

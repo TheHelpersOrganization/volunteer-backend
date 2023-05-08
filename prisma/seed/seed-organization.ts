@@ -17,6 +17,7 @@ import {
   OrganizationMemberStatus,
   OrganizationStatus,
 } from '../../src/organization/constants';
+import { seedFiles } from './seed-file';
 import { skills } from './seed-skill';
 import {
   generateMember,
@@ -33,50 +34,72 @@ export const seedOrganizations = async (
   modAccounts: Account[],
   volunteerAccounts: Account[],
 ) => {
+  const account1OrganizationTemplate = [
+    OrganizationStatus.Verified,
+    ...Object.values(OrganizationStatus),
+  ];
+  const modOrganizationTemplate = modAccounts.flatMap((account) =>
+    _.sampleSize(
+      [OrganizationStatus.Verified, ...Object.values(OrganizationStatus)],
+      randomInt(0, Object.values(OrganizationStatus).length) + 1,
+    ).map((value) => ({ account, organizationStatus: value })),
+  );
+
+  const organizationLogos = await seedFiles(
+    prisma,
+    './tmp/images/organization-logo',
+    account1OrganizationTemplate.length + modOrganizationTemplate.length,
+    () => fakerEn.image.imageUrl(128, 128, 'logo'),
+  );
+
+  const organizationBanner = await seedFiles(
+    prisma,
+    './tmp/images/organization-banner',
+    account1OrganizationTemplate.length + modOrganizationTemplate.length,
+    () => fakerEn.image.imageUrl(1280, 720, 'background'),
+  );
+
   const organizations: Organization[] = [
-    ...[OrganizationStatus.Verified, ...Object.values(OrganizationStatus)].map(
-      (value, index) => ({
+    ...account1OrganizationTemplate.map((value, index) => ({
+      id: getNextOrganizationId(),
+      name: `The Helpers ${index === 0 ? '' : index}`,
+      phoneNumber: fakerVi.phone.number('+84#########'),
+      email: fakerVi.internet.exampleEmail(),
+      description: fakerEn.lorem.paragraphs(),
+      website: fakerVi.internet.url(),
+      status: value,
+      isDisabled: false,
+      logo: organizationLogos[index]?.id ?? null,
+      banner: organizationBanner[index]?.id ?? null,
+      ownerId: 1,
+      verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
+      verifierComment: fakerEn.lorem.sentence(),
+      createdAt: fakerVi.date.between('1950-01-01', new Date()),
+      updatedAt: new Date(),
+    })),
+    ...modOrganizationTemplate.map((value, index) => {
+      return {
         id: getNextOrganizationId(),
-        name: `The Helpers ${index === 0 ? '' : index}`,
+        name: fakerEn.company.name(),
         phoneNumber: fakerVi.phone.number('+84#########'),
-        email: fakerVi.internet.exampleEmail(),
+        email: fakerEn.internet.exampleEmail(),
         description: fakerEn.lorem.paragraphs(),
         website: fakerVi.internet.url(),
-        status: value,
-        isDisabled: false,
-        logo: null,
-        banner: null,
-        ownerId: 1,
+        status: value.organizationStatus,
+        isDisabled: fakerVi.datatype.boolean(),
+        logo:
+          organizationLogos[index + account1OrganizationTemplate.length]?.id ??
+          null,
+        banner:
+          organizationBanner[index + account1OrganizationTemplate.length]?.id ??
+          null,
+        ownerId: value.account.id,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
         verifierComment: fakerEn.lorem.sentence(),
         createdAt: fakerVi.date.between('1950-01-01', new Date()),
         updatedAt: new Date(),
-      }),
-    ),
-    ...modAccounts.flatMap((account) =>
-      _.sampleSize(
-        [OrganizationStatus.Verified, ...Object.values(OrganizationStatus)],
-        randomInt(0, Object.values(OrganizationStatus).length) + 1,
-      ).map((value) => {
-        return {
-          id: getNextOrganizationId(),
-          name: fakerEn.company.name(),
-          phoneNumber: fakerVi.phone.number('+84#########'),
-          email: fakerEn.internet.exampleEmail(),
-          description: fakerEn.lorem.paragraphs(),
-          website: fakerVi.internet.url(),
-          status: value,
-          isDisabled: fakerVi.datatype.boolean(),
-          logo: null,
-          banner: null,
-          ownerId: account.id,
-          verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
-          verifierComment: fakerEn.lorem.sentence(),
-          createdAt: fakerVi.date.between('1950-01-01', new Date()),
-          updatedAt: new Date(),
-        };
-      }),
-    ),
+      };
+    }),
   ];
 
   const organizationLocations: Location[] = Array.from({

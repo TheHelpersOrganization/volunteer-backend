@@ -11,5 +11,5 @@ export class UploadFileOutputDto {
   internalName: string;
 
   @Expose()
-  mimetype: string;
+  mimetype?: string;
 }
