@@ -130,3 +130,24 @@ export const generateEnContact = () => ({
 export const capitalizeWords = (s: string) => {
   return s.replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase()));
 };
+
+export enum FileSizeUnit {
+  B = 'B',
+  KB = 'KB',
+  MB = 'MB',
+  GB = 'GB',
+  TB = 'TB',
+}
+
+export function normalizeFileSize(size: number): {
+  size: number;
+  unit: FileSizeUnit;
+} {
+  const units = Object.values(FileSizeUnit);
+  let unitIndex = 0;
+  while (size > 1000 && unitIndex < units.length) {
+    size /= 1000;
+    unitIndex++;
+  }
+  return { size, unit: units[unitIndex] };
+}

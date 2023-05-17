@@ -59,6 +59,8 @@ CREATE TABLE "File" (
     "internalName" TEXT NOT NULL,
     "mimetype" TEXT,
     "path" TEXT NOT NULL,
+    "size" DOUBLE PRECISION NOT NULL,
+    "sizeUnit" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "createdBy" INTEGER NOT NULL,

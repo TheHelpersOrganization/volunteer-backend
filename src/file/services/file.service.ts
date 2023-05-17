@@ -10,7 +10,9 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { Readable } from 'stream';
 
+import { normalizeFileSize } from 'src/common/utils';
 import { PrismaService } from '../../prisma';
+import { FileQueryDto } from '../dtos';
 import { DownloadFileQueryDto } from '../dtos/download-file.query.dto';
 import { FileOutputDto } from '../dtos/file-output.dto';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
@@ -54,33 +56,37 @@ export class FileService extends AbstractService {
 
   async listFiles(
     ctx: RequestContext,
-    limit: number,
-    offset: number,
+    query: FileQueryDto,
   ): Promise<FileOutputDto[]> {
     this.logCaller(ctx, this.listFiles);
     const files = await this.prisma.file.findMany({
       where: {
+        id: {
+          in: query.ids,
+        },
         createdBy: ctx.account.id,
       },
-      take: limit,
-      skip: offset,
+      take: query.limit,
+      skip: query.offset,
     });
     return this.outputArray(FileOutputDto, files);
   }
 
-  async getById(id: number) {
-    return this.prisma.file.findUnique({ where: { id: id } });
-  }
+  async getById(
+    context: RequestContext,
+    id: number,
+  ): Promise<FileOutputDto | undefined> {
+    this.logCaller(context, this.getById);
 
-  async getByIds(ids: number[]) {
-    return this.prisma.file.findMany({ where: { id: { in: ids } } });
+    return this.output(
+      FileOutputDto,
+      await this.prisma.file.findUnique({ where: { id: id } }),
+    );
   }
 
   async uploadFile(
     ctx: RequestContext,
-    buffer: Buffer,
-    originalname: string,
-    mimetype: string,
+    uploadFile: Express.Multer.File,
   ): Promise<UploadFileOutputDto> {
     this.logCaller(ctx, this.uploadFile);
 
@@ -89,11 +95,11 @@ export class FileService extends AbstractService {
       client: this.client,
       params: {
         Bucket: this.bucket,
-        Body: buffer,
+        Body: uploadFile.buffer,
         Key: key,
         Metadata: {
-          originalname: originalname,
-          mimetype: mimetype,
+          originalname: uploadFile.originalname,
+          mimetype: uploadFile.mimetype,
         },
       },
       queueSize: 4, // optional concurrency configuration
@@ -114,11 +120,14 @@ export class FileService extends AbstractService {
 
     await this.uploadFileToS3(ctx, upload);
 
+    const normalizedFileSize = normalizeFileSize(uploadFile.size);
     const file = {
-      name: originalname,
+      name: uploadFile.originalname,
       internalName: key,
-      mimetype: mimetype,
+      mimetype: uploadFile.mimetype,
       path: '/',
+      size: normalizedFileSize.size,
+      sizeUnit: normalizedFileSize.unit,
       createdBy: ctx.account.id,
     };
 
@@ -171,6 +180,8 @@ export class FileService extends AbstractService {
           id: safeFile.id,
           name: safeFile.name,
           internalName: safeFile.internalName,
+          size: safeFile.size,
+          sizeUnit: safeFile.sizeUnit,
           mimetype: safeFile.mimetype ?? undefined,
         },
       };
