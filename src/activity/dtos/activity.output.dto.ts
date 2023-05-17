@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { ContactOutputDto } from 'src/contact/dtos';
 import { ShortLocationOutputDto } from 'src/location/dtos';
 
 export class ActivityOutputDto {
@@ -34,6 +35,10 @@ export class ActivityOutputDto {
   @Expose()
   @Type(() => ShortLocationOutputDto)
   location: ShortLocationOutputDto;
+
+  @Expose()
+  @Type(() => ContactOutputDto)
+  contacts: ContactOutputDto[];
 
   @Expose()
   maxParticipants: number;
