@@ -3,9 +3,11 @@ import {
   Activity,
   ActivityManager,
   ActivitySkill,
+  Contact,
   Location,
   Prisma,
   Shift,
+  ShiftContact,
   ShiftLocation,
   ShiftSkill,
 } from '@prisma/client';
@@ -17,6 +19,7 @@ import { unionLocationsTransform } from 'src/common/transformers';
 import { PrismaService } from 'src/prisma';
 import { ShiftVolunteerStatus } from 'src/shift/constants';
 
+import { ContactOutputDto } from 'src/contact/dtos';
 import {
   ActivityOutputDto,
   ActivityQueryDto,
@@ -392,6 +395,7 @@ export class ActivityService extends AbstractService {
           location: Location;
         })[];
         shiftSkills?: ShiftSkill[];
+        shiftContacts?: (ShiftContact & { contact: Contact })[];
       })[];
       maxParticipants?: number | null;
       joinedParticipants?: number;
@@ -435,6 +439,12 @@ export class ActivityService extends AbstractService {
         ? _.max(activity.shifts.map((s) => s.endTime))
         : undefined,
       location: unionLocation,
+      contacts: this.outputArray(
+        ContactOutputDto,
+        activity.shifts?.flatMap((s) =>
+          s.shiftContacts?.map((sc) => sc.contact),
+        ) ?? [],
+      ),
       maxParticipants: activity.maxParticipants,
       joinedParticipants: activity.joinedParticipants,
     });
