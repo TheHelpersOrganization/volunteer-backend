@@ -14,6 +14,7 @@ import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateSkillInputDto,
   SkillOutputDto,
+  SkillQueryDto,
   UpdateSkillInputDto,
 } from '../dtos';
 import { SkillService } from '../services';
@@ -33,7 +34,7 @@ export class SkillController {
   @Get()
   async getAll(
     @ReqContext() context: RequestContext,
-    @Query() query: PaginationParamsDto,
+    @Query() query: SkillQueryDto,
   ) {
     return this.skillService.getAll(context, query);
   }
