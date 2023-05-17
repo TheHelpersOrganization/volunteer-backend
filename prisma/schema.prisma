@@ -78,6 +78,8 @@ model File {
   internalName       String            @unique
   mimetype           String?
   path               String
+  size               Float
+  sizeUnit           String
   createdAt          DateTime?         @default(now())
   updatedAt          DateTime?         @default(now()) @updatedAt
   createdBy          Int

@@ -3,20 +3,20 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
-  Res,
   StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express, Response } from 'express';
-import { PaginationParamsDto } from 'src/common/dtos';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import { Public } from '../../auth/decorators';
+import { FileQueryDto } from '../dtos';
 import { UploadFileOutputDto } from '../dtos/upload-file-output.dto';
+import { UploadFilePipe } from '../pipes';
 import { FileService } from '../services';
 
 @Controller('files')
@@ -27,23 +27,26 @@ export class FileController {
   @UseInterceptors(ClassSerializerInterceptor)
   async getFiles(
     @ReqContext() context: RequestContext,
-    @Query() query: PaginationParamsDto,
+    @Query() query: FileQueryDto,
   ) {
-    return this.fileService.listFiles(context, query.limit, query.offset);
+    return this.fileService.listFiles(context, query);
+  }
+
+  @Get(':id')
+  async getFileById(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.fileService.getById(context, id);
   }
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @ReqContext() context: RequestContext,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(UploadFilePipe) file: Express.Multer.File,
   ): Promise<UploadFileOutputDto> {
-    return this.fileService.uploadFile(
-      context,
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-    );
+    return this.fileService.uploadFile(context, file);
   }
 
   @Get('download/:id')
