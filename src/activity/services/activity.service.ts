@@ -7,6 +7,7 @@ import {
   Prisma,
   Shift,
   ShiftLocation,
+  ShiftSkill,
 } from '@prisma/client';
 import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
@@ -59,6 +60,12 @@ export class ActivityService extends AbstractService {
               },
             },
             shiftVolunteers: true,
+            shiftContacts: {
+              include: {
+                contact: true,
+              },
+            },
+            shiftSkills: true,
           },
         },
         activitySkills: true,
@@ -106,6 +113,67 @@ export class ActivityService extends AbstractService {
     });
 
     return filtered;
+  }
+
+  private async internalGetById(context: RequestContext, id: number) {
+    this.logCaller(context, this.internalGetById);
+
+    const activity = await this.prisma.activity.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        shifts: {
+          include: {
+            shiftLocations: {
+              include: {
+                location: true,
+              },
+            },
+            shiftVolunteers: true,
+            shiftContacts: {
+              include: {
+                contact: true,
+              },
+            },
+            shiftSkills: true,
+          },
+        },
+        activitySkills: true,
+        activityManagers: true,
+      },
+    });
+
+    if (activity == null) {
+      return null;
+    }
+
+    let maxParticipants: number | null = 0;
+    let joinedParticipants = 0;
+
+    for (const shift of activity.shifts) {
+      if (maxParticipants != null) {
+        if (shift.numberOfParticipants == null) {
+          maxParticipants = null;
+        } else {
+          maxParticipants += shift.numberOfParticipants;
+        }
+      }
+      for (const shiftVolunteer of shift.shiftVolunteers) {
+        if (
+          shiftVolunteer.status == ShiftVolunteerStatus.Approved ||
+          shiftVolunteer.status == ShiftVolunteerStatus.Pending
+        ) {
+          joinedParticipants++;
+        }
+      }
+    }
+
+    return {
+      ...activity,
+      joinedParticipants,
+      maxParticipants,
+    };
   }
 
   private getActivityFilter(query: ActivityQueryDto) {
@@ -216,15 +284,7 @@ export class ActivityService extends AbstractService {
     id: number,
   ): Promise<ActivityOutputDto | null> {
     this.logCaller(context, this.getById);
-    const res = await this.prisma.activity.findUnique({
-      where: {
-        id: id,
-      },
-      include: {
-        activitySkills: true,
-        activityManagers: true,
-      },
-    });
+    const res = await this.internalGetById(context, id);
     if (res == null) {
       return null;
     }
@@ -331,6 +391,7 @@ export class ActivityService extends AbstractService {
         shiftLocations: (ShiftLocation & {
           location: Location;
         })[];
+        shiftSkills?: ShiftSkill[];
       })[];
       maxParticipants?: number | null;
       joinedParticipants?: number;
@@ -343,14 +404,26 @@ export class ActivityService extends AbstractService {
       ? unionLocationsTransform(locations)
       : undefined;
 
+    const skillIds = activity.shifts?.flatMap((shift) =>
+      shift.shiftSkills?.map((sk) => sk.skillId),
+    );
+    const filteredSkillIds: number[] = [];
+    skillIds?.forEach((skillId) => {
+      if (skillId == null) {
+        return;
+      }
+      if (filteredSkillIds.includes(skillId)) {
+        return;
+      }
+      filteredSkillIds.push(skillId);
+    });
+
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
       description: activity.description,
       thumbnail: activity.thumbnail,
-      skillIds: activity.activitySkills?.map(
-        (activitySkill) => activitySkill.skillId,
-      ),
+      skillIds: filteredSkillIds,
       activityManagerIds: activity.activityManagers?.map(
         (activityManager) => activityManager.accountId,
       ),

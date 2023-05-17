@@ -16,6 +16,7 @@ import {
 import * as _ from 'lodash';
 import { OrganizationStatus } from '../../src/organization/constants';
 import { ShiftVolunteerStatus } from '../../src/shift/constants';
+import { seedFiles } from './seed-file';
 import {
   capitalizeWords,
   generateViContact,
@@ -32,7 +33,6 @@ export const seedActivities = async (
   volunteerAccounts: Account[],
 ) => {
   const activities: Activity[] = [];
-
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
@@ -59,6 +59,16 @@ export const seedActivities = async (
         });
       }
     });
+
+  const thumbnails = await seedFiles(
+    prisma,
+    './tmp/images/activity-thumbnail',
+    activities.length,
+    () => fakerEn.image.imageUrl(1280, 720, 'volunteer'),
+  );
+  activities.forEach((activity, index) => {
+    activity.thumbnail = thumbnails[index]?.id ?? null;
+  });
 
   const shifts: Shift[] = [];
   const shiftLocations: Location[] = [];
@@ -194,7 +204,7 @@ export const seedActivities = async (
   });
 
   return {
-    activities,
+    activities: activities,
     shifts,
     shiftVolunteers,
   };
