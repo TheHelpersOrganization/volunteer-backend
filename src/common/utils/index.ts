@@ -52,4 +52,10 @@ export function normalizeFileSize(size: number): {
   return { size, unit: units[unitIndex] };
 }
 
+export const emptyObjectIfNullish = <T>(obj: T | null | undefined) =>
+  obj ?? <T>{};
+
+export const emptyArrayIfNullish = <T>(arr: T | null | undefined) =>
+  arr ?? <T>[];
+
 export const rootProjectPath = path.resolve('./');

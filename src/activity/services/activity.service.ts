@@ -1,31 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Activity,
-  ActivityManager,
-  ActivitySkill,
-  Contact,
-  Location,
-  Prisma,
-  Shift,
-  ShiftContact,
-  ShiftLocation,
-  ShiftSkill,
-} from '@prisma/client';
 import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { unionLocationsTransform } from 'src/common/transformers';
 import { PrismaService } from 'src/prisma';
-import { ShiftVolunteerStatus } from 'src/shift/constants';
 
 import { ContactOutputDto } from 'src/contact/dtos';
 import {
   ActivityOutputDto,
-  ActivityQueryDto,
   CreateActivityInputDto,
+  GetActivitiesQueryDto,
+  GetActivityByIdQueryDto,
   UpdateActivityInputDto,
 } from '../dtos';
+import { RawActivity } from '../types';
+import {
+  extendActivity,
+  filterExtendedActivity,
+  getActivityFilter,
+} from '../utils';
 
 @Injectable()
 export class ActivityService extends AbstractService {
@@ -35,7 +29,7 @@ export class ActivityService extends AbstractService {
 
   async getAll(
     context: RequestContext,
-    query: ActivityQueryDto,
+    query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
     this.logCaller(context, this.getAll);
 
@@ -45,10 +39,13 @@ export class ActivityService extends AbstractService {
     return this.outputArray(ActivityOutputDto, updated);
   }
 
-  private async internalGet(context: RequestContext, query: ActivityQueryDto) {
+  private async internalGet(
+    context: RequestContext,
+    query: GetActivitiesQueryDto,
+  ) {
     this.logCaller(context, this.internalGet);
 
-    const activityQuery = this.getActivityFilter(query);
+    const activityQuery = getActivityFilter(query);
 
     const res = await this.prisma.activity.findMany({
       where: activityQuery,
@@ -76,55 +73,24 @@ export class ActivityService extends AbstractService {
       },
     });
 
-    const withParticipants = res.map((activity) => {
-      let maxParticipants: number | null = 0;
-      let joinedParticipants = 0;
+    const extendedActivities = res
+      .map(extendActivity)
+      .filter((a) => filterExtendedActivity(a, query));
 
-      for (const shift of activity.shifts) {
-        if (maxParticipants != null) {
-          if (shift.numberOfParticipants == null) {
-            maxParticipants = null;
-          } else {
-            maxParticipants += shift.numberOfParticipants;
-          }
-        }
-        for (const shiftVolunteer of shift.shiftVolunteers) {
-          if (
-            shiftVolunteer.status == ShiftVolunteerStatus.Approved ||
-            shiftVolunteer.status == ShiftVolunteerStatus.Pending
-          ) {
-            joinedParticipants++;
-          }
-        }
-      }
-
-      return { ...activity, maxParticipants, joinedParticipants };
-    });
-
-    const filtered = withParticipants.filter((activity) => {
-      const availableSlots =
-        activity.maxParticipants == null || activity.maxParticipants == 0
-          ? null
-          : activity.maxParticipants - activity.joinedParticipants;
-      if (availableSlots == null) {
-        return true;
-      }
-      if (query.av == null) {
-        return true;
-      }
-      return availableSlots >= query.av;
-    });
-
-    return filtered;
+    return extendedActivities;
   }
 
-  private async internalGetById(context: RequestContext, id: number) {
+  private async internalGetById(
+    context: RequestContext,
+    id: number,
+    query: GetActivityByIdQueryDto,
+  ) {
     this.logCaller(context, this.internalGetById);
 
-    const activity = await this.prisma.activity.findUnique({
-      where: {
-        id: id,
-      },
+    const activityQuery = getActivityFilter(query);
+
+    const activity = await this.prisma.activity.findFirst({
+      where: { ...activityQuery, id: id },
       include: {
         shifts: {
           include: {
@@ -151,143 +117,16 @@ export class ActivityService extends AbstractService {
       return null;
     }
 
-    let maxParticipants: number | null = 0;
-    let joinedParticipants = 0;
-
-    for (const shift of activity.shifts) {
-      if (maxParticipants != null) {
-        if (shift.numberOfParticipants == null) {
-          maxParticipants = null;
-        } else {
-          maxParticipants += shift.numberOfParticipants;
-        }
-      }
-      for (const shiftVolunteer of shift.shiftVolunteers) {
-        if (
-          shiftVolunteer.status == ShiftVolunteerStatus.Approved ||
-          shiftVolunteer.status == ShiftVolunteerStatus.Pending
-        ) {
-          joinedParticipants++;
-        }
-      }
-    }
-
-    return {
-      ...activity,
-      joinedParticipants,
-      maxParticipants,
-    };
-  }
-
-  private getActivityFilter(query: ActivityQueryDto) {
-    let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
-    if (query.n) {
-      activityQuery = {
-        name: {
-          contains: query.n.trim(),
-          mode: 'insensitive',
-        },
-      };
-    }
-    if (query.org) {
-      activityQuery = {
-        ...activityQuery,
-        organizationId: {
-          in: query.org,
-        },
-      };
-    }
-    if (query.as) {
-      activityQuery = {
-        ...activityQuery,
-        activitySkills: {
-          some: {
-            skillId: {
-              in: query.as,
-            },
-          },
-        },
-      };
-    }
-    const shiftQuery = this.getShiftFilter(query);
-    if (shiftQuery) {
-      activityQuery = {
-        ...activityQuery,
-        shifts: shiftQuery,
-      };
-    }
-    return activityQuery;
-  }
-
-  private getShiftFilter(query: ActivityQueryDto) {
-    let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
-    shiftQuery = {
-      some: {},
-    };
-    if (query.st) {
-      shiftQuery = {
-        some: {
-          startTime: query.st && {
-            gte: query.st,
-          },
-        },
-      };
-    }
-    if (query.et) {
-      shiftQuery = {
-        ...shiftQuery,
-        some: {
-          endTime: {
-            lte: query.et,
-          },
-        },
-      };
-    }
-    if (query.sk) {
-      shiftQuery = {
-        ...shiftQuery,
-        some: {
-          shiftSkills: {
-            some: {
-              skillId: {
-                in: query.sk,
-              },
-            },
-          },
-        },
-      };
-    }
-    if (query.lc || query.rg || query.ct) {
-      shiftQuery = {
-        ...shiftQuery,
-        some: {
-          shiftLocations: {
-            some: {
-              location: {
-                locality: {
-                  contains: query.lc?.trim(),
-                  mode: 'insensitive',
-                },
-                region: {
-                  contains: query.rg?.trim(),
-                  mode: 'insensitive',
-                },
-                country: query.ct,
-              },
-            },
-          },
-        },
-      };
-    }
-    return shiftQuery;
+    return extendActivity(activity);
   }
 
   async getById(
     context: RequestContext,
     id: number,
+    query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto | null> {
     this.logCaller(context, this.getById);
-    const res = await this.internalGetById(context, id);
+    const res = await this.internalGetById(context, id, query);
     if (res == null) {
       return null;
     }
@@ -386,21 +225,7 @@ export class ActivityService extends AbstractService {
     return this.mapToDto(res);
   }
 
-  mapToDto(
-    activity: Activity & {
-      activitySkills?: ActivitySkill[];
-      activityManagers?: ActivityManager[];
-      shifts?: (Shift & {
-        shiftLocations: (ShiftLocation & {
-          location: Location;
-        })[];
-        shiftSkills?: ShiftSkill[];
-        shiftContacts?: (ShiftContact & { contact: Contact })[];
-      })[];
-      maxParticipants?: number | null;
-      joinedParticipants?: number;
-    },
-  ): ActivityOutputDto {
+  private mapToDto(activity: RawActivity): ActivityOutputDto {
     const locations = activity.shifts?.flatMap((s) =>
       s.shiftLocations.map((sl) => sl.location),
     );
@@ -432,12 +257,16 @@ export class ActivityService extends AbstractService {
         (activityManager) => activityManager.accountId,
       ),
       organizationId: activity.organizationId,
-      startTime: activity.shifts
-        ? _.min(activity.shifts.map((s) => s.startTime))
-        : undefined,
-      endTime: activity.shifts
-        ? _.max(activity.shifts.map((s) => s.endTime))
-        : undefined,
+      startTime:
+        activity.startTime ??
+        (activity.shifts
+          ? _.min(activity.shifts.map((s) => s.startTime))
+          : undefined),
+      endTime:
+        activity.endTime ??
+        (activity.shifts
+          ? _.max(activity.shifts.map((s) => s.endTime))
+          : undefined),
       location: unionLocation,
       contacts: this.outputArray(
         ContactOutputDto,

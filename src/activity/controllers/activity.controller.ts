@@ -12,7 +12,8 @@ import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import {
   ActivityOutputDto,
-  ActivityQueryDto,
+  GetActivitiesQueryDto,
+  GetActivityByIdQueryDto,
   UpdateActivityInputDto,
 } from '../dtos';
 import { CreateActivityInputDto } from '../dtos/create-activity.input.dto';
@@ -25,7 +26,7 @@ export class ActivityController {
   @Get()
   async getAll(
     @ReqContext() context: RequestContext,
-    @Query() query: ActivityQueryDto,
+    @Query() query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
     return this.activityService.getAll(context, query);
   }
@@ -34,8 +35,9 @@ export class ActivityController {
   async getById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
+    @Query() query: GetActivityByIdQueryDto,
   ): Promise<ActivityOutputDto | null> {
-    return this.activityService.getById(context, id);
+    return this.activityService.getById(context, id, query);
   }
 
   @Post()
