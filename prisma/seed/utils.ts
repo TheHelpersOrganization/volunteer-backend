@@ -61,8 +61,8 @@ export const generateViLocation = () => ({
   locality: fakerVi.address.street(),
   region: fakerVi.address.cityName(),
   country: 'VN',
-  latitude: Number.parseFloat(fakerVi.address.latitude()),
-  longitude: Number.parseFloat(fakerVi.address.longitude()),
+  latitude: fakerVi.location.latitude(),
+  longitude: fakerVi.location.longitude(),
   createdAt: new Date(),
   updatedAt: new Date(),
 });
@@ -74,8 +74,8 @@ export const generateEnLocation = () => ({
   locality: fakerEn.address.cityName(),
   region: fakerEn.address.state(),
   country: 'US',
-  latitude: Number.parseFloat(fakerEn.address.latitude()),
-  longitude: Number.parseFloat(fakerEn.address.longitude()),
+  latitude: fakerEn.location.latitude(),
+  longitude: fakerEn.location.longitude(),
   createdAt: new Date(),
   updatedAt: new Date(),
 });
