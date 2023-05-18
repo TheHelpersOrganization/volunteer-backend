@@ -1,5 +1,7 @@
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsDate,
   IsISO31661Alpha2,
@@ -14,7 +16,7 @@ import {
 import { PaginationParamsDto } from 'src/common/dtos';
 import { separatedCommaNumberArrayTransform } from 'src/common/transformers';
 
-export class ActivityQueryDto extends PaginationParamsDto {
+export class GetActivityByIdQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsString()
   n?: string;
@@ -22,20 +24,27 @@ export class ActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
+  @ArrayMinSize(1)
   @Transform(({ value }) => value.split(',').map(Number))
   org?: number[];
 
   // Start date
   @IsOptional()
-  @IsDate()
-  @Transform(({ value }) => new Date(Number(value)))
-  st?: Date;
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(2)
+  @IsDate({ each: true })
+  @Transform(({ value }) => value.split(',').map((v) => new Date(Number(v))))
+  st?: Date[];
 
   // End date
   @IsOptional()
-  @IsDate()
-  @Transform(({ value }) => new Date(Number(value)))
-  et?: Date;
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(2)
+  @IsDate({ each: true })
+  @Transform(({ value }) => value.split(',').map((v) => new Date(Number(v))))
+  et?: Date[];
 
   // Number of participants
   @IsOptional()
@@ -86,4 +95,13 @@ export class ActivityQueryDto extends PaginationParamsDto {
   @IsNumberString()
   @Min(0)
   rd: number;
+}
+
+export class GetActivitiesQueryDto extends GetActivityByIdQueryDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsNumber(undefined, { each: true })
+  @Transform(({ value }) => value.split(',').map(Number))
+  ids?: number[];
 }
