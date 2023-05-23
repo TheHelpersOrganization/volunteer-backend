@@ -4,11 +4,14 @@ import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
 import { Prisma } from '@prisma/client';
+import { ShiftSkillService } from 'src/shift/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma';
 import {
-  GetProfileInputDto,
+  GetProfileInclude,
+  GetProfileQueryDto,
+  GetProfilesQueryDto,
   ProfileOutputDto,
   UpdateProfileInputDto,
 } from '../dtos';
@@ -19,6 +22,7 @@ export class ProfileService extends AbstractService {
     logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly locationService: LocationService,
+    private readonly shiftSkillService: ShiftSkillService,
   ) {
     super(logger);
     this.logger.setContext(ProfileService.name);
@@ -26,14 +30,14 @@ export class ProfileService extends AbstractService {
 
   async getProfiles(
     ctx: RequestContext,
-    dto: GetProfileInputDto,
+    query: GetProfilesQueryDto,
   ): Promise<ProfileOutputDto[]> {
     this.logCaller(ctx, this.getProfiles);
     let where: Prisma.ProfileWhereInput | undefined;
-    if (dto.ids != null) {
+    if (query.ids != null) {
       where = {
         accountId: {
-          in: dto.ids,
+          in: query.ids,
         },
       };
     }
@@ -41,11 +45,15 @@ export class ProfileService extends AbstractService {
       where: where,
       include: {
         location: true,
+        profileInterestedSkills: query.includes?.includes(
+          GetProfileInclude.InterestedSkills,
+        ),
       },
     });
     const res = profiles.map((profile) => ({
       ...profile,
       id: profile.accountId,
+      interestedSkills: profile.profileInterestedSkills?.map((s) => s.skillId),
     }));
     return this.outputArray(ProfileOutputDto, res);
   }
@@ -53,27 +61,38 @@ export class ProfileService extends AbstractService {
   async getProfile(
     ctx: RequestContext,
     accountId: number,
+    query?: GetProfileQueryDto,
   ): Promise<ProfileOutputDto> {
     this.logger.log(ctx, `${this.getProfile.name} was called`);
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
-    let profile: any = await this.prisma.profile.findUnique({
+    const profile = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
       include: {
         location: true,
+        profileInterestedSkills: query?.includes?.includes(
+          GetProfileInclude.InterestedSkills,
+        ),
       },
     });
+
     if (!profile) {
       this.logger.log(ctx, `account profile does not exist, create one`);
       this.logger.log(ctx, `calling prisma.profile create`);
-      profile = await this.prisma.profile.create({
+      const profile = await this.prisma.profile.create({
         data: {
           accountId: accountId,
         },
+      });
+      return this.output(ProfileOutputDto, {
+        ...profile,
+        id: profile.accountId,
       });
     }
     const res = {
       ...profile,
       id: profile.accountId,
+      interestedSkills: profile.profileInterestedSkills?.map((s) => s.skillId),
+      skills: await this.shiftSkillService.getVolunteerSkillHours(accountId),
     };
     return this.output(ProfileOutputDto, res);
   }

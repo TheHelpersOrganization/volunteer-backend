@@ -11,6 +11,7 @@ import {
 } from './controllers';
 import {
   ShiftService,
+  ShiftSkillService,
   ShiftVolunteerService,
   ShiftVolunteerTaskService,
 } from './services';
@@ -23,7 +24,12 @@ import {
     ShiftController,
     ShiftVolunteerController,
   ],
-  providers: [ShiftService, ShiftVolunteerService, ShiftVolunteerTaskService],
-  exports: [ShiftService, ShiftVolunteerService],
+  providers: [
+    ShiftService,
+    ShiftVolunteerService,
+    ShiftVolunteerTaskService,
+    ShiftSkillService,
+  ],
+  exports: [ShiftService, ShiftVolunteerService, ShiftSkillService],
 })
 export class ShiftModule {}
