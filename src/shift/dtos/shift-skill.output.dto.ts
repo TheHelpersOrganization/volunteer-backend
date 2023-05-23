@@ -5,8 +5,8 @@ export class ShiftSkillOutputDto {
   @Expose()
   hours: number;
 
-  // @Expose()
-  // skillId: number;
+  @Expose()
+  skillId: number;
 
   @Expose()
   @Type(() => SkillOutputDto)

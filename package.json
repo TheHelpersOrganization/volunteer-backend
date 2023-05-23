@@ -37,7 +37,7 @@
     "prisma:reset": "pnpx prisma migrate reset",
     "doc:serve": "pnpx compodoc -p tsconfig.json -w -s -r 8001",
     "doc:generate": "pnpx compodoc -p tsconfig.json",
-    "prepare": "is-ci || husky install",
+    "prepare": "is-ci && husky install",
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
