@@ -1,8 +1,9 @@
 import { Expose, Type } from 'class-transformer';
 
-import { ShiftSkillOutputDto } from 'src/shift/dtos';
+import { SkillOutputDto } from 'src/skill/dtos';
 import { LocationOutputDto } from '../../location/dtos';
 import { Gender } from '../constants/profile.constant';
+import { ProfileSkillOutputDto } from './profile-skill.output.dto';
 
 export class ProfileOutputDto {
   @Expose()
@@ -39,9 +40,10 @@ export class ProfileOutputDto {
   // ----- Extra fields -----
 
   @Expose()
-  @Type(() => ShiftSkillOutputDto)
-  skills: ShiftSkillOutputDto[];
+  @Type(() => ProfileSkillOutputDto)
+  skills?: ProfileSkillOutputDto[];
 
   @Expose()
-  interestedSkills: number[];
+  @Type(() => SkillOutputDto)
+  interestedSkills?: SkillOutputDto[];
 }
