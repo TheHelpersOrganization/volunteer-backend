@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client';
+import { unionLocationsTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift/constants';
-import { GetActivitiesQueryDto, GetActivityByIdQueryDto } from '../dtos';
+import { NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES } from '../constants';
+import {
+  GetActivitiesQueryDto,
+  GetActivityByIdQueryDto,
+  ModGetActivitiesQueryDto,
+} from '../dtos';
 import { ExtendedActivity, ExtendedActivityInput } from '../types';
 
 export const getShiftFilter = (query: GetActivitiesQueryDto) => {
@@ -10,12 +16,12 @@ export const getShiftFilter = (query: GetActivitiesQueryDto) => {
   };
   let shiftSomeAndQuery: Prisma.Enumerable<Prisma.ShiftWhereInput> | undefined =
     undefined;
-  if (query.st) {
+  if (query.startDate) {
     shiftSomeAndQuery = [
       {
         startTime: {
-          gte: query.st[0],
-          lte: query.st[1],
+          gte: query.startDate[0],
+          lte: query.startDate[1],
         },
       },
     ];
@@ -25,32 +31,32 @@ export const getShiftFilter = (query: GetActivitiesQueryDto) => {
       },
     };
   }
-  if (query.et) {
+  if (query.endDate) {
     shiftQuery = {
       ...shiftQuery,
       some: {
         endTime: {
-          gte: query.et[0],
-          lte: query.et[1],
+          gte: query.endDate[0],
+          lte: query.endDate[1],
         },
       },
     };
   }
-  if (query.sk) {
+  if (query.skill) {
     shiftQuery = {
       ...shiftQuery,
       some: {
         shiftSkills: {
           some: {
             skillId: {
-              in: query.sk,
+              in: query.skill,
             },
           },
         },
       },
     };
   }
-  if (query.lc || query.rg || query.ct) {
+  if (query.locality || query.region || query.country) {
     shiftQuery = {
       ...shiftQuery,
       some: {
@@ -58,14 +64,14 @@ export const getShiftFilter = (query: GetActivitiesQueryDto) => {
           some: {
             location: {
               locality: {
-                contains: query.lc?.trim(),
+                contains: query.locality?.trim(),
                 mode: 'insensitive',
               },
               region: {
-                contains: query.rg?.trim(),
+                contains: query.region?.trim(),
                 mode: 'insensitive',
               },
-              country: query.ct,
+              country: query.country,
             },
           },
         },
@@ -76,7 +82,10 @@ export const getShiftFilter = (query: GetActivitiesQueryDto) => {
 };
 
 export const getActivityFilter = (
-  query: GetActivityByIdQueryDto | GetActivitiesQueryDto,
+  query:
+    | GetActivityByIdQueryDto
+    | GetActivitiesQueryDto
+    | ModGetActivitiesQueryDto,
 ) => {
   let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
 
@@ -87,32 +96,38 @@ export const getActivityFilter = (
       },
     };
   }
-  if (query.n) {
+  if (query.name) {
     activityQuery = {
       ...activityQuery,
       name: {
-        contains: query.n.trim(),
+        contains: query.name.trim(),
         mode: 'insensitive',
       },
     };
   }
-  if (query.org) {
+  if (query.status) {
+    if (query instanceof ModGetActivitiesQueryDto) {
+      activityQuery = {
+        ...activityQuery,
+        status: {
+          in: query.status,
+        },
+      };
+    } else {
+      activityQuery = {
+        ...activityQuery,
+        status: {
+          in: query.status,
+          notIn: NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
+        },
+      };
+    }
+  }
+  if (query instanceof GetActivityByIdQueryDto && query.org) {
     activityQuery = {
       ...activityQuery,
       organizationId: {
         in: query.org,
-      },
-    };
-  }
-  if (query.as) {
-    activityQuery = {
-      ...activityQuery,
-      activitySkills: {
-        some: {
-          skillId: {
-            in: query.as,
-          },
-        },
       },
     };
   }
@@ -162,12 +177,37 @@ export const extendActivity = (
     }
   }
 
+  const locations = activity.shifts?.flatMap((s) =>
+    s.shiftLocations.map((sl) => sl.location),
+  );
+  const unionLocation = locations
+    ? unionLocationsTransform(locations)
+    : undefined;
+
+  const skillIds = activity.shifts?.flatMap((shift) =>
+    shift.shiftSkills?.map((sk) => sk.skillId),
+  );
+  const filteredSkillIds: number[] = [];
+  skillIds?.forEach((skillId) => {
+    if (skillId == null) {
+      return;
+    }
+    if (filteredSkillIds.includes(skillId)) {
+      return;
+    }
+    filteredSkillIds.push(skillId);
+  });
+  const contacts = activity.activityContact?.map((ac) => ac.contact);
+
   return {
     ...activity,
     maxParticipants,
     joinedParticipants,
     startTime,
     endTime,
+    skillIds: filteredSkillIds,
+    location: unionLocation,
+    contacts,
   };
 };
 
@@ -175,33 +215,33 @@ export const filterExtendedActivity = (
   activity: ExtendedActivity,
   query: GetActivitiesQueryDto,
 ) => {
-  if (query.av != null) {
+  if (query.availableSlots != null) {
     const availableSlots =
       activity.maxParticipants == null || activity.maxParticipants == 0
         ? null
         : activity.maxParticipants - activity.joinedParticipants;
-    if (availableSlots != null && availableSlots < query.av) {
+    if (availableSlots != null && availableSlots < query.availableSlots) {
       return false;
     }
   }
-  if (query.st != null) {
+  if (query.startDate != null) {
     if (activity.startTime == null) {
       return false;
     }
     if (
-      activity.startTime.getTime() < query.st[0].getTime() ||
-      activity.startTime.getTime() > query.st[1].getTime()
+      activity.startTime.getTime() < query.startDate[0].getTime() ||
+      activity.startTime.getTime() > query.startDate[1].getTime()
     ) {
       return false;
     }
   }
-  if (query.et != null) {
+  if (query.endDate != null) {
     if (activity.endTime == null) {
       return false;
     }
     if (
-      activity.endTime.getTime() < query.et[0].getTime() ||
-      activity.endTime.getTime() > query.et[1].getTime()
+      activity.endTime.getTime() < query.endDate[0].getTime() ||
+      activity.endTime.getTime() > query.endDate[1].getTime()
     ) {
       return false;
     }

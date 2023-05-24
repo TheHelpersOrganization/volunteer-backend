@@ -3,10 +3,8 @@ import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
-import { unionLocationsTransform } from 'src/common/transformers';
 import { PrismaService } from 'src/prisma';
 
-import { ContactOutputDto } from 'src/contact/dtos';
 import {
   ActivityOutputDto,
   CreateActivityInputDto,
@@ -70,6 +68,11 @@ export class ActivityService extends AbstractService {
         },
         activitySkills: true,
         activityManagers: true,
+        activityContacts: {
+          include: {
+            contact: true,
+          },
+        },
       },
     });
 
@@ -110,6 +113,11 @@ export class ActivityService extends AbstractService {
         },
         activitySkills: true,
         activityManagers: true,
+        activityContacts: {
+          include: {
+            contact: true,
+          },
+        },
       },
     });
 
@@ -226,33 +234,13 @@ export class ActivityService extends AbstractService {
   }
 
   private mapToDto(activity: RawActivity): ActivityOutputDto {
-    const locations = activity.shifts?.flatMap((s) =>
-      s.shiftLocations.map((sl) => sl.location),
-    );
-    const unionLocation = locations
-      ? unionLocationsTransform(locations)
-      : undefined;
-
-    const skillIds = activity.shifts?.flatMap((shift) =>
-      shift.shiftSkills?.map((sk) => sk.skillId),
-    );
-    const filteredSkillIds: number[] = [];
-    skillIds?.forEach((skillId) => {
-      if (skillId == null) {
-        return;
-      }
-      if (filteredSkillIds.includes(skillId)) {
-        return;
-      }
-      filteredSkillIds.push(skillId);
-    });
-
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
+      status: activity.status,
       description: activity.description,
       thumbnail: activity.thumbnail,
-      skillIds: filteredSkillIds,
+      skillIds: activity.skillIds,
       activityManagerIds: activity.activityManagers?.map(
         (activityManager) => activityManager.accountId,
       ),
@@ -267,13 +255,8 @@ export class ActivityService extends AbstractService {
         (activity.shifts
           ? _.max(activity.shifts.map((s) => s.endTime))
           : undefined),
-      location: unionLocation,
-      contacts: this.outputArray(
-        ContactOutputDto,
-        activity.shifts?.flatMap((s) =>
-          s.shiftContacts?.map((sc) => sc.contact),
-        ) ?? [],
-      ),
+      location: activity.location,
+      contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,
       joinedParticipants: activity.joinedParticipants,
     });

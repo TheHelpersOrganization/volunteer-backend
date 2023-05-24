@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
+import { Role } from 'src/auth/constants';
+import { RequireRoles } from 'src/auth/decorators';
 import {
   ActivityOutputDto,
   GetActivitiesQueryDto,
@@ -19,6 +21,7 @@ import {
 import { CreateActivityInputDto } from '../dtos/create-activity.input.dto';
 import { ActivityService } from '../services';
 
+@RequireRoles(Role.Volunteer)
 @Controller('activities')
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}

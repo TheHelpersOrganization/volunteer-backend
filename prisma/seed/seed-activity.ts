@@ -2,6 +2,7 @@ import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import {
   Account,
   Activity,
+  ActivityContact,
   Contact,
   Location,
   Organization,
@@ -14,6 +15,7 @@ import {
   VolunteerShift,
 } from '@prisma/client';
 import * as _ from 'lodash';
+import { ActivityStatus } from 'src/activity/constants';
 import { OrganizationStatus } from '../../src/organization/constants';
 import { ShiftVolunteerStatus } from '../../src/shift/constants';
 import { seedFiles } from './seed-file';
@@ -33,12 +35,16 @@ export const seedActivities = async (
   volunteerAccounts: Account[],
 ) => {
   const activities: Activity[] = [];
+  const activityContacts: Contact[] = [];
+  const activityContactRels: ActivityContact[] = [];
+
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
       activities.push({
         id: getNextActivityId(),
         isDisabled: false,
+        status: ActivityStatus.PENDING,
         organizationId: organization.id,
         name: capitalizeWords(fakerEn.lorem.words()),
         description: fakerEn.lorem.paragraphs(),
@@ -46,18 +52,22 @@ export const seedActivities = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      for (let i = 0; i < fakerEn.datatype.number({ min: 0, max: 5 }); i++) {
-        activities.push({
-          id: getNextActivityId(),
-          isDisabled: fakerEn.datatype.boolean(),
-          organizationId: organization.id,
-          name: capitalizeWords(fakerEn.lorem.words()),
-          description: fakerEn.lorem.paragraphs(),
-          thumbnail: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      }
+
+      Object.values(ActivityStatus).forEach((status) => {
+        for (let i = 0; i < fakerEn.number.int({ min: 2, max: 5 }); i++) {
+          activities.push({
+            id: getNextActivityId(),
+            isDisabled: fakerEn.datatype.boolean(),
+            status: status,
+            organizationId: organization.id,
+            name: capitalizeWords(fakerEn.lorem.words()),
+            description: fakerEn.lorem.paragraphs(),
+            thumbnail: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      });
     });
 
   const thumbnails = await seedFiles(
@@ -68,6 +78,18 @@ export const seedActivities = async (
   );
   activities.forEach((activity, index) => {
     activity.thumbnail = thumbnails[index]?.id ?? null;
+    const ac: Contact[] = Array.from({
+      length: fakerEn.number.int({ min: 1, max: 5 }),
+    }).map(() => generateViContact());
+    activityContacts.push(...ac);
+    activityContactRels.push(
+      ...ac.map((contact) => ({
+        activityId: activity.id,
+        contactId: contact.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+    );
   });
 
   const shifts: Shift[] = [];
@@ -173,6 +195,14 @@ export const seedActivities = async (
 
   await prisma.activity.createMany({
     data: activities,
+  });
+
+  await prisma.contact.createMany({
+    data: activityContacts,
+  });
+
+  await prisma.activityContact.createMany({
+    data: activityContactRels,
   });
 
   await prisma.shift.createMany({
