@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ShiftSkill, Skill } from '@prisma/client';
+import { ActivityStatus } from 'src/activity/constants';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
@@ -21,6 +23,9 @@ export class ShiftSkillService extends AbstractService {
 
   async getVolunteerShiftSkills(
     volunteerId: number,
+    includes?: {
+      skill?: boolean;
+    },
   ): Promise<ShiftSkillOutputDto[]> {
     const res = await this.prisma.shiftSkill.findMany({
       where: {
@@ -32,15 +37,39 @@ export class ShiftSkillService extends AbstractService {
           },
         },
       },
+      include: {
+        skill: includes?.skill,
+      },
     });
     return this.outputArray(ShiftSkillOutputDto, res);
   }
 
   async getVolunteerSkillHours(
     volunteerId: number,
+    includes?: {
+      skill?: boolean;
+    },
   ): Promise<ShiftSkillOutputDto[]> {
-    const shiftSkills = await this.getVolunteerShiftSkills(volunteerId);
-    const res: ShiftSkillOutputDto[] = [];
+    const shiftSkills = await this.prisma.shiftSkill.findMany({
+      where: {
+        shift: {
+          shiftVolunteers: {
+            every: {
+              accountId: volunteerId,
+            },
+          },
+          activity: {
+            status: ActivityStatus.PENDING,
+          },
+        },
+      },
+      include: {
+        skill: includes?.skill,
+      },
+    });
+    const res: (ShiftSkill & {
+      skill: Skill;
+    })[] = [];
     shiftSkills.forEach((shiftSkill) => {
       const existing = res.find((s) => s.skillId === shiftSkill.skillId);
       if (existing) {
@@ -49,6 +78,6 @@ export class ShiftSkillService extends AbstractService {
         res.push(shiftSkill);
       }
     });
-    return res;
+    return this.outputArray(ShiftSkillOutputDto, res);
   }
 }

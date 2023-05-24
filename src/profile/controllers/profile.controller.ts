@@ -38,7 +38,7 @@ export class ProfileController {
   @Get()
   async getProfiles(
     @ReqContext() ctx: RequestContext,
-    @Body() dto: GetProfilesQueryDto,
+    @Query() dto: GetProfilesQueryDto,
   ): Promise<ProfileOutputDto[]> {
     return this.profileService.getProfiles(ctx, dto);
   }

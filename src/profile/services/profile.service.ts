@@ -3,7 +3,7 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
-import { Prisma } from '@prisma/client';
+import { Prisma, Profile, ProfileInterestedSkill, Skill } from '@prisma/client';
 import { ShiftSkillService } from 'src/shift/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
@@ -34,27 +34,43 @@ export class ProfileService extends AbstractService {
   ): Promise<ProfileOutputDto[]> {
     this.logCaller(ctx, this.getProfiles);
     let where: Prisma.ProfileWhereInput | undefined;
-    if (query.ids != null) {
+    if (query.ids) {
       where = {
         accountId: {
           in: query.ids,
         },
       };
     }
-    const profiles = await this.prisma.profile.findMany({
+    const profiles: any[] = await this.prisma.profile.findMany({
       where: where,
       include: {
         location: true,
         profileInterestedSkills: query.includes?.includes(
-          GetProfileInclude.InterestedSkills,
-        ),
+          GetProfileInclude.INTERESTED_SKILLS,
+        )
+          ? { include: { skill: true } }
+          : false,
       },
     });
-    const res = profiles.map((profile) => ({
-      ...profile,
-      id: profile.accountId,
-      interestedSkills: profile.profileInterestedSkills?.map((s) => s.skillId),
-    }));
+    const res: any[] = [];
+
+    for (const profile of profiles) {
+      const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
+        ? await this.shiftSkillService.getVolunteerSkillHours(
+            profile.accountId,
+            {
+              skill: true,
+            },
+          )
+        : undefined;
+
+      res.push({
+        ...profile,
+        id: profile.accountId,
+        interestedSkills: profile.profileInterestedSkills?.map((s) => s.skill),
+        skills: skillHours?.map((s) => ({ ...s.skill, hours: s.hours })),
+      });
+    }
     return this.outputArray(ProfileOutputDto, res);
   }
 
@@ -65,13 +81,26 @@ export class ProfileService extends AbstractService {
   ): Promise<ProfileOutputDto> {
     this.logger.log(ctx, `${this.getProfile.name} was called`);
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
-    const profile = await this.prisma.profile.findUnique({
+
+    const profile:
+      | (Profile & {
+          profileInterestedSkills?: (ProfileInterestedSkill & {
+            skill?: Skill;
+          })[];
+        })
+      | null = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
       include: {
         location: true,
         profileInterestedSkills: query?.includes?.includes(
-          GetProfileInclude.InterestedSkills,
-        ),
+          GetProfileInclude.INTERESTED_SKILLS,
+        )
+          ? {
+              include: {
+                skill: true,
+              },
+            }
+          : false,
       },
     });
 
@@ -88,11 +117,16 @@ export class ProfileService extends AbstractService {
         id: profile.accountId,
       });
     }
+    const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
+      ? await this.shiftSkillService.getVolunteerSkillHours(accountId, {
+          skill: true,
+        })
+      : undefined;
     const res = {
       ...profile,
       id: profile.accountId,
-      interestedSkills: profile.profileInterestedSkills?.map((s) => s.skillId),
-      skills: await this.shiftSkillService.getVolunteerSkillHours(accountId),
+      interestedSkills: profile.profileInterestedSkills?.map((s) => s.skill),
+      skills: skillHours?.map((s) => ({ ...s.skill, hours: s.hours })),
     };
     return this.output(ProfileOutputDto, res);
   }

@@ -22,8 +22,6 @@ async function main() {
 const seed = async () => {
   await prisma.connect();
 
-  //await runWithTimer(resetBucket, '- Resetting S3 Bucket...');
-
   const { accounts, adminAccounts, modAccounts, volunteerAccounts } =
     await runWithTimer(
       () => seedAccountsAndRoles(prisma),

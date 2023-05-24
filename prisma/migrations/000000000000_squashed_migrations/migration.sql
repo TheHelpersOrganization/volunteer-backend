@@ -132,6 +132,7 @@ CREATE TABLE "Activity" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "isDisabled" BOOLEAN NOT NULL DEFAULT false,
+    "status" TEXT NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "thumbnail" INTEGER,
@@ -241,6 +242,16 @@ CREATE TABLE "ActivityManager" (
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ActivityManager_pkey" PRIMARY KEY ("activityId","accountId")
+);
+
+-- CreateTable
+CREATE TABLE "ActivityContact" (
+    "activityId" INTEGER NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ActivityContact_pkey" PRIMARY KEY ("activityId","contactId")
 );
 
 -- CreateTable
@@ -447,6 +458,12 @@ ALTER TABLE "ActivityManager" ADD CONSTRAINT "ActivityManager_activityId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "ActivityManager" ADD CONSTRAINT "ActivityManager_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VolunteerSkill" ADD CONSTRAINT "VolunteerSkill_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

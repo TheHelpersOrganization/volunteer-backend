@@ -1,28 +1,14 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { AppPrismaClient } from './app-prisma-client';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
-  private retries = 0;
-  private connected = false;
-
+export class PrismaService extends AppPrismaClient implements OnModuleInit {
   constructor() {
     super();
   }
 
   async onModuleInit() {
-    while (!this.connected) {
-      try {
-        await this.$connect();
-        this.connected = true;
-      } catch (err) {
-        if (this.retries >= 5) {
-          throw err;
-        }
-        this.retries++;
-        console.warn(`Connection failed. Retrying... Attempt ${this.retries}`);
-      }
-    }
+    this.connect();
   }
 
   async enableShutdownHooks(app: INestApplication) {

@@ -1,5 +1,6 @@
 import {
   Activity,
+  ActivityContact,
   ActivityManager,
   ActivitySkill,
   Contact,
@@ -10,10 +11,12 @@ import {
   ShiftSkill,
   VolunteerShift,
 } from '@prisma/client';
+import { ShortLocationOutputDto } from 'src/location/dtos';
 
 export type ExtendedActivityInput = Activity & {
   activitySkills?: ActivitySkill[];
   activityManagers?: ActivityManager[];
+  activityContact?: (ActivityContact & { contact: Contact })[];
   shifts: (Shift & {
     shiftLocations: (ShiftLocation & {
       location: Location;
@@ -29,6 +32,9 @@ export type ExtendedActivity = ExtendedActivityInput & {
   joinedParticipants: number;
   startTime?: Date;
   endTime?: Date;
+  skillIds?: number[];
+  location?: ShortLocationOutputDto;
+  contacts?: Contact[];
 };
 
 export type RawActivity = Activity & {
@@ -45,4 +51,7 @@ export type RawActivity = Activity & {
   joinedParticipants?: number;
   startTime?: Date;
   endTime?: Date;
+  skillIds?: number[];
+  location?: ShortLocationOutputDto;
+  contacts?: Contact[];
 };

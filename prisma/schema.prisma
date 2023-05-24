@@ -114,6 +114,7 @@ model Contact {
   email               String?
   organizationContact OrganizationContact?
   shiftContact        ShiftContact?
+  activityContact     ActivityContact[]
 }
 
 model Organization {
@@ -162,6 +163,7 @@ model Activity {
   name              String
   description       String?
   isDisabled        Boolean           @default(false)
+  status            String            @default("pending")
   createdAt         DateTime?         @default(now())
   updatedAt         DateTime?         @default(now()) @updatedAt
   thumbnail         Int?              @unique
@@ -171,6 +173,7 @@ model Activity {
   shifts            Shift[]
   activityManagers  ActivityManager[]
   activitySkills    ActivitySkill[]
+  activityContacts  ActivityContact[]
 }
 
 model Shift {
@@ -280,6 +283,17 @@ model ActivityManager {
   updatedAt  DateTime? @default(now()) @updatedAt
 
   @@id([activityId, accountId])
+}
+
+model ActivityContact {
+  activityId Int
+  contactId  Int
+  activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  contact    Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+
+  @@id([activityId, contactId])
 }
 
 model VolunteerSkill {
