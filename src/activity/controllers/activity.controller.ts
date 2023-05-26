@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import { Role } from 'src/auth/constants';
@@ -16,9 +7,7 @@ import {
   ActivityOutputDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
-  UpdateActivityInputDto,
 } from '../dtos';
-import { CreateActivityInputDto } from '../dtos/create-activity.input.dto';
 import { ActivityService } from '../services';
 
 @RequireRoles(Role.Volunteer)
@@ -41,30 +30,5 @@ export class ActivityController {
     @Query() query: GetActivityByIdQueryDto,
   ): Promise<ActivityOutputDto | null> {
     return this.activityService.getById(context, id, query);
-  }
-
-  @Post()
-  async create(
-    @ReqContext() context: RequestContext,
-    @Body() dto: CreateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.create(context, dto);
-  }
-
-  @Put(':id')
-  async update(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-    @Body() dto: UpdateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.update(context, id, dto);
-  }
-
-  @Delete(':id')
-  async delete(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.delete(context, id);
   }
 }

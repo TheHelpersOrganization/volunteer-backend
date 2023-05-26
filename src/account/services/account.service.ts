@@ -99,8 +99,8 @@ export class AccountService {
 
   async getAccounts(
     ctx: RequestContext,
-    limit: number,
-    offset: number,
+    limit?: number,
+    offset?: number,
     query?: GetAccountQueryDto,
   ): Promise<{ users: AccountOutputDto[]; count: number }> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);

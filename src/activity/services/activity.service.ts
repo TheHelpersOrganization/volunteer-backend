@@ -7,10 +7,8 @@ import { PrismaService } from 'src/prisma';
 
 import {
   ActivityOutputDto,
-  CreateActivityInputDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
-  UpdateActivityInputDto,
 } from '../dtos';
 import { RawActivity } from '../types';
 import {
@@ -138,98 +136,6 @@ export class ActivityService extends AbstractService {
     if (res == null) {
       return null;
     }
-    return this.mapToDto(res);
-  }
-
-  async create(
-    context: RequestContext,
-    dto: CreateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    this.logCaller(context, this.create);
-
-    const res = await this.prisma.activity.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        thumbnail: dto.thumbnail,
-        activitySkills: {
-          createMany: {
-            data: dto.skillIds.map((id) => ({
-              skillId: id,
-            })),
-          },
-        },
-        organizationId: dto.organizationId,
-        activityManagers: {
-          createMany: {
-            data: dto.activityManagerIds.map((id) => ({
-              accountId: id,
-            })),
-          },
-        },
-      },
-      include: {
-        activityManagers: true,
-      },
-    });
-    return this.mapToDto(res);
-  }
-
-  async update(
-    context: RequestContext,
-    id: number,
-    dto: UpdateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    this.logCaller(context, this.update);
-
-    const res = await this.prisma.activity.update({
-      where: {
-        id: id,
-      },
-      data: {
-        name: dto.name,
-        description: dto.description,
-        thumbnail: dto.thumbnail,
-        activitySkills: {
-          deleteMany: {},
-          createMany: {
-            data: dto.skillIds.map((id) => ({
-              skillId: id,
-            })),
-          },
-        },
-        organizationId: dto.organizationId,
-        activityManagers: {
-          deleteMany: {},
-          createMany: {
-            data: dto.activityManagerIds.map((id) => ({
-              accountId: id,
-            })),
-          },
-        },
-      },
-      include: {
-        activitySkills: true,
-        activityManagers: true,
-      },
-    });
-
-    return this.mapToDto(res);
-  }
-
-  async delete(
-    context: RequestContext,
-    id: number,
-  ): Promise<ActivityOutputDto> {
-    this.logCaller(context, this.delete);
-    const res = await this.prisma.activity.delete({
-      where: {
-        id: id,
-      },
-      include: {
-        activityManagers: true,
-      },
-    });
     return this.mapToDto(res);
   }
 
