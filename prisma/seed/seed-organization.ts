@@ -49,14 +49,24 @@ export const seedOrganizations = async (
     prisma,
     './tmp/images/organization-logo',
     account1OrganizationTemplate.length + modOrganizationTemplate.length,
-    () => fakerEn.image.imageUrl(128, 128, 'logo'),
+    () =>
+      fakerEn.image.urlLoremFlickr({
+        width: 128,
+        height: 128,
+        category: 'logo',
+      }),
   );
 
   const organizationBanner = await seedFiles(
     prisma,
     './tmp/images/organization-banner',
     account1OrganizationTemplate.length + modOrganizationTemplate.length,
-    () => fakerEn.image.imageUrl(1280, 720, 'background'),
+    () =>
+      fakerEn.image.urlLoremFlickr({
+        width: 1280,
+        height: 720,
+        category: 'background',
+      }),
   );
 
   const organizations: Organization[] = [
@@ -74,7 +84,7 @@ export const seedOrganizations = async (
       ownerId: 1,
       verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
       verifierComment: fakerEn.lorem.sentence(),
-      createdAt: fakerVi.date.between('1950-01-01', new Date()),
+      createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
       updatedAt: new Date(),
     })),
     ...modOrganizationTemplate.map((value, index) => {
@@ -96,7 +106,7 @@ export const seedOrganizations = async (
         ownerId: value.account.id,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
         verifierComment: fakerEn.lorem.sentence(),
-        createdAt: fakerVi.date.between('1950-01-01', new Date()),
+        createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
         updatedAt: new Date(),
       };
     }),
@@ -122,7 +132,7 @@ export const seedOrganizations = async (
     length: organizations.length,
   }).map(() => ({
     id: getNextContactId(),
-    name: fakerVi.name.fullName(),
+    name: fakerVi.person.fullName(),
     email: fakerVi.internet.exampleEmail(),
     phoneNumber: fakerVi.phone.number('+84#########'),
   }));

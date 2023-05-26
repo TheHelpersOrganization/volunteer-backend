@@ -31,11 +31,11 @@ export const seedProfiles = async (
   );
 
   const profiles: Profile[] = accounts.map((account, i) => {
-    const createdAt = fakerVi.date.between(
-      account.createdAt ?? new Date(),
-      new Date(),
-    );
-    const updatedAt = fakerVi.date.between(createdAt, new Date());
+    const createdAt = fakerVi.date.between({
+      from: account.createdAt ?? new Date(),
+      to: new Date(),
+    });
+    const updatedAt = fakerVi.date.between({ from: createdAt, to: new Date() });
     const gender = _.sample(Object.values(Gender)) ?? Gender.Male;
     let genderName: 'male' | 'female';
     if (gender === Gender.Male) {
@@ -52,7 +52,7 @@ export const seedProfiles = async (
       username: fakerEn.internet.userName(),
       firstName: firstName,
       lastName: lastName,
-      dateOfBirth: fakerVi.date.between('1950-01-01', new Date()),
+      dateOfBirth: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
       gender: gender,
       bio: fakerEn.lorem.paragraphs(),
       phoneNumber: fakerVi.phone.number('+84#########'),

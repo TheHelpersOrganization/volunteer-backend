@@ -2,7 +2,7 @@ import { BucketAlreadyExists, NoSuchKey, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import { File } from '@prisma/client';
+import { File, Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import fileConfig from 'src/common/configs/subconfigs/file.config';
 import { AppLogger } from 'src/common/logger';
@@ -131,8 +131,20 @@ export class FileService extends AbstractService {
       createdBy: ctx.account.id,
     };
 
-    const res = await this.prisma.file.create({ data: file });
+    const res = await this.createFile(ctx, file);
     return this.output(UploadFileOutputDto, res);
+  }
+
+  async createFile(
+    ctx: RequestContext,
+    file: Prisma.FileUncheckedCreateInput,
+  ): Promise<FileOutputDto> {
+    this.logCaller(ctx, this.createFile);
+
+    return this.output(
+      FileOutputDto,
+      await this.prisma.file.create({ data: file }),
+    );
   }
 
   private async uploadFileToS3(ctx: RequestContext, upload: Upload) {

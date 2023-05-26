@@ -75,8 +75,11 @@ const adminAccounts = Array.from({ length: 30 }).map((_, index) => ({
 }));
 
 const volunteerAccounts = Array.from({ length: 30 }).map((_, i) => {
-  const createdAt = fakerVi.date.between('2018-01-01', new Date());
-  const updatedAt = fakerVi.date.between(createdAt, new Date());
+  const createdAt = fakerVi.date.between({
+    from: '2018-01-01',
+    to: new Date(),
+  });
+  const updatedAt = fakerVi.date.between({ from: createdAt, to: new Date() });
 
   return {
     id: 300 + i,

@@ -3,16 +3,12 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsEmail,
-  IsNotEmpty,
-  IsNotEmptyObject,
   IsOptional,
   IsPhoneNumber,
   IsString,
   IsUrl,
   Matches,
   MaxLength,
-  Min,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { IsFileId } from 'src/file/validators';
@@ -42,12 +38,13 @@ export class CreateOrganizationInputDto {
   @IsUrl()
   website: string;
 
+  @IsOptional()
   @IsFileId()
-  logo: number;
+  logo?: number;
 
   @IsOptional()
   @IsFileId()
-  banner: number;
+  banner?: number;
 
   @ValidateNested({ each: true })
   @Type(() => CreateLocationInputDto)

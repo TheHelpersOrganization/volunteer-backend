@@ -39,8 +39,8 @@ export const randomDate = () => {
 export const generateViName = (
   genderName: 'male' | 'female',
 ): { firstName: string; lastName: string } => {
-  let firstName = fakerVi.name.lastName(genderName);
-  let lastName = fakerVi.name.firstName(genderName);
+  let firstName = fakerVi.person.lastName(genderName);
+  let lastName = fakerVi.person.firstName(genderName);
 
   const parts = lastName.split(' ');
   if (parts.length > 1) {
@@ -56,10 +56,10 @@ export const generateViName = (
 
 export const generateViLocation = () => ({
   id: getNextLocationId(),
-  addressLine1: fakerVi.address.streetAddress(false),
-  addressLine2: fakerVi.address.secondaryAddress(),
-  locality: fakerVi.address.street(),
-  region: fakerVi.address.cityName(),
+  addressLine1: fakerVi.location.streetAddress(false),
+  addressLine2: fakerVi.location.secondaryAddress(),
+  locality: fakerVi.location.street(),
+  region: fakerVi.location.city(),
   country: 'VN',
   latitude: fakerVi.location.latitude(),
   longitude: fakerVi.location.longitude(),
@@ -69,10 +69,10 @@ export const generateViLocation = () => ({
 
 export const generateEnLocation = () => ({
   id: getNextLocationId(),
-  addressLine1: fakerEn.address.streetAddress(false),
-  addressLine2: fakerEn.address.secondaryAddress(),
-  locality: fakerEn.address.cityName(),
-  region: fakerEn.address.state(),
+  addressLine1: fakerEn.location.streetAddress(false),
+  addressLine2: fakerEn.location.secondaryAddress(),
+  locality: fakerEn.location.city(),
+  region: fakerEn.location.state(),
   country: 'US',
   latitude: fakerEn.location.latitude(),
   longitude: fakerEn.location.longitude(),
@@ -115,14 +115,14 @@ export const generateMember = (
 
 export const generateViContact = () => ({
   id: getNextContactId(),
-  name: fakerVi.name.fullName(),
+  name: fakerVi.person.fullName(),
   email: fakerVi.internet.exampleEmail(),
   phoneNumber: fakerVi.phone.number('+84#########'),
 });
 
 export const generateEnContact = () => ({
   id: getNextContactId(),
-  name: fakerEn.name.fullName(),
+  name: fakerEn.person.fullName(),
   email: fakerEn.internet.exampleEmail(),
   phoneNumber: fakerEn.phone.number('+84#########'),
 });

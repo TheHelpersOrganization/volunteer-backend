@@ -59,7 +59,7 @@ export class ShiftSkillService extends AbstractService {
             },
           },
           activity: {
-            status: ActivityStatus.PENDING,
+            status: ActivityStatus.Completed,
           },
         },
       },
