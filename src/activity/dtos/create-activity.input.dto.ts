@@ -13,7 +13,8 @@ export class CreateActivityInputDto {
   @IsFileId()
   thumbnail?: number;
 
+  @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
-  activityManagerIds: number[];
+  activityManagerIds?: number[];
 }

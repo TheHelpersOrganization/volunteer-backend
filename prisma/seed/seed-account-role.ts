@@ -1,7 +1,16 @@
+import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
-import { Account, AccountRole, PrismaClient, Role } from '@prisma/client';
+import {
+  Account,
+  AccountBan,
+  AccountRole,
+  AccountVerification,
+  PrismaClient,
+  Role,
+} from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import { Role as RoleEnum } from '../../src/auth/constants';
+import { getNextAccountBanId, getNextAccountVerificationId } from './utils';
 
 const roles: Role[] = [
   {
@@ -74,15 +83,78 @@ const adminAccounts = Array.from({ length: 30 }).map((_, index) => ({
   updatedAt: new Date(),
 }));
 
+const verificationList: AccountVerification[] = [];
+const banList: AccountBan[] = [];
+
 const volunteerAccounts = Array.from({ length: 30 }).map((_, i) => {
+  const accountId = 300 + i;
+
   const createdAt = fakerVi.date.between({
     from: '2018-01-01',
     to: new Date(),
   });
   const updatedAt = fakerVi.date.between({ from: createdAt, to: new Date() });
 
+  const isAccountVerified = fakerVi.datatype.boolean();
+  const isAccountDisabled = fakerVi.datatype.boolean();
+
+  if (!isAccountVerified) {
+    // Random number of verification
+    for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
+      const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+      verificationList.push({
+        id: getNextAccountVerificationId(),
+        accountId: accountId,
+        performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+        note: fakerEn.lorem.lines(),
+        isVerified: fakerVi.datatype.boolean(),
+        createdAt: ca,
+        updatedAt: ca,
+      });
+    }
+
+    // The last verification must match the account verification status
+    const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+    verificationList.push({
+      id: getNextAccountVerificationId(),
+      accountId: accountId,
+      performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+      note: fakerEn.lorem.lines(),
+      isVerified: isAccountVerified,
+      createdAt: ca,
+      updatedAt: ca,
+    });
+  }
+
+  if (!isAccountDisabled) {
+    // Random number of verification
+    for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
+      const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+      banList.push({
+        id: getNextAccountBanId(),
+        accountId: accountId,
+        performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+        note: fakerEn.lorem.lines(),
+        isBanned: fakerVi.datatype.boolean(),
+        createdAt: ca,
+        updatedAt: ca,
+      });
+    }
+
+    const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+    banList.push({
+      id: getNextAccountBanId(),
+      accountId: accountId,
+      performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+      note: fakerEn.lorem.lines(),
+      isBanned: isAccountDisabled,
+      createdAt: ca,
+      updatedAt: ca,
+    });
+  }
+
   return {
-    id: 300 + i,
+    id: accountId,
     email: fakerVi.internet.exampleEmail(),
     password: hashedPassword,
     isAccountVerified: fakerVi.datatype.boolean(),
@@ -166,6 +238,14 @@ export const seedAccountsAndRoles = async (prisma: PrismaClient) => {
 
   await prisma.accountRole.createMany({
     data: accountRoles,
+  });
+
+  await prisma.accountVerification.createMany({
+    data: verificationList,
+  });
+
+  await prisma.accountBan.createMany({
+    data: banList,
   });
 
   return {

@@ -54,6 +54,8 @@ const seed = async () => {
     () => seedActivities(prisma, organizations, skills, volunteerAccounts),
     '- Seeding activities...',
   );
+
+  await prisma.$disconnect();
 };
 
 const runWithTimer = async <T>(
