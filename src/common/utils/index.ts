@@ -58,4 +58,14 @@ export const emptyObjectIfNullish = <T>(obj: T | null | undefined) =>
 export const emptyArrayIfNullish = <T>(arr: T | null | undefined) =>
   arr ?? <T>[];
 
+export const throwIfNullish = <T>(
+  value: T | null | undefined,
+  message = 'Value is null',
+) => {
+  if (value == null) {
+    throw new Error(message);
+  }
+  return value;
+};
+
 export const rootProjectPath = path.resolve('./');

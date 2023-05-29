@@ -10,7 +10,7 @@ import {
   createDBEntities,
   resetDBBeforeTest,
   seedAdminAccount,
-} from '../test-utils';
+} from '../utils';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;

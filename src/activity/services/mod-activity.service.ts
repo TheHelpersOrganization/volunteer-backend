@@ -79,7 +79,7 @@ export class ModActivityService extends AbstractService {
         description: dto.description,
         thumbnail: dto.thumbnail,
         organizationId: organizationId,
-        activityManagers: {
+        activityManagers: dto.activityManagerIds && {
           createMany: {
             data: dto.activityManagerIds.map((id) => ({
               accountId: id,

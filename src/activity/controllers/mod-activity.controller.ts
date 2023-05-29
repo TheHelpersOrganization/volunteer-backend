@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { Role } from 'src/auth/constants';
 import { RequireRoles } from 'src/auth/decorators';
 import { ReqContext, RequestContext } from 'src/common/request-context';
@@ -18,7 +27,7 @@ export class ModActivityController {
   @Get()
   async getActivities(
     @ReqContext() context: RequestContext,
-    @Param('organizationId') organizationId: number,
+    @Param('organizationId', ParseIntPipe) organizationId: number,
     @Query() query: ModGetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
     return this.modActivityService.getActivities(
@@ -31,7 +40,7 @@ export class ModActivityController {
   @Post()
   async createActivity(
     @ReqContext() context: RequestContext,
-    @Param('organizationId') organizationId: number,
+    @Param('organizationId', ParseIntPipe) organizationId: number,
     @Body() dto: CreateActivityInputDto,
   ): Promise<ActivityOutputDto> {
     return this.modActivityService.createActivity(context, organizationId, dto);
@@ -40,9 +49,15 @@ export class ModActivityController {
   @Put(':id')
   async updateActivity(
     @ReqContext() context: RequestContext,
-    @Param('id') id: number,
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateActivityInputDto,
   ): Promise<ActivityOutputDto> {
-    return this.modActivityService.updateActivity(context, id, dto);
+    return this.modActivityService.updateActivity(
+      context,
+      organizationId,
+      id,
+      dto,
+    );
   }
 }

@@ -10,26 +10,30 @@ datasource db {
 }
 
 model Account {
-  id                    Int               @id @default(autoincrement())
-  email                 String            @unique
+  id                    Int                   @id @default(autoincrement())
+  email                 String                @unique
   password              String
-  isAccountDisabled     Boolean           @default(false)
-  isAccountVerified     Boolean           @default(false)
-  createdAt             DateTime?         @default(now())
-  updatedAt             DateTime?         @default(now()) @updatedAt
+  isAccountDisabled     Boolean               @default(false)
+  isAccountVerified     Boolean               @default(false)
+  createdAt             DateTime?             @default(now())
+  updatedAt             DateTime?             @default(now()) @updatedAt
   files                 File[]
   profile               Profile?
   tokens                Token[]
-  organizationOwners    Organization[]    @relation(name: "organizationOwner")
-  members               Member[]          @relation(name: "memberAccount")
-  memberCensors         Member[]          @relation(name: "memberCensor")
+  organizationOwners    Organization[]        @relation(name: "organizationOwner")
+  members               Member[]              @relation(name: "memberAccount")
+  memberCensors         Member[]              @relation(name: "memberCensor")
   activityManagers      ActivityManager[]
-  organizationVerifiers Organization[]    @relation(name: "organizationVerifier")
+  organizationVerifiers Organization[]        @relation(name: "organizationVerifier")
   volunteerSkills       VolunteerSkill[]
-  volunteerShifts       VolunteerShift[]  @relation(name: "volunteerShiftAccount")
-  volunteerShiftCensors VolunteerShift[]  @relation(name: "volunteerShiftCensor")
+  volunteerShifts       VolunteerShift[]      @relation(name: "volunteerShiftAccount")
+  volunteerShiftCensors VolunteerShift[]      @relation(name: "volunteerShiftCensor")
   shiftManagers         ShiftManager[]
   accountRoles          AccountRole[]
+  accountBannedBy       AccountBan[]          @relation(name: "accountBannedBy")
+  accountBan            AccountBan[]          @relation(name: "accountBan")
+  accountVerifiedBy     AccountVerification[] @relation(name: "accountVerifiedBy")
+  accountVerification   AccountVerification[] @relation(name: "accountVerification")
 }
 
 model Role {
@@ -192,6 +196,30 @@ model Shift {
   shiftSkills          ShiftSkill[]
   shiftVolunteers      VolunteerShift[]
   shiftManagers        ShiftManager[]
+}
+
+model AccountBan {
+  id                 Int       @id @default(autoincrement())
+  accountId          Int
+  account            Account   @relation(name: "accountBan", fields: [accountId], references: [id], onDelete: Cascade)
+  performedBy        Int
+  performedByAccount Account   @relation(name: "accountBannedBy", fields: [performedBy], references: [id], onDelete: Cascade)
+  isBanned           Boolean
+  note               String?
+  createdAt          DateTime? @default(now())
+  updatedAt          DateTime? @default(now()) @updatedAt
+}
+
+model AccountVerification {
+  id                 Int       @id @default(autoincrement())
+  accountId          Int
+  account            Account   @relation(name: "accountVerification", fields: [accountId], references: [id], onDelete: Cascade)
+  performedBy        Int
+  performedByAccount Account   @relation(name: "accountVerifiedBy", fields: [performedBy], references: [id], onDelete: Cascade)
+  isVerified         Boolean
+  note               String?
+  createdAt          DateTime? @default(now())
+  updatedAt          DateTime? @default(now()) @updatedAt
 }
 
 model AccountRole {

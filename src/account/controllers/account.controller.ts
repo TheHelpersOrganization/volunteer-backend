@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,10 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { Role } from '../../auth/constants/role.constant';
-import { RequireRoles } from '../../auth/decorators/role.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
 import {
   BaseApiErrorResponse,
   SwaggerBaseApiResponse,
@@ -29,7 +25,7 @@ import {
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { GetAccountQueryDto, UpdateAccountRolesInputDto } from '../dtos';
+import { UpdateAccountRolesInputDto } from '../dtos';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { AccountService } from '../services/account.service';
@@ -66,37 +62,6 @@ export class AccountController {
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
     return account;
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get()
-  @ApiOperation({
-    summary: 'Get users as a list API',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: SwaggerBaseApiResponse([AccountOutputDto]),
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    type: BaseApiErrorResponse,
-  })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @RequireRoles(Role.Admin, Role.Volunteer)
-  async getAccounts(
-    @ReqContext() ctx: RequestContext,
-    @Query() query: GetAccountQueryDto,
-  ): Promise<AccountOutputDto[]> {
-    this.logger.log(ctx, `${this.getAccounts.name} was called`);
-
-    const { users: accounts, count } = await this.accountService.getAccounts(
-      ctx,
-      query.limit,
-      query.offset,
-      query,
-    );
-
-    return accounts;
   }
 
   // TODO: ADD RoleGuard

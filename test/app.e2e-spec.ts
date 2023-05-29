@@ -3,11 +3,7 @@ import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 
 import { AppModule } from './../src/app.module';
-import {
-  closeDBAfterTest,
-  createDBEntities,
-  resetDBBeforeTest,
-} from './test-utils';
+import { closeDBAfterTest, createDBEntities, resetDBBeforeTest } from './utils';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;

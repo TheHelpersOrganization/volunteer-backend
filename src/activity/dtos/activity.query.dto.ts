@@ -78,16 +78,16 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
 
   @IsOptional()
   @IsLatitude()
-  lat: number;
+  lat?: number;
 
   @IsOptional()
   @IsLongitude()
-  lng: number;
+  lng?: number;
 
   @IsOptional()
   @IsNumberString()
   @Min(0)
-  radius: number;
+  radius?: number;
 }
 
 export class GetActivityByIdQueryDto extends BaseGetActivityQueryDto {

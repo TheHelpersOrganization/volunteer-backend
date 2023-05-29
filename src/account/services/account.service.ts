@@ -4,12 +4,11 @@ import { plainToInstance } from 'class-transformer';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
-import { Prisma } from '@prisma/client';
 import { Role } from 'src/auth/constants';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { GetAccountQueryDto, UpdateAccountRolesInputDto } from '../dtos';
+import { UpdateAccountRolesInputDto } from '../dtos';
 import { CreateAccountInput } from '../dtos/account-create-input.dto';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
@@ -95,34 +94,6 @@ export class AccountService {
     return plainToInstance(AccountOutputDto, res, {
       excludeExtraneousValues: true,
     });
-  }
-
-  async getAccounts(
-    ctx: RequestContext,
-    limit?: number,
-    offset?: number,
-    query?: GetAccountQueryDto,
-  ): Promise<{ users: AccountOutputDto[]; count: number }> {
-    this.logger.log(ctx, `${this.getAccounts.name} was called`);
-
-    this.logger.log(ctx, `find accounts`);
-    const where: Prisma.AccountWhereInput | undefined = {};
-    if (query?.ids) {
-      where.id = { in: query.ids };
-    }
-    where.isAccountDisabled = query?.isBanned;
-
-    const accounts = await this.prisma.account.findMany({
-      where: where,
-      take: limit,
-      skip: offset,
-    });
-
-    const usersOutput = plainToInstance(AccountOutputDto, accounts, {
-      excludeExtraneousValues: true,
-    });
-
-    return { users: usersOutput, count: accounts.length };
   }
 
   async findById(ctx: RequestContext, id: number): Promise<AccountOutputDto> {
