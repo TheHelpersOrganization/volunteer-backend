@@ -19,7 +19,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "pretest:int": "pnpm run test:db:restart && dotenv -e .env.test -- pnpm migrate:reset:force",
+    "pretest:int": "pnpm run test:db:restart && dotenv -e .env.test -- pnpx prisma migrate reset --preview-feature --force --skip-generate --skip-seed",
     "test:int": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --config ./jest-int.json",
     "test:e2e": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --config ./jest-e2e.json",
     "test:db:restart": "docker compose -f docker-compose.test.yml down && docker compose --env-file .env.test -f docker-compose.test.yml up -d && sleep 3",

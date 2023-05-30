@@ -9,7 +9,10 @@ import {
 } from '../dtos';
 import { ExtendedActivity, ExtendedActivityInput } from '../types';
 
-export const getShiftFilter = (query: GetActivitiesQueryDto) => {
+export const getShiftFilter = (
+  query: GetActivitiesQueryDto,
+  extra?: { joiner?: number },
+) => {
   let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
   shiftQuery = {
     some: {},
@@ -78,6 +81,21 @@ export const getShiftFilter = (query: GetActivitiesQueryDto) => {
       },
     };
   }
+  if (query.joinStatus && extra && extra.joiner) {
+    shiftQuery = {
+      ...shiftQuery,
+      some: {
+        shiftVolunteers: {
+          some: {
+            status: {
+              in: query.joinStatus,
+            },
+            accountId: extra.joiner,
+          },
+        },
+      },
+    };
+  }
   return shiftQuery;
 };
 
@@ -86,6 +104,7 @@ export const getActivityFilter = (
     | GetActivityByIdQueryDto
     | GetActivitiesQueryDto
     | ModGetActivitiesQueryDto,
+  extra?: { joiner?: number },
 ) => {
   let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
 
@@ -131,7 +150,7 @@ export const getActivityFilter = (
       },
     };
   }
-  const shiftQuery = getShiftFilter(query);
+  const shiftQuery = getShiftFilter(query, extra);
   if (shiftQuery) {
     activityQuery = {
       ...activityQuery,

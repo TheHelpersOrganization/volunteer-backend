@@ -99,7 +99,6 @@ export class AdminAccountService extends AbstractService {
     if (account.id === performedBy) {
       throw new UnableToVerifySelfAccountException();
     }
-    console.log(this.getAccountIncludes(query));
 
     const updated = await this.prisma.$transaction(
       async () => {

@@ -1,6 +1,6 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
-import { SeedPrismaClient } from './prisma-client';
+import { AppPrismaClient } from 'src/prisma';
 import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
 import { seedOrganizations } from './seed-organization';
@@ -10,23 +10,30 @@ import { seedSkills } from './seed-skill';
 fakerEn.seed(1);
 fakerVi.seed(1);
 
-const prisma = new SeedPrismaClient();
+const prisma = new AppPrismaClient();
 
 async function main() {
   console.log('🌱 Start seeding...');
   const start = Date.now();
+  await prisma.connect();
   await seed();
   console.log(`✅ Seeding finished. Took ${(Date.now() - start) / 1000}s`);
 }
 
 const seed = async () => {
-  await prisma.connect();
-
-  const { accounts, adminAccounts, modAccounts, volunteerAccounts } =
-    await runWithTimer(
-      () => seedAccountsAndRoles(prisma),
-      '- Seeding accounts and roles...',
-    );
+  const {
+    accounts,
+    adminAccounts,
+    modAccounts,
+    volunteerAccounts,
+    defaultAccounts,
+  } = await runWithTimer(
+    () =>
+      seedAccountsAndRoles(prisma, {
+        defaultAccountOptions: { include: true },
+      }),
+    '- Seeding accounts and roles...',
+  );
 
   const { skills } = await runWithTimer(
     () => seedSkills(prisma),
@@ -51,11 +58,16 @@ const seed = async () => {
   );
 
   await runWithTimer(
-    () => seedActivities(prisma, organizations, skills, volunteerAccounts),
+    () =>
+      seedActivities(
+        prisma,
+        organizations,
+        skills,
+        volunteerAccounts,
+        defaultAccounts,
+      ),
     '- Seeding activities...',
   );
-
-  await prisma.$disconnect();
 };
 
 const runWithTimer = async <T>(
