@@ -41,7 +41,9 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGet);
 
-    const activityQuery = getActivityFilter(query);
+    const activityQuery = getActivityFilter(query, {
+      joiner: context.account.id,
+    });
 
     const res = await this.prisma.activity.findMany({
       where: activityQuery,
@@ -88,7 +90,9 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGetById);
 
-    const activityQuery = getActivityFilter(query);
+    const activityQuery = getActivityFilter(query, {
+      joiner: context.account.id,
+    });
 
     const activity = await this.prisma.activity.findFirst({
       where: { ...activityQuery, id: id },

@@ -17,6 +17,7 @@ import {
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
 import { separatedCommaNumberArrayTransform } from 'src/common/transformers';
+import { ShiftVolunteerStatus } from 'src/shift/constants';
 import {
   AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
   ActivityStatus,
@@ -104,6 +105,12 @@ export class GetActivityByIdQueryDto extends BaseGetActivityQueryDto {
   @ArrayMinSize(1)
   @Transform(({ value }) => value.split(',').map(Number))
   org?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ShiftVolunteerStatus, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  joinStatus?: ShiftVolunteerStatus[];
 }
 
 export class GetActivitiesQueryDto extends GetActivityByIdQueryDto {

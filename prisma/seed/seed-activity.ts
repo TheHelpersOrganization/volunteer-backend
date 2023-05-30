@@ -33,6 +33,7 @@ export const seedActivities = async (
   organizations: Organization[],
   skills: Skill[],
   volunteerAccounts: Account[],
+  defaultAccounts: Account[],
 ) => {
   const activities: Activity[] = [];
   const activityContacts: Contact[] = [];
@@ -162,7 +163,7 @@ export const seedActivities = async (
       });
 
       _.sampleSize(
-        volunteerAccounts,
+        [...volunteerAccounts, ...defaultAccounts],
         fakerEn.number.int({ min: 0, max: 20 }),
       ).forEach((account) => {
         const status =
