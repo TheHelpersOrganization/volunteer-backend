@@ -40,6 +40,9 @@ export class ProfileOutputDto {
   // ----- Extra fields -----
 
   @Expose()
+  email: string;
+
+  @Expose()
   @Type(() => ProfileSkillOutputDto)
   skills?: ProfileSkillOutputDto[];
 
