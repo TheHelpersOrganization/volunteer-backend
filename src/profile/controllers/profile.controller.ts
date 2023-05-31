@@ -55,7 +55,7 @@ export class ProfileController {
   async getMyProfile(
     @ReqContext() ctx: RequestContext,
     @Query() query: GetProfileQueryDto,
-  ): Promise<ProfileOutputDto> {
+  ): Promise<ProfileOutputDto | null> {
     return this.profileService.getProfile(ctx, ctx.account.id, query);
   }
 
@@ -64,7 +64,7 @@ export class ProfileController {
     @ReqContext() ctx: RequestContext,
     @Param('id') id: number,
     @Query() query: GetProfileQueryDto,
-  ): Promise<ProfileOutputDto> {
+  ): Promise<ProfileOutputDto | null> {
     return this.profileService.getProfile(ctx, id, query);
   }
 

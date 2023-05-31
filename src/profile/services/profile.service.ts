@@ -3,7 +3,7 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
-import { Prisma, Profile, ProfileInterestedSkill, Skill } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ShiftSkillService } from 'src/shift/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
@@ -11,6 +11,7 @@ import { PrismaService } from '../../prisma';
 import {
   GetProfileInclude,
   GetProfileQueryDto,
+  GetProfileSelect,
   GetProfilesQueryDto,
   ProfileOutputDto,
   UpdateProfileInputDto,
@@ -43,14 +44,7 @@ export class ProfileService extends AbstractService {
     }
     const profiles: any[] = await this.prisma.profile.findMany({
       where: where,
-      include: {
-        location: true,
-        profileInterestedSkills: query.includes?.includes(
-          GetProfileInclude.INTERESTED_SKILLS,
-        )
-          ? { include: { skill: true } }
-          : false,
-      },
+      select: this.parseProfileSelect(query),
     });
     const res: any[] = [];
 
@@ -67,6 +61,7 @@ export class ProfileService extends AbstractService {
       res.push({
         ...profile,
         id: profile.accountId,
+        email: profile.account?.email,
         interestedSkills: profile.profileInterestedSkills?.map((s) => s.skill),
         skills: skillHours?.map((s) => ({ ...s.skill, hours: s.hours })),
       });
@@ -78,30 +73,21 @@ export class ProfileService extends AbstractService {
     ctx: RequestContext,
     accountId: number,
     query?: GetProfileQueryDto,
-  ): Promise<ProfileOutputDto> {
+  ): Promise<ProfileOutputDto | null> {
     this.logger.log(ctx, `${this.getProfile.name} was called`);
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
 
-    const profile:
-      | (Profile & {
-          profileInterestedSkills?: (ProfileInterestedSkill & {
-            skill?: Skill;
-          })[];
-        })
-      | null = await this.prisma.profile.findUnique({
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      return null;
+    }
+
+    const profile: any | null = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
-      include: {
-        location: true,
-        profileInterestedSkills: query?.includes?.includes(
-          GetProfileInclude.INTERESTED_SKILLS,
-        )
-          ? {
-              include: {
-                skill: true,
-              },
-            }
-          : false,
-      },
+      select: this.parseProfileSelect(query),
     });
 
     if (!profile) {
@@ -115,6 +101,7 @@ export class ProfileService extends AbstractService {
       return this.output(ProfileOutputDto, {
         ...profile,
         id: profile.accountId,
+        email: account.email,
       });
     }
     const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
@@ -125,6 +112,7 @@ export class ProfileService extends AbstractService {
     const res = {
       ...profile,
       id: profile.accountId,
+      email: account.email,
       interestedSkills: profile.profileInterestedSkills?.map((s) => s.skill),
       skills: skillHours?.map((s) => ({ ...s.skill, hours: s.hours })),
     };
@@ -186,5 +174,38 @@ export class ProfileService extends AbstractService {
     });
 
     return this.output(ProfileOutputDto, res);
+  }
+
+  parseProfileSelect(query?: GetProfileQueryDto) {
+    const select = query?.select;
+    const defaultSelect = select == null || select?.length === 0;
+
+    const res: Prisma.ProfileSelect = {
+      username: select?.includes(GetProfileSelect.Username) || defaultSelect,
+      firstName: select?.includes(GetProfileSelect.FullName) || defaultSelect,
+      lastName: select?.includes(GetProfileSelect.FullName) || defaultSelect,
+      phoneNumber:
+        select?.includes(GetProfileSelect.PhoneNumber) || defaultSelect,
+      dateOfBirth:
+        select?.includes(GetProfileSelect.DateOfBirth) || defaultSelect,
+      gender: select?.includes(GetProfileSelect.Gender) || defaultSelect,
+      bio: select?.includes(GetProfileSelect.Bio) || defaultSelect,
+      avatarId: select?.includes(GetProfileSelect.Avatar) || defaultSelect,
+      location: select?.includes(GetProfileSelect.Location) || defaultSelect,
+      account:
+        select?.includes(GetProfileSelect.Email) ||
+        (defaultSelect && {
+          select: {
+            email: true,
+          },
+        }),
+      profileInterestedSkills: query?.includes?.includes(
+        GetProfileInclude.INTERESTED_SKILLS,
+      )
+        ? { include: { skill: true } }
+        : false,
+    };
+    console.log(res);
+    return res;
   }
 }

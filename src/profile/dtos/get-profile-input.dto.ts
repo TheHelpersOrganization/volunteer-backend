@@ -7,12 +7,30 @@ export enum GetProfileInclude {
   SKILLS = 'skills',
 }
 
+export enum GetProfileSelect {
+  Email = 'email',
+  Username = 'username',
+  FullName = 'full-name',
+  PhoneNumber = 'phone-number',
+  DateOfBirth = 'date-of-birth',
+  Gender = 'gender',
+  Bio = 'bio',
+  Avatar = 'avatar',
+  Location = 'location',
+}
+
 export class GetProfileQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsArray()
   @IsEnum(GetProfileInclude, { each: true })
   @Transform(({ value }) => value.split(',').filter((v) => v))
   includes?: GetProfileInclude[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetProfileSelect, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  select?: GetProfileSelect[];
 }
 
 export class GetProfilesQueryDto extends GetProfileQueryDto {
