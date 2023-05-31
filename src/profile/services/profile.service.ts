@@ -199,6 +199,7 @@ export class ProfileService extends AbstractService {
             email: true,
           },
         }),
+      accountId: true,
       profileInterestedSkills: query?.includes?.includes(
         GetProfileInclude.INTERESTED_SKILLS,
       )
