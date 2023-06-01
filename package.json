@@ -37,6 +37,7 @@
     "prisma:generate:watch": "pnpx prisma generate --watch",
     "prisma:seed": "dotenv -e .env -- ts-node prisma/seed/seed.ts",
     "prisma:reset-and-seed": "dotenv -e .env -- pnpx prisma migrate reset --force && ts-node prisma/seed/seed.ts",
+    "prisma:test": "ts-node prisma/scripts/test.ts",
     "doc:serve": "pnpx compodoc -p tsconfig.json -w -s -r 8001",
     "doc:generate": "pnpx compodoc -p tsconfig.json",
     "prepare": "is-ci || husky install",

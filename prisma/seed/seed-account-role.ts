@@ -10,7 +10,11 @@ import {
 } from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import { Role as RoleEnum } from '../../src/auth/constants';
-import { getNextAccountBanId, getNextAccountVerificationId } from './utils';
+import {
+  getNextAccountBanId,
+  getNextAccountVerificationId,
+  getNextRoleId,
+} from './utils';
 
 export class SeedAccountsAndRolesOptions {
   defaultAccountOptions?: {
@@ -29,28 +33,28 @@ export const seedAccountsAndRoles = async (
 ) => {
   const roles: Role[] = [
     {
-      id: 1,
+      id: getNextRoleId(),
       name: RoleEnum.Volunteer,
       description: 'Volunteer',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
-      id: 2,
+      id: getNextRoleId(),
       name: RoleEnum.Moderator,
       description: 'Moderator',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
-      id: 3,
+      id: getNextRoleId(),
       name: RoleEnum.Admin,
       description: 'Admin',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
-      id: 4,
+      id: getNextRoleId(),
       name: RoleEnum.Operator,
       description: 'Operator',
       createdAt: new Date(),
@@ -105,6 +109,18 @@ export const seedAccountsAndRoles = async (
   }));
 
   const defaultAccounts: Account[] = [];
+  if (options?.defaultAccountOptions?.include === true) {
+    const acc1 = {
+      id: 1,
+      email: 'hquan310@gmail.com',
+      password: hashedPassword,
+      isAccountVerified: false,
+      isAccountDisabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    defaultAccounts.push(acc1);
+  }
 
   const verificationList: AccountVerification[] = [];
   const banList: AccountBan[] = [];
@@ -123,36 +139,34 @@ export const seedAccountsAndRoles = async (
     const isAccountVerified = fakerVi.datatype.boolean();
     const isAccountDisabled = fakerVi.datatype.boolean();
 
-    if (!isAccountVerified) {
-      // Random number of verification
-      for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
-        const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
-        verificationList.push({
-          id: getNextAccountVerificationId(),
-          accountId: accountId,
-          performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-          note: fakerEn.lorem.lines(),
-          isVerified: fakerVi.datatype.boolean(),
-          createdAt: ca,
-          updatedAt: ca,
-        });
-      }
-
-      // The last verification must match the account verification status
+    // Random number of verification
+    for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
       const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
       verificationList.push({
         id: getNextAccountVerificationId(),
         accountId: accountId,
         performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
         note: fakerEn.lorem.lines(),
-        isVerified: isAccountVerified,
+        isVerified: fakerVi.datatype.boolean(),
         createdAt: ca,
         updatedAt: ca,
       });
     }
 
-    if (!isAccountDisabled) {
-      // Random number of verification
+    // The last verification must match the account verification status
+    let ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+    verificationList.push({
+      id: getNextAccountVerificationId(),
+      accountId: accountId,
+      performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+      note: fakerEn.lorem.lines(),
+      isVerified: isAccountVerified,
+      createdAt: ca,
+      updatedAt: ca,
+    });
+
+    // Random number of ban
+    if (isAccountDisabled) {
       for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
         const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
         banList.push({
@@ -166,7 +180,7 @@ export const seedAccountsAndRoles = async (
         });
       }
 
-      const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+      ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
       banList.push({
         id: getNextAccountBanId(),
         accountId: accountId,
@@ -189,18 +203,6 @@ export const seedAccountsAndRoles = async (
     };
   });
 
-  if (options?.defaultAccountOptions?.include === true) {
-    const acc1 = {
-      id: 1,
-      email: 'hquan310@gmail.com',
-      password: hashedPassword,
-      isAccountVerified: false,
-      isAccountDisabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    defaultAccounts.push(acc1);
-  }
   const accounts: Account[] = [
     ...opAccounts,
     ...modAccounts,
