@@ -7,8 +7,8 @@ import { LoginInput } from '../../src/auth/dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../../src/auth/dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../../src/auth/dtos/auth-register-input.dto';
 import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
+import { closeDBAfterTest, seedAdminAccount } from '../utils';
 import { AppModule } from './../../src/app.module';
-import { closeDBAfterTest, seedAdminAccount } from './../test-utils';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;

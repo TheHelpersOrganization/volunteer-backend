@@ -6,11 +6,14 @@ This project is implemented using [NestJS](https://nestjs.com/) and [Prisma](htt
 
 ## Running the app
 
+⚠️ Using [pnpm](https://pnpm.io/) is recommended over `npm` or `yarn`.
+
 ### Local
 
-To run the server without Docker we need this pre-requisite:
+To run the server we need this pre-requisite:
 
 - Postgres server running
+- The .env file with the correct values, see [.env.template](.env.template) for reference
 
 Commands:
 
@@ -41,6 +44,9 @@ $ docker compose up
 # unit tests
 $ pnpm run test
 
+# integration tests
+$ pnpm run test:int
+
 # e2e tests
 $ pnpm run test:e2e
 
@@ -61,5 +67,8 @@ $ pnpm run migration:generate
 $ pnpm run migration:run
 
 # revert migration
+$ pnpm run migration:revert
+
+# reset database migration
 $ pnpm run migration:revert
 ```

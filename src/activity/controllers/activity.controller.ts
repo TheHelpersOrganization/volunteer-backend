@@ -1,23 +1,16 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
+import { Role } from 'src/auth/constants';
+import { RequireRoles } from 'src/auth/decorators';
 import {
   ActivityOutputDto,
-  ActivityQueryDto,
-  UpdateActivityInputDto,
+  GetActivitiesQueryDto,
+  GetActivityByIdQueryDto,
 } from '../dtos';
-import { CreateActivityInputDto } from '../dtos/create-activity.input.dto';
 import { ActivityService } from '../services';
 
+@RequireRoles(Role.Volunteer)
 @Controller('activities')
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
@@ -25,7 +18,7 @@ export class ActivityController {
   @Get()
   async getAll(
     @ReqContext() context: RequestContext,
-    @Query() query: ActivityQueryDto,
+    @Query() query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
     return this.activityService.getAll(context, query);
   }
@@ -34,32 +27,8 @@ export class ActivityController {
   async getById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
+    @Query() query: GetActivityByIdQueryDto,
   ): Promise<ActivityOutputDto | null> {
-    return this.activityService.getById(context, id);
-  }
-
-  @Post()
-  async create(
-    @ReqContext() context: RequestContext,
-    @Body() dto: CreateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.create(context, dto);
-  }
-
-  @Put(':id')
-  async update(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-    @Body() dto: UpdateActivityInputDto,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.update(context, id, dto);
-  }
-
-  @Delete(':id')
-  async delete(
-    @ReqContext() context: RequestContext,
-    @Param('id') id: number,
-  ): Promise<ActivityOutputDto> {
-    return this.activityService.delete(context, id);
+    return this.activityService.getById(context, id, query);
   }
 }

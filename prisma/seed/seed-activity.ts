@@ -2,6 +2,7 @@ import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import {
   Account,
   Activity,
+  ActivityContact,
   Contact,
   Location,
   Organization,
@@ -14,8 +15,10 @@ import {
   VolunteerShift,
 } from '@prisma/client';
 import * as _ from 'lodash';
+import { ActivityStatus } from 'src/activity/constants';
 import { OrganizationStatus } from '../../src/organization/constants';
 import { ShiftVolunteerStatus } from '../../src/shift/constants';
+import { seedFiles } from './seed-file';
 import {
   capitalizeWords,
   generateViContact,
@@ -30,8 +33,11 @@ export const seedActivities = async (
   organizations: Organization[],
   skills: Skill[],
   volunteerAccounts: Account[],
+  defaultAccounts: Account[],
 ) => {
   const activities: Activity[] = [];
+  const activityContacts: Contact[] = [];
+  const activityContactRels: ActivityContact[] = [];
 
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
@@ -39,6 +45,7 @@ export const seedActivities = async (
       activities.push({
         id: getNextActivityId(),
         isDisabled: false,
+        status: ActivityStatus.Pending,
         organizationId: organization.id,
         name: capitalizeWords(fakerEn.lorem.words()),
         description: fakerEn.lorem.paragraphs(),
@@ -46,19 +53,50 @@ export const seedActivities = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      for (let i = 0; i < fakerEn.datatype.number({ min: 0, max: 5 }); i++) {
-        activities.push({
-          id: getNextActivityId(),
-          isDisabled: fakerEn.datatype.boolean(),
-          organizationId: organization.id,
-          name: capitalizeWords(fakerEn.lorem.words()),
-          description: fakerEn.lorem.paragraphs(),
-          thumbnail: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      }
+
+      Object.values(ActivityStatus).forEach((status) => {
+        for (let i = 0; i < fakerEn.number.int({ min: 2, max: 5 }); i++) {
+          activities.push({
+            id: getNextActivityId(),
+            isDisabled: fakerEn.datatype.boolean(),
+            status: status,
+            organizationId: organization.id,
+            name: capitalizeWords(fakerEn.lorem.words()),
+            description: fakerEn.lorem.paragraphs(),
+            thumbnail: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      });
     });
+
+  const thumbnails = await seedFiles(
+    prisma,
+    './tmp/images/activity-thumbnail',
+    activities.length,
+    () =>
+      fakerEn.image.urlLoremFlickr({
+        width: 1280,
+        height: 720,
+        category: 'volunteer',
+      }),
+  );
+  activities.forEach((activity, index) => {
+    activity.thumbnail = thumbnails[index]?.id ?? null;
+    const ac: Contact[] = Array.from({
+      length: fakerEn.number.int({ min: 1, max: 5 }),
+    }).map(() => generateViContact());
+    activityContacts.push(...ac);
+    activityContactRels.push(
+      ...ac.map((contact) => ({
+        activityId: activity.id,
+        contactId: contact.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+    );
+  });
 
   const shifts: Shift[] = [];
   const shiftLocations: Location[] = [];
@@ -70,7 +108,7 @@ export const seedActivities = async (
 
   activities.forEach((activity) => {
     const startTime = fakerEn.date.future();
-    for (let i = 0; i < fakerEn.datatype.number({ min: 0, max: 5 }); i++) {
+    for (let i = 0; i < fakerEn.number.int({ min: 0, max: 5 }); i++) {
       const shiftId = getNextShiftId();
 
       shifts.push({
@@ -78,14 +116,14 @@ export const seedActivities = async (
         name: capitalizeWords(fakerEn.lorem.words()),
         description: fakerEn.lorem.paragraphs(),
         startTime: startTime,
-        endTime: fakerEn.date.future(1, startTime),
-        numberOfParticipants: fakerEn.datatype.number({ min: 0, max: 100 }),
+        endTime: fakerEn.date.future({ years: 1, refDate: startTime }),
+        numberOfParticipants: fakerEn.number.int({ min: 0, max: 100 }),
         activityId: activity.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      for (let j = 0; j < fakerEn.datatype.number({ min: 1, max: 3 }); j++) {
+      for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const location = generateViLocation();
         shiftLocations.push(location);
         shiftLocationsRel.push({
@@ -96,7 +134,7 @@ export const seedActivities = async (
         });
       }
 
-      for (let j = 0; j < fakerEn.datatype.number({ min: 1, max: 3 }); j++) {
+      for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const contact = generateViContact();
         shiftContacts.push(contact);
         shiftContactsRel.push({
@@ -109,12 +147,12 @@ export const seedActivities = async (
 
       _.sampleSize(
         skills,
-        fakerEn.datatype.number({ min: 1, max: skills.length }),
+        fakerEn.number.int({ min: 1, max: skills.length }),
       ).forEach((skill) => {
         shiftSkills.push({
           shiftId: shiftId,
           skillId: skill.id,
-          hours: fakerEn.datatype.number({
+          hours: fakerEn.number.float({
             min: 0.5,
             max: 12,
             precision: 0.5,
@@ -125,8 +163,8 @@ export const seedActivities = async (
       });
 
       _.sampleSize(
-        volunteerAccounts,
-        fakerEn.datatype.number({ min: 0, max: 20 }),
+        [...volunteerAccounts, ...defaultAccounts],
+        fakerEn.number.int({ min: 0, max: 20 }),
       ).forEach((account) => {
         const status =
           _.sample(Object.values(ShiftVolunteerStatus)) ??
@@ -138,7 +176,7 @@ export const seedActivities = async (
           attendant: false,
           completion:
             status === ShiftVolunteerStatus.Approved
-              ? fakerEn.datatype.number({ min: 0, max: 100 })
+              ? fakerEn.number.float({ min: 0, max: 100 })
               : 0,
           accountId: account.id,
           censorId: [
@@ -163,6 +201,14 @@ export const seedActivities = async (
 
   await prisma.activity.createMany({
     data: activities,
+  });
+
+  await prisma.contact.createMany({
+    data: activityContacts,
+  });
+
+  await prisma.activityContact.createMany({
+    data: activityContactRels,
   });
 
   await prisma.shift.createMany({
@@ -194,7 +240,7 @@ export const seedActivities = async (
   });
 
   return {
-    activities,
+    activities: activities,
     shifts,
     shiftVolunteers,
   };

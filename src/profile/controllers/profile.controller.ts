@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Param, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Put,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -10,7 +18,8 @@ import { AppLogger } from 'src/common/logger';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import {
-  GetProfileInputDto,
+  GetProfileQueryDto,
+  GetProfilesQueryDto,
   ProfileOutputDto,
   UpdateProfileInputDto,
 } from '../dtos';
@@ -29,7 +38,7 @@ export class ProfileController {
   @Get()
   async getProfiles(
     @ReqContext() ctx: RequestContext,
-    @Body() dto: GetProfileInputDto,
+    @Query() dto: GetProfilesQueryDto,
   ): Promise<ProfileOutputDto[]> {
     return this.profileService.getProfiles(ctx, dto);
   }
@@ -45,16 +54,18 @@ export class ProfileController {
   })
   async getMyProfile(
     @ReqContext() ctx: RequestContext,
-  ): Promise<ProfileOutputDto> {
-    return this.profileService.getProfile(ctx, ctx.account.id);
+    @Query() query: GetProfileQueryDto,
+  ): Promise<ProfileOutputDto | null> {
+    return this.profileService.getProfile(ctx, ctx.account.id, query);
   }
 
   @Get(':id')
   async getProfile(
     @ReqContext() ctx: RequestContext,
     @Param('id') id: number,
-  ): Promise<ProfileOutputDto> {
-    return this.profileService.getProfile(ctx, id);
+    @Query() query: GetProfileQueryDto,
+  ): Promise<ProfileOutputDto | null> {
+    return this.profileService.getProfile(ctx, id, query);
   }
 
   @Put('me')

@@ -1,24 +1,20 @@
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { IsFileId } from 'src/file/validators';
 
 export class CreateActivityInputDto {
   @IsString()
   name: string;
 
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
-  @IsNumber(undefined, { each: true })
-  @IsArray()
-  skillIds: number[];
-
+  @IsOptional()
   @IsFileId()
-  thumbnail: number;
+  thumbnail?: number;
 
-  @IsNumber()
-  organizationId: number;
-
+  @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
-  activityManagerIds: number[];
+  activityManagerIds?: number[];
 }

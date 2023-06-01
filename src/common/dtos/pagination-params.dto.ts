@@ -12,7 +12,7 @@ export class PaginationParamsDto {
   @Min(0)
   @Max(100)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
-  limit = 100;
+  limit? = 100;
 
   @ApiPropertyOptional({
     description: 'Optional, defaults to 0',
@@ -22,5 +22,5 @@ export class PaginationParamsDto {
   @IsOptional()
   @Min(0)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
-  offset = 0;
+  offset? = 0;
 }

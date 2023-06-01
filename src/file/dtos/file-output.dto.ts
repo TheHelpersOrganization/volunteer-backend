@@ -12,4 +12,13 @@ export class FileOutputDto {
 
   @Expose()
   mimetype?: string;
+
+  @Expose()
+  size: number;
+
+  @Expose()
+  sizeUnit: string;
+
+  @Expose()
+  createdBy?: number;
 }

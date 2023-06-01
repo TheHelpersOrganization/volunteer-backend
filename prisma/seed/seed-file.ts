@@ -6,7 +6,7 @@ import * as mimeTypes from 'mime-types';
 import { nanoid } from 'nanoid';
 import * as fs from 'node:fs';
 import * as path from 'path';
-import { throwIfNullish } from './utils';
+import { normalizeFileSize, throwIfNullish } from './utils';
 
 type FileOutput = { path: string; name: string; mimetype?: string };
 
@@ -76,7 +76,11 @@ export const seedFiles = async (
   const existingFiles = fs.readdirSync(folderPath);
 
   const downloads: Promise<FileOutput>[] = [];
-  for (let i = 0; i < count - existingFiles.length; i++) {
+  const remainingFiles = count - existingFiles.length;
+  if (remainingFiles > 0) {
+    console.log(` |_ ⭳ Downloading ${count - existingFiles.length} files...`);
+  }
+  for (let i = 0; i < remainingFiles; i++) {
     downloads.push(downloadFileAndSave(generateUrl(), folderPath));
   }
   for (let i = 0; i < existingFiles.length; i++) {
@@ -101,11 +105,13 @@ export const seedFiles = async (
       uploads.push(Promise.resolve(null));
       return;
     }
+    const fileStat = fs.statSync(file.path);
     const buffer = fs.readFileSync(file.path);
     const upload = uploadFileToStorage(
       prisma,
       buffer,
       file.name,
+      fileStat,
       file.mimetype,
     );
     uploads.push(upload);
@@ -130,6 +136,7 @@ const uploadFileToStorage = async (
   prisma: PrismaClient,
   buffer: Buffer,
   originalname: string,
+  fileStat: fs.Stats,
   mimetype?: string,
 ) => {
   const key = nanoid();
@@ -153,11 +160,14 @@ const uploadFileToStorage = async (
   });
   upload.done();
 
+  const normalizedFileSize = normalizeFileSize(fileStat.size);
   const file: Prisma.FileUncheckedCreateInput = {
     name: originalname,
     internalName: key,
     mimetype: mimetype,
     path: '/',
+    size: normalizedFileSize.size,
+    sizeUnit: normalizedFileSize.unit,
     createdBy: 1,
     createdAt: new Date(),
     updatedAt: new Date(),

@@ -59,6 +59,8 @@ CREATE TABLE "File" (
     "internalName" TEXT NOT NULL,
     "mimetype" TEXT,
     "path" TEXT NOT NULL,
+    "size" DOUBLE PRECISION NOT NULL,
+    "sizeUnit" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "createdBy" INTEGER NOT NULL,
@@ -130,6 +132,7 @@ CREATE TABLE "Activity" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "isDisabled" BOOLEAN NOT NULL DEFAULT false,
+    "status" TEXT NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "thumbnail" INTEGER,
@@ -151,6 +154,32 @@ CREATE TABLE "Shift" (
     "activityId" INTEGER NOT NULL,
 
     CONSTRAINT "Shift_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AccountBan" (
+    "id" SERIAL NOT NULL,
+    "accountId" INTEGER NOT NULL,
+    "performedBy" INTEGER NOT NULL,
+    "isBanned" BOOLEAN NOT NULL,
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AccountBan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AccountVerification" (
+    "id" SERIAL NOT NULL,
+    "accountId" INTEGER NOT NULL,
+    "performedBy" INTEGER NOT NULL,
+    "isVerified" BOOLEAN NOT NULL,
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AccountVerification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -239,6 +268,16 @@ CREATE TABLE "ActivityManager" (
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ActivityManager_pkey" PRIMARY KEY ("activityId","accountId")
+);
+
+-- CreateTable
+CREATE TABLE "ActivityContact" (
+    "activityId" INTEGER NOT NULL,
+    "contactId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ActivityContact_pkey" PRIMARY KEY ("activityId","contactId")
 );
 
 -- CreateTable
@@ -390,6 +429,18 @@ ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY
 ALTER TABLE "Shift" ADD CONSTRAINT "Shift_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "AccountBan" ADD CONSTRAINT "AccountBan_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AccountBan" ADD CONSTRAINT "AccountBan_performedBy_fkey" FOREIGN KEY ("performedBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AccountVerification" ADD CONSTRAINT "AccountVerification_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AccountVerification" ADD CONSTRAINT "AccountVerification_performedBy_fkey" FOREIGN KEY ("performedBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "AccountRole" ADD CONSTRAINT "AccountRole_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -445,6 +496,12 @@ ALTER TABLE "ActivityManager" ADD CONSTRAINT "ActivityManager_activityId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "ActivityManager" ADD CONSTRAINT "ActivityManager_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VolunteerSkill" ADD CONSTRAINT "VolunteerSkill_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

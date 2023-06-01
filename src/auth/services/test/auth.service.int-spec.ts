@@ -96,7 +96,7 @@ describe('AuthService Integration', () => {
         isAccountDisabled: false,
       });
 
-      expect(promise).rejects.toThrow(EmailAlreadyInUseException);
+      await expect(promise).rejects.toThrow(EmailAlreadyInUseException);
     });
   });
 
@@ -116,7 +116,7 @@ describe('AuthService Integration', () => {
     it('should throw error when using wrong email password', async () => {
       const promise = authService.validateAccount(context, 'abcdef', password);
 
-      expect(promise).rejects.toThrow(AccountNotFoundException);
+      await expect(promise).rejects.toThrow(AccountNotFoundException);
     });
 
     it('should return valid token', async () => {

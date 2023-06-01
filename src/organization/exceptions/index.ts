@@ -13,6 +13,12 @@ export class OrganizationNotFoundException extends BaseApiException {
   }
 }
 
+export class InvalidOrganization extends BaseApiException {
+  constructor() {
+    super('Invalid organization');
+  }
+}
+
 export class UserHaveAlreadyJoinedOrganizationException extends BaseApiException {
   constructor() {
     super(

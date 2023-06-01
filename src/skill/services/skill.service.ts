@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma';
 import {
   CreateSkillInputDto,
   SkillOutputDto,
+  SkillQueryDto,
   UpdateSkillInputDto,
 } from '../dtos';
 
@@ -30,10 +31,15 @@ export class SkillService extends AbstractService {
 
   async getAll(
     context: RequestContext,
-    query: PaginationParamsDto,
+    query: SkillQueryDto,
   ): Promise<SkillOutputDto> {
     this.logCaller(context, this.getAll);
     const res = await this.prisma.skill.findMany({
+      where: {
+        id: {
+          in: query.ids,
+        },
+      },
       take: query.limit,
       skip: query.offset,
     });
