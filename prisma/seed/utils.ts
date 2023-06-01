@@ -14,6 +14,8 @@ let shiftVolunteerId = 1;
 let fileId = 1;
 let accountVerificationId = 1;
 let accountBanId = 1;
+let skillId = 1;
+let roleId = 1;
 
 export const getNextOrganizationId = () => organizationId++;
 export const getNextLocationId = () => locationId++;
@@ -25,6 +27,8 @@ export const getNextShiftVolunteerId = () => shiftVolunteerId++;
 export const getNextFileId = () => fileId++;
 export const getNextAccountVerificationId = () => accountVerificationId++;
 export const getNextAccountBanId = () => accountBanId++;
+export const getNextSkillId = () => skillId++;
+export const getNextRoleId = () => roleId++;
 
 export const throwIfNullish = <T>(
   value: T | null | undefined,

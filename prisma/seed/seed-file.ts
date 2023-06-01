@@ -76,7 +76,11 @@ export const seedFiles = async (
   const existingFiles = fs.readdirSync(folderPath);
 
   const downloads: Promise<FileOutput>[] = [];
-  for (let i = 0; i < count - existingFiles.length; i++) {
+  const remainingFiles = count - existingFiles.length;
+  if (remainingFiles > 0) {
+    console.log(` |_ ⭳ Downloading ${count - existingFiles.length} files...`);
+  }
+  for (let i = 0; i < remainingFiles; i++) {
     downloads.push(downloadFileAndSave(generateUrl(), folderPath));
   }
   for (let i = 0; i < existingFiles.length; i++) {
