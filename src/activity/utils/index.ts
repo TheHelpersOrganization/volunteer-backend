@@ -3,6 +3,7 @@ import { unionLocationsTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift/constants';
 import { NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES } from '../constants';
 import {
+  BaseGetActivityQueryDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
   ModGetActivitiesQueryDto,
@@ -10,13 +11,17 @@ import {
 import { ExtendedActivity, ExtendedActivityInput } from '../types';
 
 export const getShiftFilter = (
-  query: GetActivitiesQueryDto,
+  query: BaseGetActivityQueryDto,
   extra?: { joiner?: number },
 ) => {
   let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
-  shiftQuery = {
-    some: {},
-  };
+
+  if (!(query instanceof ModGetActivitiesQueryDto)) {
+    shiftQuery = {
+      some: {},
+    };
+  }
+
   let shiftSomeAndQuery: Prisma.Enumerable<Prisma.ShiftWhereInput> | undefined =
     undefined;
   if (query.startDate) {
@@ -81,29 +86,29 @@ export const getShiftFilter = (
       },
     };
   }
-  if (query.joinStatus && extra && extra.joiner) {
-    shiftQuery = {
-      ...shiftQuery,
-      some: {
-        shiftVolunteers: {
-          some: {
-            status: {
-              in: query.joinStatus,
+  if (query instanceof GetActivityByIdQueryDto) {
+    if (query.joinStatus && extra && extra.joiner) {
+      shiftQuery = {
+        ...shiftQuery,
+        some: {
+          shiftVolunteers: {
+            some: {
+              status: {
+                in: query.joinStatus,
+              },
+              accountId: extra.joiner,
             },
-            accountId: extra.joiner,
           },
         },
-      },
-    };
+      };
+    }
   }
+
   return shiftQuery;
 };
 
 export const getActivityFilter = (
-  query:
-    | GetActivityByIdQueryDto
-    | GetActivitiesQueryDto
-    | ModGetActivitiesQueryDto,
+  query: BaseGetActivityQueryDto,
   extra?: { joiner?: number },
 ) => {
   let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
@@ -124,32 +129,41 @@ export const getActivityFilter = (
       },
     };
   }
-  if (query.status) {
-    if (query instanceof ModGetActivitiesQueryDto) {
+  if (
+    query instanceof GetActivityByIdQueryDto ||
+    query instanceof ModGetActivitiesQueryDto
+  ) {
+    if (query.status) {
+      if (query instanceof ModGetActivitiesQueryDto) {
+        activityQuery = {
+          ...activityQuery,
+          status: {
+            in: query.status,
+          },
+        };
+      } else {
+        activityQuery = {
+          ...activityQuery,
+          status: {
+            in: query.status,
+            notIn: NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
+          },
+        };
+      }
+    }
+  }
+
+  if (query instanceof GetActivityByIdQueryDto) {
+    if (query.org) {
       activityQuery = {
         ...activityQuery,
-        status: {
-          in: query.status,
-        },
-      };
-    } else {
-      activityQuery = {
-        ...activityQuery,
-        status: {
-          in: query.status,
-          notIn: NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
+        organizationId: {
+          in: query.org,
         },
       };
     }
   }
-  if (query instanceof GetActivityByIdQueryDto && query.org) {
-    activityQuery = {
-      ...activityQuery,
-      organizationId: {
-        in: query.org,
-      },
-    };
-  }
+
   const shiftQuery = getShiftFilter(query, extra);
   if (shiftQuery) {
     activityQuery = {
