@@ -94,7 +94,7 @@ export class AppLogger {
   }
 
   log(
-    ctx: RequestContext | undefined,
+    ctx: RequestContext | null | undefined,
     message: string,
     meta?: Record<string, any>,
   ): Logger {

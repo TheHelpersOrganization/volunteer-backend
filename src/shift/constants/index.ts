@@ -1,1 +1,1 @@
-export * from './shift.constant';
+export const SHIFT_DESCRIPTION_MAX_LENGTH = 2000;

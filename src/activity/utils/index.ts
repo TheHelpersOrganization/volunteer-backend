@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { unionLocationsTransform } from 'src/common/transformers';
-import { ShiftVolunteerStatus } from 'src/shift/constants';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES } from '../constants';
 import {
   BaseGetActivityQueryDto,

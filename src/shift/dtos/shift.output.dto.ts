@@ -3,8 +3,8 @@ import { ContactOutputDto } from 'src/contact/dtos';
 import { LocationOutputDto } from 'src/location/dtos';
 import { ShiftManagerOutputDto } from './shift-manager.output.dto';
 
+import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
 import { ShiftSkillOutputDto } from './shift-skill.output.dto';
-import { ShiftVolunteerOutputDto } from './shift-volunteer.output.dto';
 
 export class ShiftOutputDto {
   @Expose()
