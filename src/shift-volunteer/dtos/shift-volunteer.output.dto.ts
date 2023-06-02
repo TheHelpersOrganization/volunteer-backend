@@ -3,6 +3,9 @@ import { ShiftVolunteerStatus } from '../constants';
 
 export class ShiftVolunteerOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   shiftId: number;
 
   @Expose()

@@ -3,6 +3,12 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
+import {
+  InvalidStatusException,
+  ShiftHasAlreadyStartedException,
+  ShiftIsFullException,
+  ShiftNotFoundException,
+} from 'src/shift/exceptions';
 import { ShiftVolunteerStatus } from '../constants';
 import {
   CreateShiftVolunteerInputDto,
@@ -11,14 +17,10 @@ import {
   UpdateShiftVolunteerStatus,
 } from '../dtos';
 import {
-  InvalidStatusException,
-  ShiftIsFullException,
-  ShiftNotFoundException,
   VolunteerHasAlreadyJoinedShiftException,
   VolunteerHasNotJoinedShiftException,
   VolunteerStatusNotApprovedException,
-} from '../exceptions';
-import { ShiftHasAlreadyStartedException } from '../exceptions/shift-has-already-started.exception';
+} from '../exception';
 
 @Injectable()
 export class ShiftVolunteerService extends AbstractService {
@@ -72,13 +74,11 @@ export class ShiftVolunteerService extends AbstractService {
 
   async getById(
     context: RequestContext,
-    shiftId: number,
     id: number,
   ): Promise<ShiftVolunteerOutputDto | null> {
     this.logCaller(context, this.getById);
-    const res = await this.prisma.volunteerShift.findFirst({
+    const res = await this.prisma.volunteerShift.findUnique({
       where: {
-        shiftId: shiftId,
         id: id,
       },
     });

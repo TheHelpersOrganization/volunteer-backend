@@ -16,8 +16,8 @@ import {
 } from '@prisma/client';
 import * as _ from 'lodash';
 import { ActivityStatus } from 'src/activity/constants';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { OrganizationStatus } from '../../src/organization/constants';
-import { ShiftVolunteerStatus } from '../../src/shift/constants';
 import { seedFiles } from './seed-file';
 import {
   capitalizeWords,
@@ -108,7 +108,8 @@ export const seedActivities = async (
 
   activities.forEach((activity) => {
     const startTime = fakerEn.date.future();
-    for (let i = 0; i < fakerEn.number.int({ min: 0, max: 5 }); i++) {
+    const numberOfShifts = fakerEn.number.int({ min: 2, max: 5 });
+    for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
 
       shifts.push({
@@ -162,38 +163,37 @@ export const seedActivities = async (
         });
       });
 
-      _.sampleSize(
-        [...volunteerAccounts, ...defaultAccounts],
-        fakerEn.number.int({ min: 0, max: 20 }),
-      ).forEach((account) => {
-        const status =
-          _.sample(Object.values(ShiftVolunteerStatus)) ??
-          ShiftVolunteerStatus.Approved;
-        shiftVolunteers.push({
-          id: getNextShiftVolunteerId(),
-          shiftId: shiftId,
-          status: status,
-          attendant: false,
-          completion:
-            status === ShiftVolunteerStatus.Approved
-              ? fakerEn.number.float({ min: 0, max: 100 })
-              : 0,
-          accountId: account.id,
-          censorId: [
-            ShiftVolunteerStatus.Pending,
-            ShiftVolunteerStatus.Cancelled,
-          ].includes(status)
-            ? null
-            : organizations.find((o) => o.id === activity.organizationId)
-                ?.ownerId ?? null,
-          rejectionReason: [
-            ShiftVolunteerStatus.Rejected,
-            ShiftVolunteerStatus.Removed,
-          ].includes(status)
-            ? fakerEn.lorem.sentence()
-            : null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+      Object.values(ShiftVolunteerStatus).forEach((status) => {
+        _.sampleSize(
+          [...volunteerAccounts, ...defaultAccounts],
+          fakerEn.number.int({ min: 5, max: 20 }),
+        ).forEach((account) => {
+          shiftVolunteers.push({
+            id: getNextShiftVolunteerId(),
+            shiftId: shiftId,
+            status: status,
+            attendant: false,
+            completion:
+              status === ShiftVolunteerStatus.Approved
+                ? fakerEn.number.float({ min: 0, max: 100 })
+                : 0,
+            accountId: account.id,
+            censorId: [
+              ShiftVolunteerStatus.Pending,
+              ShiftVolunteerStatus.Cancelled,
+            ].includes(status)
+              ? null
+              : organizations.find((o) => o.id === activity.organizationId)
+                  ?.ownerId ?? null,
+            rejectionReason: [
+              ShiftVolunteerStatus.Rejected,
+              ShiftVolunteerStatus.Removed,
+            ].includes(status)
+              ? fakerEn.lorem.sentence()
+              : null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
         });
       });
     }

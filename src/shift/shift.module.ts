@@ -5,31 +5,15 @@ import { LocationModule } from 'src/location/location.module';
 
 import {
   ActivityShiftController,
-  ActivityVolunteer,
+  ModShiftController,
   ShiftController,
-  ShiftVolunteerController,
 } from './controllers';
-import {
-  ShiftService,
-  ShiftSkillService,
-  ShiftVolunteerService,
-  ShiftVolunteerTaskService,
-} from './services';
+import { ModShiftService, ShiftService, ShiftSkillService } from './services';
 
 @Module({
   imports: [CommonModule, LocationModule, ContactModule],
-  controllers: [
-    ActivityShiftController,
-    ActivityVolunteer,
-    ShiftController,
-    ShiftVolunteerController,
-  ],
-  providers: [
-    ShiftService,
-    ShiftVolunteerService,
-    ShiftVolunteerTaskService,
-    ShiftSkillService,
-  ],
-  exports: [ShiftService, ShiftVolunteerService, ShiftSkillService],
+  controllers: [ActivityShiftController, ShiftController, ModShiftController],
+  providers: [ShiftService, ShiftSkillService, ModShiftService],
+  exports: [ShiftService, ShiftSkillService],
 })
 export class ShiftModule {}

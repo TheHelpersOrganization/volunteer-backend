@@ -40,7 +40,7 @@ export abstract class AbstractService {
   }
 
   protected logCaller(
-    ctx: RequestContext | undefined,
+    ctx: RequestContext | null | undefined,
     // eslint-disable-next-line @typescript-eslint/ban-types
     func: Function | string,
   ) {

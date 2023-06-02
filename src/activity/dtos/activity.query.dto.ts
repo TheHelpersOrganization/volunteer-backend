@@ -17,7 +17,7 @@ import {
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
 import { separatedCommaNumberArrayTransform } from 'src/common/transformers';
-import { ShiftVolunteerStatus } from 'src/shift/constants';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
   ActivityStatus,
