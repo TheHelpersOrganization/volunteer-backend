@@ -230,7 +230,7 @@ export const extendActivity = (
     }
     filteredSkillIds.push(skillId);
   });
-  const contacts = activity.activityContact?.map((ac) => ac.contact);
+  const contacts = activity.activityContacts?.map((ac) => ac.contact);
 
   return {
     ...activity,

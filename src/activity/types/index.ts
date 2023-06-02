@@ -16,7 +16,7 @@ import { ShortLocationOutputDto } from 'src/location/dtos';
 export type ExtendedActivityInput = Activity & {
   activitySkills?: ActivitySkill[];
   activityManagers?: ActivityManager[];
-  activityContact?: (ActivityContact & { contact: Contact })[];
+  activityContacts?: (ActivityContact & { contact: Contact })[];
   shifts: (Shift & {
     shiftLocations: (ShiftLocation & {
       location: Location;
