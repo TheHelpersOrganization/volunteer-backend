@@ -23,6 +23,10 @@ import {
   ActivityStatus,
 } from '../constants';
 
+export enum GetActivityInclude {
+  Shift = 'shift',
+}
+
 export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsString()
@@ -89,6 +93,12 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @IsNumberString()
   @Min(0)
   radius?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetActivityInclude, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  include?: GetActivityInclude[];
 }
 
 export class GetActivityByIdQueryDto extends BaseGetActivityQueryDto {

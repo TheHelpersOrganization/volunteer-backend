@@ -1,6 +1,12 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsInt, IsOptional } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
+
+export enum GetShiftInclude {
+  ShiftSkill = 'shift-skill',
+  ShiftVolunteer = 'shift-volunteer',
+  ShiftManager = 'shift-manager',
+}
 
 export class GetShiftQueryDto extends PaginationParamsDto {
   @IsOptional()
@@ -13,4 +19,18 @@ export class GetShiftQueryDto extends PaginationParamsDto {
   @IsInt()
   @Transform(({ value }) => parseInt(value))
   activityId?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetShiftInclude, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  include?: GetShiftInclude[];
+}
+
+export class GetShiftByIdQueryDto {
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetShiftInclude, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  include?: GetShiftInclude[];
 }
