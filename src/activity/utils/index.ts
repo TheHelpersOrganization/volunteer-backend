@@ -1,7 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { unionLocationsTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES } from '../constants';
 import {
   BaseGetActivityQueryDto,
   GetActivitiesQueryDto,
@@ -15,12 +14,6 @@ export const getShiftFilter = (
   extra?: { joiner?: number },
 ) => {
   let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
-
-  if (!(query instanceof ModGetActivitiesQueryDto)) {
-    shiftQuery = {
-      some: {},
-    };
-  }
 
   let shiftSomeAndQuery: Prisma.Enumerable<Prisma.ShiftWhereInput> | undefined =
     undefined;
@@ -109,7 +102,7 @@ export const getShiftFilter = (
 
 export const getActivityFilter = (
   query: BaseGetActivityQueryDto,
-  extra?: { joiner?: number },
+  extra?: { joiner?: number; organizationOwner?: number },
 ) => {
   let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
 
@@ -134,22 +127,12 @@ export const getActivityFilter = (
     query instanceof ModGetActivitiesQueryDto
   ) {
     if (query.status) {
-      if (query instanceof ModGetActivitiesQueryDto) {
-        activityQuery = {
-          ...activityQuery,
-          status: {
-            in: query.status,
-          },
-        };
-      } else {
-        activityQuery = {
-          ...activityQuery,
-          status: {
-            in: query.status,
-            notIn: NOT_AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
-          },
-        };
-      }
+      activityQuery = {
+        ...activityQuery,
+        status: {
+          in: query.status,
+        },
+      };
     }
   }
 
