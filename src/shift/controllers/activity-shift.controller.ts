@@ -22,6 +22,6 @@ export class ActivityShiftController {
     @Param('activityId') activityId: number,
     @Body() dto: CreateShiftInputDto,
   ): Promise<ShiftOutputDto> {
-    return this.shiftService.create(context, activityId, dto);
+    return this.shiftService.create(context, dto);
   }
 }

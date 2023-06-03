@@ -1,12 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Contact,
-  Location,
-  Shift,
-  ShiftContact,
-  ShiftLocation,
-  ShiftSkill,
-} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -16,6 +9,9 @@ import { PrismaService } from 'src/prisma';
 
 import {
   CreateShiftInputDto,
+  GetShiftByIdQueryDto,
+  GetShiftInclude,
+  GetShiftQueryDto,
   ShiftOutputDto,
   UpdateShiftInputDto,
 } from '../dtos';
@@ -64,34 +60,28 @@ export class ShiftService extends AbstractService {
     return this.outputArray(ShiftOutputDto, updated);
   }
 
+  async getShifts(context: RequestContext, query: GetShiftQueryDto) {
+    this.logCaller(context, this.getShifts);
+    const res = await this.prisma.shift.findMany({
+      where: this.getShiftFilter(query),
+      take: query.limit,
+      skip: query.offset,
+      include: this.getShiftInclude(query),
+    });
+    return res.map((r) => this.mapToOutput(r));
+  }
+
   async getById(
     context: RequestContext,
     id: number,
+    query: GetShiftByIdQueryDto,
   ): Promise<ShiftOutputDto | null> {
     this.logCaller(context, this.getById);
     const res = await this.prisma.shift.findUnique({
       where: {
         id: id,
       },
-      include: {
-        shiftLocations: {
-          include: {
-            location: true,
-          },
-        },
-        shiftContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        shiftSkills: {
-          include: {
-            skill: true,
-          },
-        },
-        shiftVolunteers: true,
-        shiftManagers: true,
-      },
+      include: this.getShiftInclude(query),
     });
     if (res == null) {
       return null;
@@ -101,7 +91,6 @@ export class ShiftService extends AbstractService {
 
   async create(
     context: RequestContext,
-    activityId: number,
     dto: CreateShiftInputDto,
   ): Promise<ShiftOutputDto> {
     this.logCaller(context, this.create);
@@ -119,7 +108,7 @@ export class ShiftService extends AbstractService {
         }));
         const res = await this.prisma.shift.create({
           data: {
-            activityId: activityId,
+            activityId: dto.activityId,
             name: dto.name,
             description: dto.description,
             numberOfParticipants: dto.numberOfParticipants,
@@ -301,17 +290,49 @@ export class ShiftService extends AbstractService {
     return this.mapToOutput(res);
   }
 
-  mapToOutput(
-    raw: Shift & {
-      shiftLocations: (ShiftLocation & {
-        location: Location;
-      })[];
-      shiftContacts: (ShiftContact & {
-        contact: Contact;
-      })[];
-      shiftSkills: ShiftSkill[];
-    },
-  ): ShiftOutputDto {
+  getShiftFilter(query: GetShiftQueryDto): Prisma.ShiftWhereInput {
+    const filter: Prisma.ShiftWhereInput = {};
+    if (query.id != null) {
+      filter.id = {
+        in: query.id,
+      };
+    }
+    if (query.activityId != null) {
+      filter.activityId = query.activityId;
+    }
+    return filter;
+  }
+
+  getShiftInclude(query: GetShiftQueryDto) {
+    const include: Prisma.ShiftInclude = {
+      shiftLocations: {
+        include: {
+          location: true,
+        },
+      },
+      shiftContacts: {
+        include: {
+          contact: true,
+        },
+      },
+    };
+    if (query.include?.includes(GetShiftInclude.ShiftSkill)) {
+      include.shiftSkills = {
+        include: {
+          skill: true,
+        },
+      };
+    }
+    if (query.include?.includes(GetShiftInclude.ShiftVolunteer)) {
+      include.shiftVolunteers = true;
+    }
+    if (query.include?.includes(GetShiftInclude.ShiftManager)) {
+      include.shiftManagers = true;
+    }
+    return include;
+  }
+
+  mapToOutput(raw: any): ShiftOutputDto {
     return this.output(ShiftOutputDto, {
       ...raw,
       locations: raw.shiftLocations.map((sl) => sl.location),

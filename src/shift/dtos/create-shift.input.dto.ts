@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
+  IsInt,
   IsNumber,
   IsString,
   MaxLength,
@@ -16,6 +17,9 @@ import { CreateShiftManagerInputDto, CreateShiftSkillInputDto } from '.';
 import { SHIFT_DESCRIPTION_MAX_LENGTH } from '../constants';
 
 export class CreateShiftInputDto {
+  @IsInt()
+  activityId: number;
+
   @IsString()
   name: string;
 
