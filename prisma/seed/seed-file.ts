@@ -1,12 +1,12 @@
 import { S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { File, Prisma, PrismaClient } from '@prisma/client';
+import { File, PrismaClient } from '@prisma/client';
 import { Axios } from 'axios';
 import * as mimeTypes from 'mime-types';
 import { nanoid } from 'nanoid';
 import * as fs from 'node:fs';
 import * as path from 'path';
-import { normalizeFileSize, throwIfNullish } from './utils';
+import { getNextFileId, normalizeFileSize, throwIfNullish } from './utils';
 
 type FileOutput = { path: string; name: string; mimetype?: string };
 
@@ -108,7 +108,6 @@ export const seedFiles = async (
     const fileStat = fs.statSync(file.path);
     const buffer = fs.readFileSync(file.path);
     const upload = uploadFileToStorage(
-      prisma,
       buffer,
       file.name,
       fileStat,
@@ -127,13 +126,16 @@ export const seedFiles = async (
     }
   }
 
+  await prisma.file.createMany({
+    data: uploadedFiles.filter((file): file is File => file != null),
+  });
+
   files.push(...uploadedFiles);
 
   return files;
 };
 
 const uploadFileToStorage = async (
-  prisma: PrismaClient,
   buffer: Buffer,
   originalname: string,
   fileStat: fs.Stats,
@@ -158,13 +160,18 @@ const uploadFileToStorage = async (
     partSize: 1024 * 1024 * 5, // optional size of each part, in bytes, at least 5MB
     leavePartsOnError: false, // optional manually handle dropped parts
   });
-  upload.done();
+  try {
+    await upload.done();
+  } catch (err) {
+    return null;
+  }
 
   const normalizedFileSize = normalizeFileSize(fileStat.size);
-  const file: Prisma.FileUncheckedCreateInput = {
+  const file: File = {
+    id: getNextFileId(),
     name: originalname,
     internalName: key,
-    mimetype: mimetype,
+    mimetype: mimetype ?? null,
     path: '/',
     size: normalizedFileSize.size,
     sizeUnit: normalizedFileSize.unit,
@@ -172,8 +179,7 @@ const uploadFileToStorage = async (
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  const res = await prisma.file.create({ data: file });
-  return res;
+  return file;
 };
 
 const downloadFileAndSave = async (
