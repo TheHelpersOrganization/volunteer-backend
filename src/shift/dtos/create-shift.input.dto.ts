@@ -43,23 +43,27 @@ export class CreateShiftInputDto {
   @IsNumber()
   numberOfParticipants?: number;
 
+  @IsOptional()
   @Type(() => CreateLocationInputDto)
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  locations: CreateLocationInputDto[];
+  locations?: CreateLocationInputDto[];
 
+  @IsOptional()
   @Type(() => CreateContactInputDto)
   @ValidateNested({ each: true })
   @ArrayNotEmpty()
-  contacts: CreateContactInputDto[];
+  contacts?: CreateContactInputDto[];
 
+  @IsOptional()
   @Type(() => CreateShiftSkillInputDto)
   @ValidateNested({ each: true })
   @IsArray()
-  shiftSkills: CreateShiftSkillInputDto[];
+  shiftSkills?: CreateShiftSkillInputDto[];
 
+  @IsOptional()
   @Type(() => CreateShiftManagerInputDto)
   @ValidateNested({ each: true })
   @IsArray()
-  shiftManagers: CreateShiftManagerInputDto[];
+  shiftManagers?: CreateShiftManagerInputDto[];
 }

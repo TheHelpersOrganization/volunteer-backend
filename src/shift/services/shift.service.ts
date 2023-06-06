@@ -96,16 +96,20 @@ export class ShiftService extends AbstractService {
     this.logCaller(context, this.create);
     return this.prisma.$transaction(
       async () => {
-        const locationIds = (
-          await this.locationService.createMany(context, dto.locations)
-        ).map((l) => ({
-          locationId: l.id,
-        }));
-        const contactIds = (
-          await this.contactService.createMany(context, dto.contacts)
-        ).map((d) => ({
-          contactId: d.id,
-        }));
+        const locationIds = dto.locations
+          ? (await this.locationService.createMany(context, dto.locations)).map(
+              (l) => ({
+                locationId: l.id,
+              }),
+            )
+          : undefined;
+        const contactIds = dto.contacts
+          ? (await this.contactService.createMany(context, dto.contacts)).map(
+              (d) => ({
+                contactId: d.id,
+              }),
+            )
+          : undefined;
         const res = await this.prisma.shift.create({
           data: {
             activityId: dto.activityId,
@@ -116,27 +120,23 @@ export class ShiftService extends AbstractService {
             endTime: dto.endTime,
             shiftLocations: {
               createMany: {
-                data: locationIds,
+                data: locationIds ?? [],
               },
             },
             shiftContacts: {
               createMany: {
-                data: contactIds,
+                data: contactIds ?? [],
               },
             },
             shiftSkills: {
               createMany: {
-                data: dto.shiftSkills,
+                data: dto.shiftSkills ?? [],
               },
             },
-            // shiftVolunteers: {
-            //   create: dto.shiftVolunteerIds.map((d) => ({
-            //     accountId: d,
-            //     status: VolunteerShiftStatus.Pending,
-            //   })),
-            // },
             shiftManagers: {
-              create: dto.shiftManagers,
+              createMany: {
+                data: dto.shiftManagers ?? [],
+              },
             },
           },
           include: {
