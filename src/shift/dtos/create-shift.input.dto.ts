@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsInt,
   IsNumber,
+  IsOptional,
   IsString,
   MaxLength,
   ValidateIf,
@@ -14,13 +15,17 @@ import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 
 import { CreateShiftManagerInputDto, CreateShiftSkillInputDto } from '.';
-import { SHIFT_DESCRIPTION_MAX_LENGTH } from '../constants';
+import {
+  SHIFT_DESCRIPTION_MAX_LENGTH,
+  SHIFT_NAME_MAX_LENGTH,
+} from '../constants';
 
 export class CreateShiftInputDto {
   @IsInt()
   activityId: number;
 
   @IsString()
+  @MaxLength(SHIFT_NAME_MAX_LENGTH)
   name: string;
 
   @IsString()
@@ -34,8 +39,9 @@ export class CreateShiftInputDto {
   @ValidateIf((target, value) => value >= target.startTime)
   endTime: Date;
 
+  @IsOptional()
   @IsNumber()
-  numberOfParticipants: number;
+  numberOfParticipants?: number;
 
   @Type(() => CreateLocationInputDto)
   @ArrayNotEmpty()

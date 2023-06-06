@@ -1,14 +1,16 @@
-import { IsNumber, IsString, MaxLength } from 'class-validator';
+import { IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateShiftManagerInputDto {
   @IsNumber()
   accountId: number;
 
+  @IsOptional()
   @IsString()
-  @MaxLength(100)
-  name: string;
+  @MaxLength(50)
+  name?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(2000)
-  description: string;
+  description?: string;
 }
