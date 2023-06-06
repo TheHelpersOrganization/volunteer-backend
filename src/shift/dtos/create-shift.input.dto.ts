@@ -1,8 +1,8 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
-  IsDateString,
+  IsDate,
   IsInt,
   IsNumber,
   IsOptional,
@@ -32,11 +32,13 @@ export class CreateShiftInputDto {
   @MaxLength(SHIFT_DESCRIPTION_MAX_LENGTH)
   description: string;
 
-  @IsDateString()
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
   startTime: Date;
 
-  @IsDateString()
-  @ValidateIf((target, value) => value >= target.startTime)
+  @IsDate()
+  @Transform(({ value }) => new Date(value))
+  @ValidateIf((target, value) => new Date(value) >= new Date(target.startTime))
   endTime: Date;
 
   @IsOptional()
