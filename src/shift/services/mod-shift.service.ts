@@ -14,12 +14,7 @@ import { AbstractService } from 'src/common/services';
 import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
-import {
-  CreateShiftInputDto,
-  GetShiftQueryDto,
-  ShiftOutputDto,
-  UpdateShiftInputDto,
-} from '../dtos';
+import { GetShiftQueryDto, ShiftOutputDto, UpdateShiftInputDto } from '../dtos';
 
 @Injectable()
 export class ModShiftService extends AbstractService {
@@ -94,85 +89,6 @@ export class ModShiftService extends AbstractService {
       return null;
     }
     return this.mapToOutput(res);
-  }
-
-  async createShift(
-    context: RequestContext,
-    activityId: number,
-    dto: CreateShiftInputDto,
-  ): Promise<ShiftOutputDto> {
-    this.logCaller(context, this.createShift);
-    return this.prisma.$transaction(
-      async () => {
-        const locationIds = (
-          await this.locationService.createMany(context, dto.locations)
-        ).map((l) => ({
-          locationId: l.id,
-        }));
-        const contactIds = (
-          await this.contactService.createMany(context, dto.contacts)
-        ).map((d) => ({
-          contactId: d.id,
-        }));
-        const res = await this.prisma.shift.create({
-          data: {
-            activityId: activityId,
-            name: dto.name,
-            description: dto.description,
-            numberOfParticipants: dto.numberOfParticipants,
-            startTime: dto.startTime,
-            endTime: dto.endTime,
-            shiftLocations: {
-              createMany: {
-                data: locationIds,
-              },
-            },
-            shiftContacts: {
-              createMany: {
-                data: contactIds,
-              },
-            },
-            shiftSkills: {
-              createMany: {
-                data: dto.shiftSkills,
-              },
-            },
-            // shiftVolunteers: {
-            //   create: dto.shiftVolunteerIds.map((d) => ({
-            //     accountId: d,
-            //     status: VolunteerShiftStatus.Pending,
-            //   })),
-            // },
-            shiftManagers: {
-              create: dto.shiftManagers,
-            },
-          },
-          include: {
-            shiftLocations: {
-              include: {
-                location: true,
-              },
-            },
-            shiftContacts: {
-              include: {
-                contact: true,
-              },
-            },
-            shiftSkills: {
-              include: {
-                skill: true,
-              },
-            },
-            shiftVolunteers: true,
-            shiftManagers: true,
-          },
-        });
-        return this.mapToOutput(res);
-      },
-      {
-        timeout: 15000,
-      },
-    );
   }
 
   async updateShift(
