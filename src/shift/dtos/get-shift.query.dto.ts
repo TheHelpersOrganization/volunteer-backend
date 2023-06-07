@@ -3,9 +3,9 @@ import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
 
 export enum GetShiftInclude {
-  ShiftSkill = 'shift-skill',
-  ShiftVolunteer = 'shift-volunteer',
-  ShiftManager = 'shift-manager',
+  ShiftSkill = 'shiftSkill',
+  ShiftVolunteer = 'shiftVolunteer',
+  ShiftManager = 'shiftManager',
 }
 
 export class GetShiftQueryDto extends PaginationParamsDto {
