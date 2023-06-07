@@ -10,9 +10,9 @@ import { PrismaService } from 'src/prisma';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   CreateShiftInputDto,
-  GetShiftByIdQueryDto,
   GetShiftInclude,
   GetShiftQueryDto,
+  GetShiftsQueryDto,
   ShiftOutputDto,
   UpdateShiftInputDto,
 } from '../dtos';
@@ -61,7 +61,7 @@ export class ShiftService extends AbstractService {
     return this.outputArray(ShiftOutputDto, updated);
   }
 
-  async getShifts(context: RequestContext, query: GetShiftQueryDto) {
+  async getShifts(context: RequestContext, query: GetShiftsQueryDto) {
     this.logCaller(context, this.getShifts);
     const res = await this.prisma.shift.findMany({
       where: this.getShiftFilter(query),
@@ -72,12 +72,12 @@ export class ShiftService extends AbstractService {
     return res.map((r) => this.mapToOutput(r));
   }
 
-  async getById(
+  async getShiftById(
     context: RequestContext,
     id: number,
-    query: GetShiftByIdQueryDto,
+    query: GetShiftQueryDto,
   ): Promise<ShiftOutputDto | null> {
-    this.logCaller(context, this.getById);
+    this.logCaller(context, this.getShiftById);
     const res = await this.prisma.shift.findUnique({
       where: {
         id: id,
@@ -90,11 +90,11 @@ export class ShiftService extends AbstractService {
     return this.mapToOutput(res);
   }
 
-  async create(
+  async createShift(
     context: RequestContext,
     dto: CreateShiftInputDto,
   ): Promise<ShiftOutputDto> {
-    this.logCaller(context, this.create);
+    this.logCaller(context, this.createShift);
     return this.prisma.$transaction(
       async () => {
         const locationIds = dto.locations
@@ -168,14 +168,16 @@ export class ShiftService extends AbstractService {
     );
   }
 
-  async update(
+  async updateShift(
     context: RequestContext,
     id: number,
     dto: UpdateShiftInputDto,
+    query: GetShiftQueryDto,
   ): Promise<ShiftOutputDto> {
-    this.logCaller(context, this.update);
+    this.logCaller(context, this.updateShift);
     return this.prisma.$transaction(
       async () => {
+        const include = this.getShiftInclude(query);
         const res = await this.prisma.shift.update({
           where: {
             id: id,
@@ -186,29 +188,9 @@ export class ShiftService extends AbstractService {
             numberOfParticipants: dto.numberOfParticipants,
             startTime: dto.startTime,
             endTime: dto.endTime,
-            // shiftVolunteers: {
-            //   deleteMany: {
-            //     accountId: {
-            //       notIn: dto.shiftVolunteerIds,
-            //     },
-            //   },
-            //   upsert: dto.shiftVolunteerIds.map((d) => ({
-            //     where: {
-            //       shiftId_accountId: {
-            //         shiftId: id,
-            //         accountId: d,
-            //       },
-            //     },
-            //     create: {
-            //       accountId: d,
-            //       status: VolunteerShiftStatus.Pending,
-            //     },
-            //     update: {},
-            //   })),
-            // },
             shiftLocations: {
               deleteMany: {},
-              create: dto.locations.map((d) => ({
+              create: dto.locations?.map((d) => ({
                 location: {
                   create: d,
                 },
@@ -216,7 +198,7 @@ export class ShiftService extends AbstractService {
             },
             shiftContacts: {
               deleteMany: {},
-              create: dto.contacts.map((d) => ({
+              create: dto.contacts?.map((d) => ({
                 contact: {
                   create: d,
                 },
@@ -231,25 +213,7 @@ export class ShiftService extends AbstractService {
               create: dto.shiftManagers,
             },
           },
-          include: {
-            shiftLocations: {
-              include: {
-                location: true,
-              },
-            },
-            shiftContacts: {
-              include: {
-                contact: true,
-              },
-            },
-            shiftSkills: {
-              include: {
-                skill: true,
-              },
-            },
-            shiftVolunteers: true,
-            shiftManagers: true,
-          },
+          include: include,
         });
         return this.mapToOutput(res);
       },
@@ -259,39 +223,22 @@ export class ShiftService extends AbstractService {
     );
   }
 
-  async delete(
+  async deleteShift(
     context: RequestContext,
     id: number,
   ): Promise<ShiftOutputDto | null> {
-    this.logCaller(context, this.delete);
+    this.logCaller(context, this.deleteShift);
+    const include = this.getShiftInclude({});
     const res = await this.prisma.shift.delete({
       where: {
         id: id,
       },
-      include: {
-        shiftLocations: {
-          include: {
-            location: true,
-          },
-        },
-        shiftContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        shiftSkills: {
-          include: {
-            skill: true,
-          },
-        },
-        shiftVolunteers: true,
-        shiftManagers: true,
-      },
+      include: include,
     });
     return this.mapToOutput(res);
   }
 
-  getShiftFilter(query: GetShiftQueryDto): Prisma.ShiftWhereInput {
+  getShiftFilter(query: GetShiftsQueryDto): Prisma.ShiftWhereInput {
     const filter: Prisma.ShiftWhereInput = {};
     if (query.id != null) {
       filter.id = {
@@ -304,7 +251,7 @@ export class ShiftService extends AbstractService {
     return filter;
   }
 
-  getShiftInclude(query: GetShiftQueryDto) {
+  getShiftInclude(query: GetShiftsQueryDto) {
     const include: Prisma.ShiftInclude = {
       shiftLocations: {
         include: {

@@ -62,11 +62,16 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       details = exception.getResponse();
       stack = exception.stack;
     } else if (exception instanceof PrismaClientKnownRequestError) {
+      console.log(exception.code);
+      console.log(exception.message);
       errorName = 'DatabaseException';
       errorCode = 'database-exception';
       if (exception.code.startsWith('P1')) {
         statusCode = 500;
         message = 'Connection error';
+      } else if (exception.code === 'P2015' || exception.code === 'P2025') {
+        statusCode = 404;
+        message = 'Record not found';
       } else if (exception.code.startsWith('P2')) {
         statusCode = 400;
         message = 'Input constraint/validation failed';

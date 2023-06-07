@@ -1,11 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import {
   CreateShiftInputDto,
-  GetShiftByIdQueryDto,
   GetShiftQueryDto,
+  GetShiftsQueryDto,
   ShiftOutputDto,
+  UpdateShiftInputDto,
 } from '../dtos';
 import { ShiftService } from '../services';
 
@@ -16,7 +26,7 @@ export class ShiftController {
   @Get()
   async get(
     @ReqContext() context: RequestContext,
-    @Query() query: GetShiftQueryDto,
+    @Query() query: GetShiftsQueryDto,
   ): Promise<ShiftOutputDto[]> {
     return this.shiftService.getShifts(context, query);
   }
@@ -25,9 +35,9 @@ export class ShiftController {
   async getShiftById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
-    @Query() query: GetShiftByIdQueryDto,
+    @Query() query: GetShiftQueryDto,
   ): Promise<ShiftOutputDto | null> {
-    return this.shiftService.getById(context, id, query);
+    return this.shiftService.getShiftById(context, id, query);
   }
 
   @Post()
@@ -35,6 +45,24 @@ export class ShiftController {
     @ReqContext() context: RequestContext,
     @Body() dto: CreateShiftInputDto,
   ): Promise<ShiftOutputDto> {
-    return this.shiftService.create(context, dto);
+    return this.shiftService.createShift(context, dto);
+  }
+
+  @Put(':id')
+  async update(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+    @Body() dto: UpdateShiftInputDto,
+    @Query() query: GetShiftQueryDto,
+  ): Promise<ShiftOutputDto> {
+    return this.shiftService.updateShift(context, id, dto, query);
+  }
+
+  @Delete(':id')
+  async delete(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ): Promise<ShiftOutputDto | null> {
+    return this.shiftService.deleteShift(context, id);
   }
 }
