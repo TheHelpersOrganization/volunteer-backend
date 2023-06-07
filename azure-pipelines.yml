@@ -35,6 +35,7 @@ stages:
         addBaseImageData: false
       env:
         DOCKER_BUILDKIT: 1
+        CI: true
     - task: SSH@0
       name: 'DeployToVM'
       displayName: 'Deploy to VM'

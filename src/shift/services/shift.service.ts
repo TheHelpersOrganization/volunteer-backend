@@ -7,6 +7,7 @@ import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   CreateShiftInputDto,
   GetShiftByIdQueryDto,
@@ -315,6 +316,15 @@ export class ShiftService extends AbstractService {
           contact: true,
         },
       },
+      _count: {
+        select: {
+          shiftVolunteers: {
+            where: {
+              status: ShiftVolunteerStatus.Approved,
+            },
+          },
+        },
+      },
     };
     if (query.include?.includes(GetShiftInclude.ShiftSkill)) {
       include.shiftSkills = {
@@ -337,6 +347,7 @@ export class ShiftService extends AbstractService {
       ...raw,
       locations: raw.shiftLocations.map((sl) => sl.location),
       contacts: raw.shiftContacts.map((sc) => sc.contact),
+      joinedParticipants: raw._count.shiftVolunteers,
     });
   }
 }
