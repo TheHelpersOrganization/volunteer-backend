@@ -14,58 +14,57 @@ import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 import { CreateShiftManagerInputDto } from '.';
 
-import { SHIFT_DESCRIPTION_MAX_LENGTH } from '../constants';
+import {
+  SHIFT_DESCRIPTION_MAX_LENGTH,
+  SHIFT_NAME_MAX_LENGTH,
+} from '../constants';
 import { CreateShiftSkillInputDto } from './create-shift-skill.input.dto';
 
 export class UpdateShiftInputDto {
   @IsOptional()
   @IsString()
-  name: string;
+  @MaxLength(SHIFT_NAME_MAX_LENGTH)
+  name?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(SHIFT_DESCRIPTION_MAX_LENGTH)
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsDateString()
-  startTime: Date;
+  startTime?: Date;
 
   @IsOptional()
   @IsDateString()
   @ValidateIf((target, value) => value >= target.startTime)
-  endTime: Date;
+  endTime?: Date;
 
   @IsOptional()
   @IsNumber()
-  numberOfParticipants: number;
+  numberOfParticipants?: number;
 
   @IsOptional()
   @Type(() => CreateLocationInputDto)
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  locations: CreateLocationInputDto[];
+  locations?: CreateLocationInputDto[];
 
   @IsOptional()
   @Type(() => CreateContactInputDto)
   @ValidateNested({ each: true })
   @ArrayNotEmpty()
-  contacts: CreateContactInputDto[];
+  contacts?: CreateContactInputDto[];
 
   @IsOptional()
   @Type(() => CreateShiftSkillInputDto)
   @ValidateNested({ each: true })
   @IsArray()
-  shiftSkills: CreateShiftSkillInputDto[];
-
-  // @IsOptional()
-  // @IsNumber(undefined, { each: true })
-  // @IsArray()
-  // shiftVolunteerIds: number[];
+  shiftSkills?: CreateShiftSkillInputDto[];
 
   @IsOptional()
   @Type(() => CreateShiftManagerInputDto)
   @ValidateNested({ each: true })
   @IsArray()
-  shiftManagers: CreateShiftManagerInputDto[];
+  shiftManagers?: CreateShiftManagerInputDto[];
 }

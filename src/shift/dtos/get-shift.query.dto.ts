@@ -8,7 +8,7 @@ export enum GetShiftInclude {
   ShiftManager = 'shiftManager',
 }
 
-export class GetShiftQueryDto extends PaginationParamsDto {
+export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
@@ -27,7 +27,7 @@ export class GetShiftQueryDto extends PaginationParamsDto {
   include?: GetShiftInclude[];
 }
 
-export class GetShiftByIdQueryDto {
+export class GetShiftQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(GetShiftInclude, { each: true })
