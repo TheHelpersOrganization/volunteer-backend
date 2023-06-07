@@ -47,4 +47,9 @@ export class ShiftOutputDto {
   @Expose()
   @Type(() => ShiftManagerOutputDto)
   shiftManagers: ShiftManagerOutputDto;
+
+  // ----- Extra fields -----
+
+  @Expose()
+  joinedParticipants: number;
 }
