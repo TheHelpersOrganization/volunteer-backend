@@ -4,27 +4,23 @@ import { IsFileId } from 'src/file/validators';
 export class UpdateActivityInputDto {
   @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
-  skillIds: number[];
+  skillIds?: number[];
 
   @IsOptional()
   @IsFileId()
-  thumbnail: number;
-
-  @IsOptional()
-  @IsNumber()
-  organizationId: number;
+  thumbnail?: number;
 
   @IsOptional()
   @IsNumber(undefined, { each: true })
   @IsArray()
-  activityManagerIds: number[];
+  activityManagerIds?: number[];
 }
