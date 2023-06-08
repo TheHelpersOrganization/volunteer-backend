@@ -110,23 +110,28 @@ export class ModActivityService extends AbstractService {
         name: dto.name,
         description: dto.description,
         thumbnail: dto.thumbnail,
-        activitySkills: {
-          deleteMany: {},
-          createMany: {
-            data: dto.skillIds.map((id) => ({
-              skillId: id,
-            })),
-          },
-        },
-        organizationId: dto.organizationId,
-        activityManagers: {
-          deleteMany: {},
-          createMany: {
-            data: dto.activityManagerIds.map((id) => ({
-              accountId: id,
-            })),
-          },
-        },
+        activitySkills:
+          dto.skillIds === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                createMany: {
+                  data: dto.skillIds.map((id) => ({
+                    skillId: id,
+                  })),
+                },
+              },
+        activityManagers:
+          dto.activityManagerIds === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                createMany: {
+                  data: dto.activityManagerIds.map((id) => ({
+                    accountId: id,
+                  })),
+                },
+              },
       },
       include: {
         activitySkills: true,

@@ -170,30 +170,42 @@ export class ShiftService extends AbstractService {
             numberOfParticipants: dto.numberOfParticipants,
             startTime: dto.startTime,
             endTime: dto.endTime,
-            shiftLocations: {
-              deleteMany: {},
-              create: dto.locations?.map((d) => ({
-                location: {
-                  create: d,
-                },
-              })),
-            },
-            shiftContacts: {
-              deleteMany: {},
-              create: dto.contacts?.map((d) => ({
-                contact: {
-                  create: d,
-                },
-              })),
-            },
-            shiftSkills: {
-              deleteMany: {},
-              create: dto.shiftSkills,
-            },
-            shiftManagers: {
-              deleteMany: {},
-              create: dto.shiftManagers,
-            },
+            shiftLocations:
+              dto.locations === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: dto.locations?.map((d) => ({
+                      location: {
+                        create: d,
+                      },
+                    })),
+                  },
+            shiftContacts:
+              dto.contacts === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: dto.contacts?.map((d) => ({
+                      contact: {
+                        create: d,
+                      },
+                    })),
+                  },
+            shiftSkills:
+              dto.shiftSkills === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: dto.shiftSkills,
+                  },
+            shiftManagers:
+              dto.shiftManagers === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: dto.shiftManagers,
+                  },
           },
           include: include,
         });
