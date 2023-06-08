@@ -4,6 +4,7 @@ import { RequestContext } from 'src/common/request-context/request-context.dto';
 import { AbstractService } from 'src/common/services';
 
 import { Prisma } from '@prisma/client';
+import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { ShiftSkillService } from 'src/shift/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
@@ -132,6 +133,14 @@ export class ProfileService extends AbstractService {
     this.logger.log(ctx, `${this.updateProfile.name} was called`);
     const accountId = ctx.account.id;
 
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
     const profile = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
@@ -206,7 +215,6 @@ export class ProfileService extends AbstractService {
         ? { include: { skill: true } }
         : false,
     };
-    console.log(res);
     return res;
   }
 }

@@ -62,8 +62,6 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
       details = exception.getResponse();
       stack = exception.stack;
     } else if (exception instanceof PrismaClientKnownRequestError) {
-      console.log(exception.code);
-      console.log(exception.message);
       errorName = 'DatabaseException';
       errorCode = 'database-exception';
       if (exception.code.startsWith('P1')) {
