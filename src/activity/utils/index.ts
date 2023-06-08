@@ -214,7 +214,9 @@ export const extendActivity = (
     filteredSkillIds.push(skillId);
   });
   const contacts = activity.activityContacts?.map((ac) => ac.contact);
-
+  const activityManagerIds = activity.activityManagers?.map(
+    (am) => am.accountId,
+  );
   return {
     ...activity,
     maxParticipants,
@@ -224,6 +226,7 @@ export const extendActivity = (
     skillIds: filteredSkillIds,
     location: unionLocation,
     contacts,
+    activityManagerIds,
   };
 };
 

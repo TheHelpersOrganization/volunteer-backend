@@ -35,6 +35,7 @@ export type ExtendedActivity = ExtendedActivityInput & {
   skillIds?: number[];
   location?: ShortLocationOutputDto;
   contacts?: Contact[];
+  activityManagerIds?: number[];
 };
 
 export type RawActivity = Activity & {
