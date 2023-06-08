@@ -140,25 +140,7 @@ export class ShiftService extends AbstractService {
               },
             },
           },
-          include: {
-            shiftLocations: {
-              include: {
-                location: true,
-              },
-            },
-            shiftContacts: {
-              include: {
-                contact: true,
-              },
-            },
-            shiftSkills: {
-              include: {
-                skill: true,
-              },
-            },
-            shiftVolunteers: true,
-            shiftManagers: true,
-          },
+          include: this.getShiftInclude({}),
         });
         return this.mapToOutput(res);
       },
