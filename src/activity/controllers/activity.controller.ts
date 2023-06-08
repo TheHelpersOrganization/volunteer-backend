@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import { Role } from 'src/auth/constants';
@@ -7,6 +16,7 @@ import {
   ActivityOutputDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
+  UpdateActivityInputDto,
 } from '../dtos';
 import { ActivityService } from '../services';
 
@@ -16,7 +26,7 @@ export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
   @Get()
-  async getAll(
+  async getActivities(
     @ReqContext() context: RequestContext,
     @Query() query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
@@ -24,11 +34,28 @@ export class ActivityController {
   }
 
   @Get(':id')
-  async getById(
+  async getActivityById(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
     @Query() query: GetActivityByIdQueryDto,
   ): Promise<ActivityOutputDto | null> {
     return this.activityService.getById(context, id, query);
+  }
+
+  @Put(':id')
+  async updateActivity(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateActivityInputDto,
+  ): Promise<ActivityOutputDto> {
+    return this.activityService.updateActivity(context, id, dto);
+  }
+
+  @Delete(':id')
+  async deleteActivity(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ): Promise<ActivityOutputDto> {
+    return this.activityService.deleteActivity(context, id);
   }
 }
