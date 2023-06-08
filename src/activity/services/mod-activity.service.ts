@@ -154,7 +154,6 @@ export class ModActivityService extends AbstractService {
   }
 
   private mapToDto(activity: RawActivity): ActivityOutputDto {
-    console.log(activity.activityManagers);
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
