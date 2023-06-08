@@ -9,6 +9,7 @@ import {
   ActivityOutputDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
+  UpdateActivityInputDto,
 } from '../dtos';
 import { RawActivity } from '../types';
 import {
@@ -140,6 +141,82 @@ export class ActivityService extends AbstractService {
     if (res == null) {
       return null;
     }
+    return this.mapToDto(res);
+  }
+
+  async updateActivity(
+    context: RequestContext,
+    id: number,
+    dto: UpdateActivityInputDto,
+  ): Promise<ActivityOutputDto> {
+    this.logCaller(context, this.updateActivity);
+
+    const res = await this.prisma.activity.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        thumbnail: dto.thumbnail,
+        activityContacts:
+          dto.contacts === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                create: dto.contacts?.map((d) => ({
+                  contact: {
+                    create: d,
+                  },
+                })),
+              },
+        activitySkills:
+          dto.skillIds === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                createMany: {
+                  data: dto.skillIds.map((id) => ({
+                    skillId: id,
+                  })),
+                },
+              },
+        activityManagers:
+          dto.activityManagerIds === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                createMany: {
+                  data: dto.activityManagerIds.map((id) => ({
+                    accountId: id,
+                  })),
+                },
+              },
+      },
+      include: {
+        activitySkills: true,
+        activityManagers: true,
+        activityContacts: {
+          include: {
+            contact: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToDto(res);
+  }
+
+  async deleteActivity(
+    context: RequestContext,
+    id: number,
+  ): Promise<ActivityOutputDto> {
+    this.logCaller(context, this.deleteActivity);
+    const res = await this.prisma.activity.delete({
+      where: {
+        id: id,
+      },
+    });
     return this.mapToDto(res);
   }
 
