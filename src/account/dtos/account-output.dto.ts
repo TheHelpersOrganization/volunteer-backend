@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
+import { AccountVerificationOutputDto } from 'src/account-verification/dtos';
 import { Role } from '../../auth/constants/role.constant';
 
 export class AccountOutputDto {
@@ -43,24 +44,6 @@ export class AccountOutputDto {
   @Type(() => AccountBanOutputDto)
   @ApiProperty()
   banList?: AccountBanOutputDto[];
-}
-
-export class AccountVerificationOutputDto {
-  @Expose()
-  @ApiProperty()
-  performedBy: number;
-
-  @Expose()
-  @ApiProperty()
-  isVerified: boolean;
-
-  @Expose()
-  @ApiProperty()
-  note?: string;
-
-  @Expose()
-  @ApiProperty()
-  createdAt: Date;
 }
 
 export class AccountBanOutputDto {

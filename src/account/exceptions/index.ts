@@ -11,3 +11,15 @@ export class UnableToBanSelfAccountException extends BaseApiException {
     super('Unable to ban your own account');
   }
 }
+
+export class AccountAlreadyVerifiedException extends BaseApiException {
+  constructor() {
+    super('Account already verified');
+  }
+}
+
+export class AccountIsAlreadyAwaitingVerificationException extends BaseApiException {
+  constructor() {
+    super('Account is already awaiting verification');
+  }
+}
