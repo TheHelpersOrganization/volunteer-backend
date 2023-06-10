@@ -19,6 +19,13 @@ export enum GetProfileSelect {
   Location = 'location',
 }
 
+export const getProfileBasicSelect = [
+  GetProfileSelect.Email,
+  GetProfileSelect.Username,
+  GetProfileSelect.FullName,
+  GetProfileSelect.Avatar,
+];
+
 export class GetProfileQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsArray()

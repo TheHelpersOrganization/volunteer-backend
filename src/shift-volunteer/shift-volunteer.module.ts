@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CommonModule } from 'src/common/common.module';
 import { ContactModule } from 'src/contact/contact.module';
 import { LocationModule } from 'src/location/location.module';
+import { ProfileModule } from 'src/profile/profile.module';
 import {
   ActivityVolunteer,
   ModShiftVolunteerController,
@@ -14,7 +15,7 @@ import {
 } from './services';
 
 @Module({
-  imports: [CommonModule, LocationModule, ContactModule],
+  imports: [CommonModule, LocationModule, ContactModule, ProfileModule],
   controllers: [
     ActivityVolunteer,
     ShiftVolunteerController,
