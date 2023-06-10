@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { AccountVerificationModule } from './account-verification/account-verification.module';
 import { AccountModule } from './account/account.module';
 import { ActivityModule } from './activity/activity.module';
 import { AuthModule } from './auth/auth.module';
@@ -30,6 +31,7 @@ import { SkillModule } from './skill/skill.module';
   imports: [
     CommonModule,
     AccountModule,
+    AccountVerificationModule,
     AuthModule,
     ProfileModule,
     OtpModule,

@@ -5,6 +5,7 @@ import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
 import { Role } from 'src/auth/constants';
+import { AbstractService } from 'src/common/services';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -15,12 +16,9 @@ import { UpdateAccountInput } from '../dtos/account-update-input.dto';
 import { Account } from '../entities/account.entity';
 
 @Injectable()
-export class AccountService {
-  constructor(
-    private prisma: PrismaService,
-    private readonly logger: AppLogger,
-  ) {
-    this.logger.setContext(AccountService.name);
+export class AccountService extends AbstractService {
+  constructor(private prisma: PrismaService, logger: AppLogger) {
+    super(logger);
   }
 
   async createAccount(

@@ -4,6 +4,7 @@ import { Account, Member, Organization } from '@prisma/client';
 import * as _ from 'lodash';
 import { OrganizationMemberStatus } from '../../src/organization/constants';
 
+let accountId = 1;
 let organizationId = 1;
 let locationId = 1;
 let contactId = 1;
@@ -17,6 +18,7 @@ let accountBanId = 1;
 let skillId = 1;
 let roleId = 1;
 
+export const getNextAccountId = () => accountId++;
 export const getNextOrganizationId = () => organizationId++;
 export const getNextLocationId = () => locationId++;
 export const getNextContactId = () => contactId++;

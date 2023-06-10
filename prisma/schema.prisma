@@ -77,22 +77,23 @@ model Token {
 }
 
 model File {
-  id                 Int               @id @default(autoincrement())
-  name               String
-  internalName       String            @unique
-  mimetype           String?
-  path               String
-  size               Float
-  sizeUnit           String
-  createdAt          DateTime?         @default(now())
-  updatedAt          DateTime?         @default(now()) @updatedAt
-  createdBy          Int
-  account            Account           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  organizationLogo   Organization?     @relation(name: "logo")
-  organizationBanner Organization?     @relation(name: "banner")
-  organizationFile   OrganizationFile?
-  profile            Profile?
-  activityThumbnail  Activity?
+  id                      Int                      @id @default(autoincrement())
+  name                    String
+  internalName            String                   @unique
+  mimetype                String?
+  path                    String
+  size                    Float
+  sizeUnit                String
+  createdAt               DateTime?                @default(now())
+  updatedAt               DateTime?                @default(now()) @updatedAt
+  createdBy               Int
+  account                 Account                  @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  organizationLogo        Organization?            @relation(name: "logo")
+  organizationBanner      Organization?            @relation(name: "banner")
+  organizationFile        OrganizationFile?
+  profile                 Profile?
+  activityThumbnail       Activity?
+  accountVerificationFile AccountVerificationFile?
 }
 
 model Location {
@@ -211,15 +212,18 @@ model AccountBan {
 }
 
 model AccountVerification {
-  id                 Int       @id @default(autoincrement())
-  accountId          Int
-  account            Account   @relation(name: "accountVerification", fields: [accountId], references: [id], onDelete: Cascade)
-  performedBy        Int
-  performedByAccount Account   @relation(name: "accountVerifiedBy", fields: [performedBy], references: [id], onDelete: Cascade)
-  isVerified         Boolean
-  note               String?
-  createdAt          DateTime? @default(now())
-  updatedAt          DateTime? @default(now()) @updatedAt
+  id                      Int                       @id @default(autoincrement())
+  accountId               Int
+  account                 Account                   @relation(name: "accountVerification", fields: [accountId], references: [id], onDelete: Cascade)
+  performedBy             Int?
+  performedByAccount      Account?                  @relation(name: "accountVerifiedBy", fields: [performedBy], references: [id], onDelete: Cascade)
+  status                  String                    @default("pending")
+  isVerified              Boolean
+  content                 String?
+  note                    String?
+  createdAt               DateTime?                 @default(now())
+  updatedAt               DateTime?                 @default(now()) @updatedAt
+  accountVerificationFile AccountVerificationFile[]
 }
 
 model AccountRole {
@@ -231,6 +235,13 @@ model AccountRole {
   updatedAt DateTime? @default(now()) @updatedAt
 
   @@id([accountId, roleId])
+}
+
+model AccountVerificationFile {
+  accountVerificationId Int
+  fileId                Int                 @id @unique
+  accountVerification   AccountVerification @relation(fields: [accountVerificationId], references: [id], onDelete: Cascade)
+  file                  File                @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }
 
 model ProfileInterestedSkill {

@@ -173,8 +173,10 @@ CREATE TABLE "AccountBan" (
 CREATE TABLE "AccountVerification" (
     "id" SERIAL NOT NULL,
     "accountId" INTEGER NOT NULL,
-    "performedBy" INTEGER NOT NULL,
+    "performedBy" INTEGER,
+    "status" TEXT NOT NULL DEFAULT 'pending',
     "isVerified" BOOLEAN NOT NULL,
+    "content" TEXT,
     "note" TEXT,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
@@ -190,6 +192,14 @@ CREATE TABLE "AccountRole" (
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AccountRole_pkey" PRIMARY KEY ("accountId","roleId")
+);
+
+-- CreateTable
+CREATE TABLE "AccountVerificationFile" (
+    "accountVerificationId" INTEGER NOT NULL,
+    "fileId" INTEGER NOT NULL,
+
+    CONSTRAINT "AccountVerificationFile_pkey" PRIMARY KEY ("fileId")
 );
 
 -- CreateTable
@@ -378,6 +388,9 @@ CREATE UNIQUE INDEX "Organization_banner_key" ON "Organization"("banner");
 CREATE UNIQUE INDEX "Activity_thumbnail_key" ON "Activity"("thumbnail");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AccountVerificationFile_fileId_key" ON "AccountVerificationFile"("fileId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "OrganizationFile_fileId_key" ON "OrganizationFile"("fileId");
 
 -- CreateIndex
@@ -445,6 +458,12 @@ ALTER TABLE "AccountRole" ADD CONSTRAINT "AccountRole_accountId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "AccountRole" ADD CONSTRAINT "AccountRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AccountVerificationFile" ADD CONSTRAINT "AccountVerificationFile_accountVerificationId_fkey" FOREIGN KEY ("accountVerificationId") REFERENCES "AccountVerification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AccountVerificationFile" ADD CONSTRAINT "AccountVerificationFile_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "File"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("accountId") ON DELETE CASCADE ON UPDATE CASCADE;

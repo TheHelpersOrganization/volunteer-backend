@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import { AccountVerificationStatus } from 'src/account-verification/constants';
+import { AccountHasNoPendingVerificationRequestException } from 'src/account-verification/exceptions';
 import { Role } from 'src/auth/constants';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { AppLogger } from 'src/common/logger';
@@ -100,14 +102,27 @@ export class AdminAccountService extends AbstractService {
       throw new UnableToVerifySelfAccountException();
     }
 
+    const verification = await this.prisma.accountVerification.findFirst({
+      where: {
+        accountId: id,
+        status: AccountVerificationStatus.Pending,
+      },
+    });
+    if (!verification) {
+      throw new AccountHasNoPendingVerificationRequestException();
+    }
+
     const updated = await this.prisma.$transaction(
       async () => {
-        await this.prisma.accountVerification.create({
+        await this.prisma.accountVerification.update({
+          where: {
+            id: verification.id,
+          },
           data: {
-            accountId: id,
             performedBy: performedBy,
             isVerified: dto.isVerified,
             note: dto.note,
+            status: AccountVerificationStatus.Completed,
           },
         });
 

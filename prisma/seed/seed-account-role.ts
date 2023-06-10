@@ -9,9 +9,11 @@ import {
   Role,
 } from '@prisma/client';
 import { hashSync } from 'bcrypt';
+import { AccountVerificationStatus } from 'src/account-verification/constants';
 import { Role as RoleEnum } from '../../src/auth/constants';
 import {
   getNextAccountBanId,
+  getNextAccountId,
   getNextAccountVerificationId,
   getNextRoleId,
 } from './utils';
@@ -72,10 +74,24 @@ export const seedAccountsAndRoles = async (
 
   const hashedPassword = hashSync('123456', 10);
 
+  const defaultAccounts: Account[] = [];
+  if (options?.defaultAccountOptions?.include === true) {
+    const acc1 = {
+      id: getNextAccountId(),
+      email: 'hquan310@gmail.com',
+      password: hashedPassword,
+      isAccountVerified: false,
+      isAccountDisabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    defaultAccounts.push(acc1);
+  }
+
   const opAccounts = Array.from({
     length: options?.numberOfOpAccounts ?? 5,
   }).map((_, index) => ({
-    id: 2 + index,
+    id: getNextAccountId(),
     email: `op${index}@a.com`,
     password: hashedPassword,
     isAccountVerified: false,
@@ -87,7 +103,7 @@ export const seedAccountsAndRoles = async (
   const modAccounts = Array.from({
     length: options?.numberOfModAccounts ?? 30,
   }).map((_, index) => ({
-    id: 100 + index,
+    id: getNextAccountId(),
     email: `mod${index}@a.com`,
     password: hashedPassword,
     isAccountVerified: false,
@@ -99,7 +115,7 @@ export const seedAccountsAndRoles = async (
   const adminAccounts = Array.from({
     length: options?.numberOfAdminAccounts ?? 30,
   }).map((_, index) => ({
-    id: 200 + index,
+    id: getNextAccountId(),
     email: `admin${index}@a.com`,
     password: hashedPassword,
     isAccountVerified: false,
@@ -108,25 +124,11 @@ export const seedAccountsAndRoles = async (
     updatedAt: new Date(),
   }));
 
-  const defaultAccounts: Account[] = [];
-  if (options?.defaultAccountOptions?.include === true) {
-    const acc1 = {
-      id: 1,
-      email: 'hquan310@gmail.com',
-      password: hashedPassword,
-      isAccountVerified: false,
-      isAccountDisabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    defaultAccounts.push(acc1);
-  }
-
   const verificationList: AccountVerification[] = [];
   const banList: AccountBan[] = [];
 
   const volunteerAccounts = Array.from({
-    length: options?.numberOfVolunteerAccounts ?? 30,
+    length: options?.numberOfVolunteerAccounts ?? 100,
   }).map((_, i) => {
     const accountId = 300 + i;
 
@@ -139,31 +141,53 @@ export const seedAccountsAndRoles = async (
     const isAccountVerified = fakerVi.datatype.boolean();
     const isAccountDisabled = fakerVi.datatype.boolean();
 
-    // Random number of verification
-    for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
-      const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+    let ca: Date;
+    // Has no pending verification
+    if (isAccountVerified && fakerVi.datatype.boolean()) {
+      // Random number of verification
+      for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
+        const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+        verificationList.push({
+          id: getNextAccountVerificationId(),
+          accountId: accountId,
+          performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+          note: fakerEn.lorem.lines(),
+          isVerified: fakerVi.datatype.boolean(),
+          status: AccountVerificationStatus.Completed,
+          content: fakerEn.lorem.paragraphs(),
+          createdAt: ca,
+          updatedAt: ca,
+        });
+      }
+
+      // The last verification must match the account verification status
+      ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
       verificationList.push({
         id: getNextAccountVerificationId(),
         accountId: accountId,
         performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
         note: fakerEn.lorem.lines(),
-        isVerified: fakerVi.datatype.boolean(),
+        isVerified: isAccountVerified,
+        status: AccountVerificationStatus.Completed,
+        content: fakerEn.lorem.paragraphs(),
+        createdAt: ca,
+        updatedAt: ca,
+      });
+    } else {
+      // Has pending verification
+      ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+      verificationList.push({
+        id: getNextAccountVerificationId(),
+        accountId: accountId,
+        performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
+        note: fakerEn.lorem.lines(),
+        isVerified: false,
+        status: AccountVerificationStatus.Pending,
+        content: fakerEn.lorem.paragraphs(),
         createdAt: ca,
         updatedAt: ca,
       });
     }
-
-    // The last verification must match the account verification status
-    let ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
-    verificationList.push({
-      id: getNextAccountVerificationId(),
-      accountId: accountId,
-      performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-      note: fakerEn.lorem.lines(),
-      isVerified: isAccountVerified,
-      createdAt: ca,
-      updatedAt: ca,
-    });
 
     // Random number of ban
     if (isAccountDisabled) {
