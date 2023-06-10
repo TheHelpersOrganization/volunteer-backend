@@ -10,5 +10,6 @@ import { ProfileListener, ProfileService } from './services';
   imports: [CommonModule, LocationModule, ShiftModule],
   controllers: [ProfileController],
   providers: [ProfileService, ProfileListener],
+  exports: [ProfileService],
 })
 export class ProfileModule {}

@@ -4,11 +4,21 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
-import { GetShiftVolunteerQueryDto, ShiftVolunteerOutputDto } from '../dtos';
+import { getProfileBasicSelect } from 'src/profile/dtos';
+import { ProfileService } from 'src/profile/services';
+import {
+  GetShiftVolunteerQueryDto,
+  ShiftVolunteerInclude,
+  ShiftVolunteerOutputDto,
+} from '../dtos';
 
 @Injectable()
 export class ModShiftVolunteerService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly profileService: ProfileService,
+  ) {
     super(logger);
   }
 
@@ -22,6 +32,18 @@ export class ModShiftVolunteerService extends AbstractService {
       take: query.limit,
       skip: query.offset,
     });
+    const accountIds = res.map((v) => v.accountId);
+    const profiles = await this.profileService.getProfiles(context, {
+      ids: accountIds,
+      select: getProfileBasicSelect,
+    });
+    if (query.include?.includes(ShiftVolunteerInclude.Profile) == true) {
+      const extendedRes = res.map((v) => ({
+        ...v,
+        profile: profiles.find((p) => p.id === v.accountId),
+      }));
+      return this.outputArray(ShiftVolunteerOutputDto, extendedRes);
+    }
     return this.outputArray(ShiftVolunteerOutputDto, res);
   }
 

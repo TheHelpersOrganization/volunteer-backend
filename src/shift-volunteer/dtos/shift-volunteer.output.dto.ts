@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ProfileOutputDto } from 'src/profile/dtos';
 import { ShiftVolunteerStatus } from '../constants';
 
 export class ShiftVolunteerOutputDto {
@@ -19,4 +20,8 @@ export class ShiftVolunteerOutputDto {
 
   @Expose()
   status: ShiftVolunteerStatus;
+
+  @Expose()
+  @Type(() => ProfileOutputDto)
+  profile?: ProfileOutputDto;
 }
