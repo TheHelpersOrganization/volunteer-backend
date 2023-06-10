@@ -40,7 +40,7 @@ stages:
       name: 'DeployToVM'
       displayName: 'Deploy to VM'
       inputs:
-        sshEndpoint: 'VM SSH Service'
+        sshEndpoint: 'TheHelpersBackend'
         runOptions: 'inline'
         inline: |
           docker ps -q --filter "name=backend" | grep -q . && docker stop backend && docker rm -fv backend
