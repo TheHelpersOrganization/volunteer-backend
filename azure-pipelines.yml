@@ -23,6 +23,8 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: SSH@0
+      name: 'TestVMConnection'
+      displayName: 'Test VM Connection'
       inputs:
         sshEndpoint: 'TheHelpersBackend'
         runOptions: 'commands'
