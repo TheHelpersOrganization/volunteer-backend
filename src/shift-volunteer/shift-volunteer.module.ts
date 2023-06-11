@@ -5,6 +5,7 @@ import { LocationModule } from 'src/location/location.module';
 import { ProfileModule } from 'src/profile/profile.module';
 import {
   ActivityVolunteer,
+  IdentifiedShiftVolunteerController,
   ModShiftVolunteerController,
   ShiftVolunteerController,
 } from './controllers';
@@ -20,12 +21,13 @@ import {
     ActivityVolunteer,
     ShiftVolunteerController,
     ModShiftVolunteerController,
+    IdentifiedShiftVolunteerController,
   ],
   providers: [
     ShiftVolunteerService,
     ShiftVolunteerTaskService,
     ModShiftVolunteerService,
   ],
-  exports: [ShiftVolunteerService],
+  exports: [ShiftVolunteerService, ModShiftVolunteerService],
 })
 export class ShiftVolunteerModule {}

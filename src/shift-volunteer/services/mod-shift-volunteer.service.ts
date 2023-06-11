@@ -4,13 +4,9 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
-import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
-import {
-  GetShiftVolunteerQueryDto,
-  ShiftVolunteerInclude,
-  ShiftVolunteerOutputDto,
-} from '../dtos';
+import { GetShiftVolunteerQueryDto } from '../dtos';
+import { ShiftVolunteerService } from './shift-volunteer.service';
 
 @Injectable()
 export class ModShiftVolunteerService extends AbstractService {
@@ -18,6 +14,7 @@ export class ModShiftVolunteerService extends AbstractService {
     logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
+    private readonly shiftVolunteerService: ShiftVolunteerService,
   ) {
     super(logger);
   }
@@ -27,24 +24,7 @@ export class ModShiftVolunteerService extends AbstractService {
     query: GetShiftVolunteerQueryDto,
   ) {
     this.logCaller(context, this.getShiftVolunteers);
-    const res = await this.prisma.volunteerShift.findMany({
-      where: this.getShiftVolunteerFilter(query),
-      take: query.limit,
-      skip: query.offset,
-    });
-    const accountIds = res.map((v) => v.accountId);
-    const profiles = await this.profileService.getProfiles(context, {
-      ids: accountIds,
-      select: getProfileBasicSelect,
-    });
-    if (query.include?.includes(ShiftVolunteerInclude.Profile) == true) {
-      const extendedRes = res.map((v) => ({
-        ...v,
-        profile: profiles.find((p) => p.id === v.accountId),
-      }));
-      return this.outputArray(ShiftVolunteerOutputDto, extendedRes);
-    }
-    return this.outputArray(ShiftVolunteerOutputDto, res);
+    return this.shiftVolunteerService.getShiftVolunteers(context, query);
   }
 
   getShiftVolunteerFilter(
@@ -58,6 +38,10 @@ export class ModShiftVolunteerService extends AbstractService {
 
     if (query.shiftId) {
       filter.shiftId = query.shiftId;
+    }
+
+    if (query.activityId) {
+      filter.shift = { activityId: query.activityId };
     }
 
     if (query.status) {

@@ -68,4 +68,14 @@ export const throwIfNullish = <T>(
   return value;
 };
 
+export const parseBooleanString = (str: any) => {
+  if (str === 'true') {
+    return true;
+  }
+  if (str === 'false') {
+    return false;
+  }
+  throw new Error('Invalid boolean string');
+};
+
 export const rootProjectPath = path.resolve('./');
