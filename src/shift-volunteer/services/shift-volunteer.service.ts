@@ -167,18 +167,19 @@ export class ShiftVolunteerService extends AbstractService {
       throw new ShiftNotFoundException();
     }
 
-    const shiftVolunteer = await this.prisma.volunteerShift.findFirst({
-      where: {
-        shiftId: shiftId,
-        accountId: context.account.id,
-        status: {
-          in: [ShiftVolunteerStatus.Approved],
-        },
-      },
-    });
-    if (shiftVolunteer != null) {
+    const pendingOrApprovedShiftVolunteer = shift.shiftVolunteers.find(
+      (v) =>
+        v.accountId === context.account.id &&
+        (v.status === ShiftVolunteerStatus.Pending ||
+          v.status === ShiftVolunteerStatus.Approved),
+    );
+    if (pendingOrApprovedShiftVolunteer != null) {
       throw new VolunteerHasAlreadyJoinedShiftException();
     }
+
+    const approvedShiftVolunteers = shift.shiftVolunteers.filter(
+      (v) => v.status === ShiftVolunteerStatus.Approved,
+    );
 
     const currentDate = new Date();
     if (shift.startTime < currentDate) {
@@ -188,7 +189,7 @@ export class ShiftVolunteerService extends AbstractService {
     if (
       shift.numberOfParticipants != null &&
       shift.numberOfParticipants != 0 &&
-      shift.shiftVolunteers.length >= shift.numberOfParticipants
+      approvedShiftVolunteers.length >= shift.numberOfParticipants
     ) {
       throw new ShiftIsFullException();
     }
