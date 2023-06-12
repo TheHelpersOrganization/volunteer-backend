@@ -24,4 +24,10 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   @Type(() => ProfileOutputDto)
   profile?: ProfileOutputDto;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
 }
