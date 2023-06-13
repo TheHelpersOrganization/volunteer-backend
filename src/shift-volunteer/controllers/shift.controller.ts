@@ -1,6 +1,6 @@
-import { Controller, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
-import { ShiftVolunteerOutputDto } from '../dtos';
+import { ShiftVolunteerOutputDto, UpdateShiftVolunteerStatus } from '../dtos';
 import { ShiftVolunteerService } from '../services';
 
 @Controller('shifts/:shiftId/volunteers')
@@ -29,5 +29,29 @@ export class IdentifiedShiftVolunteerController {
     @Param('shiftId') shiftId: number,
   ): Promise<ShiftVolunteerOutputDto> {
     return this.shiftVolunteerService.leave(context, shiftId);
+  }
+
+  @Put(':id/approve')
+  async updateStatus(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+    @Param('id') id: number,
+    @Body() dto: UpdateShiftVolunteerStatus,
+  ): Promise<ShiftVolunteerOutputDto> {
+    return this.shiftVolunteerService.updateRegistrationStatus(
+      context,
+      shiftId,
+      id,
+      dto,
+    );
+  }
+
+  @Put(':id/reject')
+  async delete(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+    @Param('id') id: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    return this.shiftVolunteerService.remove(context, shiftId, id);
   }
 }

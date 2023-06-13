@@ -32,7 +32,7 @@ export class ModShiftVolunteerController {
   async getShiftVolunteers(
     @ReqContext() context: RequestContext,
     @Query() query: GetShiftVolunteerQueryDto,
-  ): Promise<ShiftVolunteerOutputDto[]> {
+  ) {
     return this.modShiftVolunteerService.getShiftVolunteers(context, query);
   }
 

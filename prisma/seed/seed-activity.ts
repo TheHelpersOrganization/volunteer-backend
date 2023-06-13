@@ -175,7 +175,7 @@ export const seedActivities = async (
             attendant: false,
             completion:
               status === ShiftVolunteerStatus.Approved
-                ? fakerEn.number.float({ min: 0, max: 100 })
+                ? fakerEn.number.float({ min: 0, max: 1 })
                 : 0,
             accountId: account.id,
             censorId: [

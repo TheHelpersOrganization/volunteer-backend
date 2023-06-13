@@ -3,6 +3,7 @@ import { CommonModule } from 'src/common/common.module';
 import { ContactModule } from 'src/contact/contact.module';
 import { LocationModule } from 'src/location/location.module';
 import { ProfileModule } from 'src/profile/profile.module';
+import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
 import {
   ActivityVolunteer,
   IdentifiedShiftVolunteerController,
@@ -16,7 +17,13 @@ import {
 } from './services';
 
 @Module({
-  imports: [CommonModule, LocationModule, ContactModule, ProfileModule],
+  imports: [
+    CommonModule,
+    LocationModule,
+    ContactModule,
+    ProfileModule,
+    ShiftSkillModule,
+  ],
   controllers: [
     ActivityVolunteer,
     ShiftVolunteerController,

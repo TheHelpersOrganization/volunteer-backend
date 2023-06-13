@@ -14,11 +14,11 @@ import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 import { CreateShiftManagerInputDto } from '.';
 
+import { CreateShiftSkillInputDto } from 'src/shift-skill/dtos';
 import {
   SHIFT_DESCRIPTION_MAX_LENGTH,
   SHIFT_NAME_MAX_LENGTH,
 } from '../constants';
-import { CreateShiftSkillInputDto } from './create-shift-skill.input.dto';
 
 export class UpdateShiftInputDto {
   @IsOptional()

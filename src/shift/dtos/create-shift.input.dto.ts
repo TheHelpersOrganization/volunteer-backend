@@ -14,7 +14,8 @@ import {
 import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 
-import { CreateShiftManagerInputDto, CreateShiftSkillInputDto } from '.';
+import { CreateShiftSkillInputDto } from 'src/shift-skill/dtos';
+import { CreateShiftManagerInputDto } from '.';
 import {
   SHIFT_DESCRIPTION_MAX_LENGTH,
   SHIFT_NAME_MAX_LENGTH,

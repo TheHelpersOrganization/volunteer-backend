@@ -5,7 +5,7 @@ import { AbstractService } from 'src/common/services';
 
 import { Prisma } from '@prisma/client';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { ShiftSkillService } from 'src/shift/services';
+import { ShiftSkillService } from 'src/shift-skill/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma';

@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
+import { BaseApiResponse } from 'src/common/dtos';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { GetShiftVolunteerQueryDto, ShiftVolunteerOutputDto } from '../dtos';
 import { ShiftVolunteerService } from '../services';
@@ -11,7 +12,7 @@ export class ShiftVolunteerController {
   async getShiftVolunteers(
     @ReqContext() context: RequestContext,
     @Query() query: GetShiftVolunteerQueryDto,
-  ): Promise<ShiftVolunteerOutputDto[]> {
+  ): Promise<BaseApiResponse<ShiftVolunteerOutputDto[]>> {
     return this.shiftVolunteerService.getShiftVolunteers(context, query);
   }
 

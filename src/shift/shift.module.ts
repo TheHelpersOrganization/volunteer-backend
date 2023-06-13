@@ -3,17 +3,18 @@ import { CommonModule } from 'src/common/common.module';
 import { ContactModule } from 'src/contact/contact.module';
 import { LocationModule } from 'src/location/location.module';
 
+import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
 import {
   ActivityShiftController,
   ModShiftController,
   ShiftController,
 } from './controllers';
-import { ModShiftService, ShiftService, ShiftSkillService } from './services';
+import { ModShiftService, ShiftService } from './services';
 
 @Module({
-  imports: [CommonModule, LocationModule, ContactModule],
+  imports: [CommonModule, LocationModule, ContactModule, ShiftSkillModule],
   controllers: [ActivityShiftController, ShiftController, ModShiftController],
-  providers: [ShiftService, ShiftSkillService, ModShiftService],
-  exports: [ShiftService, ShiftSkillService],
+  providers: [ShiftService, ModShiftService],
+  exports: [ShiftService],
 })
 export class ShiftModule {}
