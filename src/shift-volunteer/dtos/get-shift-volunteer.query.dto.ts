@@ -1,5 +1,12 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
 import { stringToBoolean } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from '../constants';
@@ -29,6 +36,15 @@ export class GetShiftVolunteerQueryDto extends PaginationParamsDto {
   @IsBoolean()
   @Transform(stringToBoolean)
   mine?: boolean;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBoolean)
+  meetSkillRequirements?: boolean;
 
   @IsOptional()
   @IsArray()

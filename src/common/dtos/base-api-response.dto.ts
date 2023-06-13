@@ -2,14 +2,7 @@
 import { Type } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class BaseApiResponse<
-  T extends
-    | Type<unknown>
-    | Function
-    | [Function]
-    | string
-    | Record<string, any>,
-> {
+export class BaseApiResponse<T> {
   public data: T; // Swagger Decorator is added in the extended class below, since that will override this one.
 
   @ApiProperty({ type: Object })
@@ -24,14 +17,7 @@ export function SwaggerBaseApiResponse<
     | string
     | Record<string, any>,
 >(type: T): typeof BaseApiResponse {
-  class ExtendedBaseApiResponse<
-    T extends
-      | Type<unknown>
-      | Function
-      | [Function]
-      | string
-      | Record<string, any>,
-  > extends BaseApiResponse<T> {
+  class ExtendedBaseApiResponse<T> extends BaseApiResponse<T> {
     @ApiProperty({ type: type })
     public override data: T;
   }

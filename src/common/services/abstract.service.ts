@@ -4,6 +4,7 @@ import {
   plainToInstance,
 } from 'class-transformer';
 
+import { BaseApiResponse } from '../dtos';
 import { AppLogger } from '../logger';
 import { RequestContext } from '../request-context';
 
@@ -27,6 +28,23 @@ export abstract class AbstractService {
     });
   }
 
+  protected extendedOutputArray<T, V>(
+    cls: ClassConstructor<T>,
+    plain: V[],
+    meta: Record<string, unknown>,
+    options?: ClassTransformOptions,
+  ): BaseApiResponse<T[]> {
+    const data = plainToInstance(cls, plain, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+      ...options,
+    });
+    const res = new BaseApiResponse<T[]>();
+    res.data = data;
+    res.meta = meta;
+    return res;
+  }
+
   protected output<T, V>(
     cls: ClassConstructor<T>,
     plain: V,
@@ -37,6 +55,23 @@ export abstract class AbstractService {
       enableImplicitConversion: true,
       ...options,
     });
+  }
+
+  protected extendedOutput<T, V>(
+    cls: ClassConstructor<T>,
+    plain: V,
+    meta: Record<string, unknown>,
+    options?: ClassTransformOptions,
+  ): BaseApiResponse<T> {
+    const data = plainToInstance(cls, plain, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+      ...options,
+    });
+    const res = new BaseApiResponse<T>();
+    res.data = data;
+    res.meta = meta;
+    return res;
   }
 
   protected logCaller(

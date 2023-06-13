@@ -6,6 +6,7 @@ import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
+import { ShiftSkillService } from 'src/shift-skill/services';
 import {
   InvalidStatusException,
   ShiftHasAlreadyStartedException,
@@ -33,6 +34,7 @@ export class ShiftVolunteerService extends AbstractService {
     logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
+    private readonly shiftSkillService: ShiftSkillService,
   ) {
     super(logger);
   }
@@ -46,20 +48,87 @@ export class ShiftVolunteerService extends AbstractService {
       where: this.getShiftVolunteerFilter(query, context.account.id),
       take: query.limit,
       skip: query.offset,
+      cursor:
+        query.cursor != null
+          ? {
+              id: query.cursor,
+            }
+          : undefined,
     });
-    const accountIds = res.map((v) => v.accountId);
-    const profiles = await this.profileService.getProfiles(context, {
-      ids: accountIds,
-      select: getProfileBasicSelect,
-    });
+
+    let totalPending: number | undefined = undefined;
+    let totalApproved: number | undefined = undefined;
+    if (query.status?.includes(ShiftVolunteerStatus.Approved) == true) {
+      totalApproved = await this.prisma.volunteerShift.count({
+        where: this.getShiftVolunteerCountFilter(
+          query,
+          ShiftVolunteerStatus.Approved,
+        ),
+      });
+    }
+    if (query.status?.includes(ShiftVolunteerStatus.Pending) == true) {
+      totalPending = await this.prisma.volunteerShift.count({
+        where: this.getShiftVolunteerCountFilter(
+          query,
+          ShiftVolunteerStatus.Pending,
+        ),
+      });
+    }
+
+    if (query.meetSkillRequirements) {
+      const skillRequirementGroupedByShift: any = {};
+      const shiftRequirements = await this.prisma.shiftSkill.findMany({
+        where: {
+          shiftId: { in: res.map((v) => v.shiftId) },
+        },
+      });
+      shiftRequirements.forEach((r) => {
+        if (skillRequirementGroupedByShift[r.shiftId] == null) {
+          skillRequirementGroupedByShift[r.shiftId] = [];
+        }
+        skillRequirementGroupedByShift[r.shiftId].push(r);
+      });
+      const skillHours = await this.shiftSkillService.getVolunteersSkillHours(
+        res.map((v) => v.accountId),
+      );
+      res.forEach((r) => {
+        const requirements = skillRequirementGroupedByShift[r.shiftId];
+        for (const requirement of requirements) {
+          const skill = skillHours[r.accountId].find(
+            (s) => s.skillId === requirement.skillId,
+          );
+          if (skill == null || skill.hours < requirement.hours) {
+            const i = res.findIndex(
+              (v) => v.accountId == r.accountId && v.shiftId == r.shiftId,
+            );
+            res.splice(i, 1);
+            break;
+          }
+        }
+      });
+    }
+
     if (query.include?.includes(ShiftVolunteerInclude.Profile) == true) {
+      const accountIds = res.map((v) => v.accountId);
+      const profiles = await this.profileService.getProfiles(context, {
+        ids: accountIds,
+        select: getProfileBasicSelect,
+      });
       const extendedRes = res.map((v) => ({
         ...v,
         profile: profiles.find((p) => p.id === v.accountId),
       }));
-      return this.outputArray(ShiftVolunteerOutputDto, extendedRes);
+      return this.extendedOutputArray(ShiftVolunteerOutputDto, extendedRes, {
+        totalPending,
+        totalApproved,
+        count: res.length,
+      });
     }
-    return this.outputArray(ShiftVolunteerOutputDto, res);
+    return this.extendedOutputArray(ShiftVolunteerOutputDto, res, {
+      totalPending,
+      totalApproved,
+      count: res.length,
+    });
   }
 
   getShiftVolunteerFilter(
@@ -86,6 +155,44 @@ export class ShiftVolunteerService extends AbstractService {
 
     if (query.status) {
       filter.status = { in: query.status };
+    }
+
+    if (query.name) {
+      filter.account = {
+        OR: [
+          { email: { contains: query.name, mode: 'insensitive' } },
+          {
+            profile: {
+              OR: [
+                { username: { contains: query.name, mode: 'insensitive' } },
+                { firstName: { contains: query.name, mode: 'insensitive' } },
+                { lastName: { contains: query.name, mode: 'insensitive' } },
+              ],
+            },
+          },
+        ],
+      };
+    }
+
+    return filter;
+  }
+
+  getShiftVolunteerCountFilter(
+    query: GetShiftVolunteerQueryDto,
+    status: ShiftVolunteerStatus,
+  ): Prisma.VolunteerShiftWhereInput {
+    const filter: Prisma.VolunteerShiftWhereInput = {};
+
+    if (query.shiftId) {
+      filter.shiftId = query.shiftId;
+    }
+
+    if (query.activityId) {
+      filter.shift = { activityId: query.activityId };
+    }
+
+    if (query.status) {
+      filter.status = status;
     }
 
     return filter;

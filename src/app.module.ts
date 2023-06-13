@@ -23,6 +23,7 @@ import { LocationModule } from './location/location.module';
 import { OrganizationModule } from './organization/organization.module';
 import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
+import { ShiftSkillModule } from './shift-skill/shift-skill.module';
 import { ShiftVolunteerModule } from './shift-volunteer/shift-volunteer.module';
 import { ShiftModule } from './shift/shift.module';
 import { SkillModule } from './skill/skill.module';
@@ -42,6 +43,7 @@ import { SkillModule } from './skill/skill.module';
     SkillModule,
     ShiftModule,
     ShiftVolunteerModule,
+    ShiftSkillModule,
     ActivityModule,
   ],
   providers: [
