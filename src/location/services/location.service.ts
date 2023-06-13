@@ -145,7 +145,7 @@ export class LocationService extends AbstractService {
       params: {
         place_id: dto.placeId,
         key: this.apiKey,
-        sessiontoken: dto.sessiontoken,
+        sessiontoken: dto.sessionToken,
       },
     });
     return response.data;
