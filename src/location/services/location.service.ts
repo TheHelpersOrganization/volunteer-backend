@@ -10,7 +10,9 @@ import { PrismaService } from '../../prisma';
 import {
   GeocodeInputDto,
   PlaceAutocompleteInputDto,
+  PlaceAutocompleteOutputDto,
   PlaceDetailsInputDto,
+  PlaceDetailsOutputDto,
   UpdateLocationInputDto,
 } from '../dtos';
 import { CreateLocationInputDto } from '../dtos/create-location-input.dto';
@@ -136,7 +138,14 @@ export class LocationService extends AbstractService {
         sessiontoken: dto.sessionToken,
       },
     });
-    return response.data;
+    const predictions = response.data.predictions;
+    return this.outputArray(
+      PlaceAutocompleteOutputDto,
+      predictions.map((p) => ({
+        description: p.description,
+        placeId: p.place_id,
+      })),
+    );
   }
 
   async placeDetails(context: RequestContext, dto: PlaceDetailsInputDto) {
@@ -148,6 +157,16 @@ export class LocationService extends AbstractService {
         sessiontoken: dto.sessionToken,
       },
     });
-    return response.data;
+    const output: PlaceDetailsOutputDto = {
+      formattedAddress: response.data.result.formatted_address,
+      latitude: response.data.result.geometry?.location.lat,
+      longitude: response.data.result.geometry?.location.lng,
+      addressComponents: response.data.result.address_components?.map((c) => ({
+        longName: c.long_name,
+        shortName: c.short_name,
+        types: c.types,
+      })),
+    };
+    return output;
   }
 }
