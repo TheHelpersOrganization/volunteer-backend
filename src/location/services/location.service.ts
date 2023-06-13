@@ -7,7 +7,12 @@ import { AbstractService } from 'src/common/services';
 
 import { RequestContext } from '../../common/request-context';
 import { PrismaService } from '../../prisma';
-import { AddressQueryDto, UpdateLocationInputDto } from '../dtos';
+import {
+  GeocodeInputDto,
+  PlaceAutocompleteInputDto,
+  PlaceDetailsInputDto,
+  UpdateLocationInputDto,
+} from '../dtos';
 import { CreateLocationInputDto } from '../dtos/create-location-input.dto';
 import { LocationOutputDto } from '../dtos/location-output.dto';
 import { InvalidCoordinateException } from '../exceptions';
@@ -108,7 +113,7 @@ export class LocationService extends AbstractService {
     return this.output(LocationOutputDto, location);
   }
 
-  async geocode(context: RequestContext, dto: AddressQueryDto) {
+  async geocode(context: RequestContext, dto: GeocodeInputDto) {
     this.logCaller(context, this.geocode);
     const response = await this.client.geocode({
       params: {
@@ -119,14 +124,28 @@ export class LocationService extends AbstractService {
     return response.data;
   }
 
-  async placeAutocomplete(context: RequestContext, dto: AddressQueryDto) {
+  async placeAutocomplete(
+    context: RequestContext,
+    dto: PlaceAutocompleteInputDto,
+  ) {
     this.logCaller(context, this.placeAutocomplete);
     const response = await this.client.placeAutocomplete({
       params: {
-        input: dto.address,
+        input: dto.input,
         key: this.apiKey,
         sessiontoken: dto.sessionToken,
-        location: dto.location,
+      },
+    });
+    return response.data;
+  }
+
+  async placeDetails(context: RequestContext, dto: PlaceDetailsInputDto) {
+    this.logCaller(context, this.placeDetails);
+    const response = await this.client.placeDetails({
+      params: {
+        place_id: dto.placeId,
+        key: this.apiKey,
+        sessiontoken: dto.sessiontoken,
       },
     });
     return response.data;

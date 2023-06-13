@@ -1,14 +1,15 @@
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class AddressQueryDto {
+export class PlaceAutocompleteInputDto {
   @IsString()
   @MaxLength(1000)
-  address: string;
+  input: string;
 
   @IsOptional()
   @IsString()
   sessionToken?: string;
 
   @IsOptional()
+  @IsString()
   location?: string;
 }

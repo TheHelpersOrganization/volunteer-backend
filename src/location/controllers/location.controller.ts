@@ -9,12 +9,42 @@ import {
 } from '@nestjs/common';
 
 import { ReqContext, RequestContext } from '../../common/request-context';
-import { CreateLocationInputDto, UpdateLocationInputDto } from '../dtos';
+import {
+  CreateLocationInputDto,
+  GeocodeInputDto,
+  PlaceAutocompleteInputDto,
+  PlaceDetailsInputDto,
+  UpdateLocationInputDto,
+} from '../dtos';
 import { LocationService } from '../services';
 
 @Controller('locations')
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
+
+  @Post('geocode')
+  async geocode(
+    @ReqContext() context: RequestContext,
+    @Body() dto: GeocodeInputDto,
+  ) {
+    return this.locationService.geocode(context, dto);
+  }
+
+  @Post('place-autocomplete')
+  async placeAutocomplete(
+    @ReqContext() context: RequestContext,
+    @Body() query: PlaceAutocompleteInputDto,
+  ) {
+    return this.locationService.placeAutocomplete(context, query);
+  }
+
+  @Post('place-details')
+  async placeDetails(
+    @ReqContext() context: RequestContext,
+    @Body() query: PlaceDetailsInputDto,
+  ) {
+    return this.locationService.placeDetails(context, query);
+  }
 
   @Get(':id')
   async get(@ReqContext() context: RequestContext, @Param('id') id: number) {
