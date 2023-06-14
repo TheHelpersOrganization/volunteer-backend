@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsLocale, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class PlaceAutocompleteInputDto {
   @IsString()
@@ -12,4 +12,8 @@ export class PlaceAutocompleteInputDto {
   @IsOptional()
   @IsString()
   location?: string;
+
+  @IsOptional()
+  @IsLocale()
+  language?: string;
 }

@@ -14,6 +14,7 @@ import {
   GeocodeInputDto,
   PlaceAutocompleteInputDto,
   PlaceDetailsInputDto,
+  ReverseGeocodeInputDto,
   UpdateLocationInputDto,
 } from '../dtos';
 import { LocationService } from '../services';
@@ -28,6 +29,14 @@ export class LocationController {
     @Body() dto: GeocodeInputDto,
   ) {
     return this.locationService.geocode(context, dto);
+  }
+
+  @Post('reverse-geocode')
+  async reverseGeocode(
+    @ReqContext() context: RequestContext,
+    @Body() dto: ReverseGeocodeInputDto,
+  ) {
+    return this.locationService.reverseGeocode(context, dto);
   }
 
   @Post('place-autocomplete')
