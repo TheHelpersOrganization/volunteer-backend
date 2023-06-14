@@ -1,7 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import { AddressComponentOutputDto } from './address-component.output.dto';
 
-export class PlaceDetailsOutputDto {
+export class ReverseGeocodeOutputDto {
   @Expose()
   @Type(() => AddressComponentOutputDto)
   addressComponents?: AddressComponentOutputDto[];

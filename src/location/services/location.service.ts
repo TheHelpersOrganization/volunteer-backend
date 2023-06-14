@@ -9,10 +9,13 @@ import { RequestContext } from '../../common/request-context';
 import { PrismaService } from '../../prisma';
 import {
   GeocodeInputDto,
+  GeocodeOutputDto,
   PlaceAutocompleteInputDto,
   PlaceAutocompleteOutputDto,
   PlaceDetailsInputDto,
   PlaceDetailsOutputDto,
+  ReverseGeocodeInputDto,
+  ReverseGeocodeOutputDto,
   UpdateLocationInputDto,
 } from '../dtos';
 import { CreateLocationInputDto } from '../dtos/create-location-input.dto';
@@ -121,9 +124,48 @@ export class LocationService extends AbstractService {
       params: {
         address: dto.address,
         key: this.apiKey,
+        language: dto.language,
       },
     });
-    return response.data;
+    const output: GeocodeOutputDto[] = response.data.results.map((r) => ({
+      addressComponents: r.address_components.map((ac) => ({
+        longName: ac.long_name,
+        shortName: ac.short_name,
+        types: ac.types,
+      })),
+      formattedAddress: r.formatted_address,
+      latitude: r.geometry.location.lat,
+      longitude: r.geometry.location.lng,
+    }));
+    return output;
+  }
+
+  async reverseGeocode(context: RequestContext, dto: ReverseGeocodeInputDto) {
+    this.logCaller(context, this.geocode);
+    const response = await this.client.reverseGeocode({
+      params: {
+        latlng: {
+          lat: dto.latitude,
+          lng: dto.longitude,
+        },
+        place_id: dto.placeId,
+        key: this.apiKey,
+        language: dto.language,
+      },
+    });
+    const output: ReverseGeocodeOutputDto[] = response.data.results.map(
+      (r) => ({
+        addressComponents: r.address_components.map((ac) => ({
+          longName: ac.long_name,
+          shortName: ac.short_name,
+          types: ac.types,
+        })),
+        formattedAddress: r.formatted_address,
+        latitude: r.geometry.location.lat,
+        longitude: r.geometry.location.lng,
+      }),
+    );
+    return output;
   }
 
   async placeAutocomplete(
@@ -136,6 +178,7 @@ export class LocationService extends AbstractService {
         input: dto.input,
         key: this.apiKey,
         sessiontoken: dto.sessionToken,
+        language: dto.language,
       },
     });
     const predictions = response.data.predictions;
@@ -155,6 +198,7 @@ export class LocationService extends AbstractService {
         place_id: dto.placeId,
         key: this.apiKey,
         sessiontoken: dto.sessionToken,
+        language: dto.language,
       },
     });
     const output: PlaceDetailsOutputDto = {
