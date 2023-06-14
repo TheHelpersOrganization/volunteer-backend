@@ -1,5 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { ProfileOutputDto } from 'src/profile/dtos';
+import { ShiftOutputDto } from 'src/shift/dtos';
 import { ShiftVolunteerStatus } from '../constants';
 
 export class ShiftVolunteerOutputDto {
@@ -30,4 +31,10 @@ export class ShiftVolunteerOutputDto {
 
   @Expose()
   updatedAt: Date;
+
+  // ----- Extra fields ----- //
+
+  @Expose()
+  @Type(() => ShiftOutputDto)
+  shift?: ShiftOutputDto;
 }

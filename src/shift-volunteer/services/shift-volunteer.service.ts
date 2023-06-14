@@ -44,6 +44,8 @@ export class ShiftVolunteerService extends AbstractService {
     query: GetShiftVolunteerQueryDto,
   ) {
     this.logCaller(context, this.getShiftVolunteers);
+
+    const include = this.getShiftVolunteerInclude(query);
     const res = await this.prisma.volunteerShift.findMany({
       where: this.getShiftVolunteerFilter(query, context.account.id),
       take: query.limit,
@@ -54,6 +56,7 @@ export class ShiftVolunteerService extends AbstractService {
               id: query.cursor,
             }
           : undefined,
+      include: include,
     });
 
     let totalPending: number | undefined = undefined;
@@ -196,6 +199,14 @@ export class ShiftVolunteerService extends AbstractService {
     }
 
     return filter;
+  }
+
+  getShiftVolunteerInclude(query: GetShiftVolunteerQueryDto) {
+    const include: Prisma.VolunteerShiftInclude = {};
+    if (query.include?.includes(ShiftVolunteerInclude.Shift) == true) {
+      include.shift = true;
+    }
+    return include;
   }
 
   async getApprovedByActivityId(

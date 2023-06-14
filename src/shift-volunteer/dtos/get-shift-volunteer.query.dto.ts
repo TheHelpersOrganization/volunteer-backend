@@ -13,6 +13,7 @@ import { ShiftVolunteerStatus } from '../constants';
 
 export enum ShiftVolunteerInclude {
   Profile = 'profile',
+  Shift = 'shift',
 }
 
 export class GetShiftVolunteerQueryDto extends PaginationParamsDto {
