@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ShiftSkill, Skill } from '@prisma/client';
+import { round } from 'lodash';
 import { ActivityStatus } from 'src/activity/constants';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
@@ -82,6 +83,11 @@ export class ShiftSkillService extends AbstractService {
       }
     });
     res = res.filter((r) => r.hours > 0);
+
+    res.forEach((e) => {
+      e.hours = round(e.hours, 1);
+    });
+
     return this.outputArray(ShiftSkillOutputDto, res);
   }
 
@@ -131,21 +137,12 @@ export class ShiftSkillService extends AbstractService {
       });
       res[volunteerShift.accountId] = totalShiftSkills;
     });
+    for (const key in res) {
+      const element = res[key];
+      element.forEach((e) => {
+        e.hours = round(e.hours, 1);
+      });
+    }
     return res;
-  }
-
-  mergeShiftSkills(shiftSkills: any, completion: number) {
-    let res: (ShiftSkill & {
-      skill: Skill;
-    })[] = [];
-    shiftSkills.forEach((shiftSkill) => {
-      const existing = res.find((s) => s.skillId === shiftSkill.skillId);
-      if (existing) {
-        existing.hours += shiftSkill.hours * completion;
-      } else {
-        res.push(shiftSkill);
-      }
-    });
-    res = res.filter((r) => r.hours > 0);
   }
 }
