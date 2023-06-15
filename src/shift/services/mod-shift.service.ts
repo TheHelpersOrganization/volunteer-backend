@@ -31,10 +31,14 @@ export class ModShiftService extends AbstractService {
 
   async getShifts(context: RequestContext, query: GetShiftsQueryDto) {
     this.logCaller(context, this.getShifts);
+    const where = await this.shiftService.getShiftFilter(query, {
+      joinStatusAccount: context.account.id,
+    });
+    if (where === -1) {
+      return [];
+    }
     const res = await this.prisma.shift.findMany({
-      where: this.shiftService.getShiftFilter(query, {
-        joinStatusAccount: context.account.id,
-      }),
+      where: where,
       take: query.limit,
       skip: query.offset,
       include: {

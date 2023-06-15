@@ -65,10 +65,14 @@ export class ShiftService extends AbstractService {
 
   async getShifts(context: RequestContext, query: GetShiftsQueryDto) {
     this.logCaller(context, this.getShifts);
+    const where = await this.getShiftFilter(query, {
+      joinStatusAccount: context.account.id,
+    });
+    if (where === -1) {
+      return [];
+    }
     const res = await this.prisma.shift.findMany({
-      where: this.getShiftFilter(query, {
-        joinStatusAccount: context.account.id,
-      }),
+      where: where,
       take: query.limit,
       skip: query.offset,
       include: this.getShiftInclude(context, query),
@@ -236,7 +240,7 @@ export class ShiftService extends AbstractService {
     return this.mapToOutput(context, res);
   }
 
-  getShiftFilter(
+  async getShiftFilter(
     query: GetShiftsQueryDto,
     extra?: { joinStatusAccount?: number },
   ) {
@@ -296,6 +300,19 @@ export class ShiftService extends AbstractService {
     }
 
     if (query.myJoinStatus && extra?.joinStatusAccount) {
+      // Check the latest status
+      const vss = await this.prisma.volunteerShift.findMany({
+        where: {
+          accountId: extra.joinStatusAccount,
+        },
+      });
+      const vs = maxBy(vss, (v) => v.updatedAt);
+      if (
+        vs == null ||
+        !query.myJoinStatus.map((v) => v.toString()).includes(vs.status)
+      ) {
+        return -1;
+      }
       filter.shiftVolunteers = {
         some: {
           accountId: extra.joinStatusAccount,
@@ -340,7 +357,7 @@ export class ShiftService extends AbstractService {
     }
     if (query.availableSlots) {
     }
-    console.log(filter);
+    console.log(JSON.stringify(filter));
 
     return filter;
   }
