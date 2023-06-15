@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import { ShiftStatus } from '../constants';
 
 export enum GetShiftInclude {
   ShiftSkill = 'shiftSkill',
@@ -83,8 +84,15 @@ export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsArray()
   @ArrayMinSize(1)
   @IsEnum(ShiftVolunteerStatus, { each: true })
-  @Transform(({ value }) => value.split(',').filter((v) => v))
+  @Transform(({ value }) => value.split(','))
   myJoinStatus?: ShiftVolunteerStatus[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(ShiftStatus, { each: true })
+  @Transform(({ value }) => value.split(','))
+  status?: ShiftStatus[];
 
   @IsOptional()
   @IsArray()

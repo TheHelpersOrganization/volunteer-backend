@@ -15,6 +15,7 @@ import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 import { GetShiftsQueryDto, ShiftOutputDto } from '../dtos';
+import { ShiftService } from './shift.service';
 
 @Injectable()
 export class ModShiftService extends AbstractService {
@@ -23,6 +24,7 @@ export class ModShiftService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
+    private readonly shiftService: ShiftService,
   ) {
     super(logger);
   }
@@ -30,7 +32,7 @@ export class ModShiftService extends AbstractService {
   async getShifts(context: RequestContext, query: GetShiftsQueryDto) {
     this.logCaller(context, this.getShifts);
     const res = await this.prisma.shift.findMany({
-      where: this.getShiftFilter(query, {
+      where: this.shiftService.getShiftFilter(query, {
         joinStatusAccount: context.account.id,
       }),
       take: query.limit,
