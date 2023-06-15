@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, VolunteerShift } from '@prisma/client';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -7,6 +7,7 @@ import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 
+import { maxBy } from 'lodash';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from '../constants';
 import {
@@ -58,7 +59,7 @@ export class ShiftService extends AbstractService {
         shiftManagers: true,
       },
     });
-    const updated = res.map((shift) => this.mapToOutput(shift));
+    const updated = res.map((shift) => this.mapToOutput(context, shift));
     return this.outputArray(ShiftOutputDto, updated);
   }
 
@@ -70,9 +71,9 @@ export class ShiftService extends AbstractService {
       }),
       take: query.limit,
       skip: query.offset,
-      include: this.getShiftInclude(query),
+      include: this.getShiftInclude(context, query),
     });
-    return res.map((r) => this.mapToOutput(r));
+    return res.map((r) => this.mapToOutput(context, r));
   }
 
   async getShiftById(
@@ -85,12 +86,12 @@ export class ShiftService extends AbstractService {
       where: {
         id: id,
       },
-      include: this.getShiftInclude(query),
+      include: this.getShiftInclude(context, query),
     });
     if (res == null) {
       return null;
     }
-    return this.mapToOutput(res);
+    return this.mapToOutput(context, res);
   }
 
   async createShift(
@@ -143,9 +144,9 @@ export class ShiftService extends AbstractService {
               },
             },
           },
-          include: this.getShiftInclude({}),
+          include: this.getShiftInclude(context, {}),
         });
-        return this.mapToOutput(res);
+        return this.mapToOutput(context, res);
       },
       {
         timeout: 15000,
@@ -162,7 +163,7 @@ export class ShiftService extends AbstractService {
     this.logCaller(context, this.updateShift);
     return this.prisma.$transaction(
       async () => {
-        const include = this.getShiftInclude(query);
+        const include = this.getShiftInclude(context, query);
         const res = await this.prisma.shift.update({
           where: {
             id: id,
@@ -212,7 +213,7 @@ export class ShiftService extends AbstractService {
           },
           include: include,
         });
-        return this.mapToOutput(res);
+        return this.mapToOutput(context, res);
       },
       {
         timeout: 15000,
@@ -225,14 +226,14 @@ export class ShiftService extends AbstractService {
     id: number,
   ): Promise<ShiftOutputDto | null> {
     this.logCaller(context, this.deleteShift);
-    const include = this.getShiftInclude({});
+    const include = this.getShiftInclude(context, {});
     const res = await this.prisma.shift.delete({
       where: {
         id: id,
       },
       include: include,
     });
-    return this.mapToOutput(res);
+    return this.mapToOutput(context, res);
   }
 
   getShiftFilter(
@@ -344,7 +345,7 @@ export class ShiftService extends AbstractService {
     return filter;
   }
 
-  getShiftInclude(query: GetShiftsQueryDto) {
+  getShiftInclude(context: RequestContext, query: GetShiftsQueryDto) {
     const include: Prisma.ShiftInclude = {
       shiftLocations: {
         include: {
@@ -376,18 +377,36 @@ export class ShiftService extends AbstractService {
     if (query.include?.includes(GetShiftInclude.ShiftVolunteer)) {
       include.shiftVolunteers = true;
     }
+    if (
+      query.include?.includes(GetShiftInclude.ShiftVolunteer) != true &&
+      query.include?.includes(GetShiftInclude.MyShiftVolunteer)
+    ) {
+      include.shiftVolunteers = {
+        where: {
+          accountId: context.account.id,
+        },
+      };
+    }
     if (query.include?.includes(GetShiftInclude.ShiftManager)) {
       include.shiftManagers = true;
     }
     return include;
   }
 
-  mapToOutput(raw: any): ShiftOutputDto {
+  mapToOutput(context: RequestContext, raw: any): ShiftOutputDto {
+    const myShiftVolunteers: VolunteerShift[] = raw.shiftVolunteers?.filter(
+      (sv) => sv.accountId == context.account.id,
+    );
+
     return this.output(ShiftOutputDto, {
       ...raw,
       locations: raw.shiftLocations.map((sl) => sl.location),
       contacts: raw.shiftContacts.map((sc) => sc.contact),
       joinedParticipants: raw._count.shiftVolunteers,
+      myShiftVolunteer:
+        myShiftVolunteers?.length > 0 === true
+          ? maxBy(myShiftVolunteers, (sv) => sv.updatedAt)
+          : null,
     });
   }
 }

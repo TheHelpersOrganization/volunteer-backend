@@ -16,6 +16,7 @@ import { ShiftStatus } from '../constants';
 export enum GetShiftInclude {
   ShiftSkill = 'shiftSkill',
   ShiftVolunteer = 'shiftVolunteer',
+  MyShiftVolunteer = 'myShiftVolunteer',
   ShiftManager = 'shiftManager',
 }
 
