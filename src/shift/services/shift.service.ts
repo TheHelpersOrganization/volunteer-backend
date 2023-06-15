@@ -289,12 +289,12 @@ export class ShiftService extends AbstractService {
       ];
     }
 
-    if (query.joinStatus && extra?.joinStatusAccount) {
+    if (query.myJoinStatus && extra?.joinStatusAccount) {
       filter.shiftVolunteers = {
         some: {
           accountId: extra.joinStatusAccount,
           status: {
-            in: query.joinStatus,
+            in: query.myJoinStatus,
           },
         },
       };

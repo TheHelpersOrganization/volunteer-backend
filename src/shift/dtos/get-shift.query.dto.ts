@@ -84,7 +84,7 @@ export class GetShiftsQueryDto extends PaginationParamsDto {
   @ArrayMinSize(1)
   @IsEnum(ShiftVolunteerStatus, { each: true })
   @Transform(({ value }) => value.split(',').filter((v) => v))
-  joinStatus?: ShiftVolunteerStatus[];
+  myJoinStatus?: ShiftVolunteerStatus[];
 
   @IsOptional()
   @IsArray()
