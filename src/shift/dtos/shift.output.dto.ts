@@ -52,4 +52,8 @@ export class ShiftOutputDto {
 
   @Expose()
   joinedParticipants: number;
+
+  @Expose()
+  @Type(() => ShiftVolunteerOutputDto)
+  myShiftVolunteer: ShiftVolunteerOutputDto;
 }
