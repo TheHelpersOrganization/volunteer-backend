@@ -8,6 +8,7 @@ import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import { ShiftStatus } from '../constants';
 import {
   CreateShiftInputDto,
   GetShiftInclude,
@@ -263,7 +264,6 @@ export class ShiftService extends AbstractService {
       };
     }
     if (query.startTime) {
-      console.log(query.startTime);
       filter.startTime = {
         gte: query.startTime[0],
         lte: query.startTime[1],
@@ -275,16 +275,21 @@ export class ShiftService extends AbstractService {
         lte: query.endTime[1],
       };
     }
+
     if (query.numberOfParticipants) {
-      filter.OR = [
+      filter.AND = [
         {
-          numberOfParticipants: null,
-        },
-        {
-          numberOfParticipants: {
-            gte: query.numberOfParticipants[0],
-            lte: query.numberOfParticipants[1],
-          },
+          OR: [
+            {
+              numberOfParticipants: null,
+            },
+            {
+              numberOfParticipants: {
+                gte: query.numberOfParticipants[0],
+                lte: query.numberOfParticipants[1],
+              },
+            },
+          ],
         },
       ];
     }
@@ -299,8 +304,42 @@ export class ShiftService extends AbstractService {
         },
       };
     }
+    const now = new Date();
+    if (query.status) {
+      const status = query.status;
+      const where: any = filter.OR ? filter.OR : [];
+      if (!filter.OR) {
+        filter.OR = [];
+      }
+      if (status.includes(ShiftStatus.Pending)) {
+        where.push({
+          startTime: {
+            gt: now,
+          },
+        });
+      }
+      if (status.includes(ShiftStatus.Ongoing)) {
+        where.push({
+          startTime: {
+            lte: now,
+          },
+          endTime: {
+            gte: now,
+          },
+        });
+      }
+      if (status.includes(ShiftStatus.Completed)) {
+        where.push({
+          endTime: {
+            lt: now,
+          },
+        });
+      }
+      filter.OR = where;
+    }
     if (query.availableSlots) {
     }
+    console.log(filter);
 
     return filter;
   }
