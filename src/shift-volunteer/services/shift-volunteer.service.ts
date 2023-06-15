@@ -206,6 +206,9 @@ export class ShiftVolunteerService extends AbstractService {
     if (query.include?.includes(ShiftVolunteerInclude.Shift) == true) {
       include.shift = true;
     }
+    if (Object.keys(include).length === 0) {
+      return undefined;
+    }
     return include;
   }
 
