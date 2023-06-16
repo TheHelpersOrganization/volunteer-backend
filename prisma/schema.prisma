@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["extendedWhereUnique", "filteredRelationCount"]
+  previewFeatures = ["extendedWhereUnique", "filteredRelationCount", "clientExtensions", "fieldReference"]
 }
 
 datasource db {
@@ -182,29 +182,35 @@ model Activity {
 }
 
 model Shift {
-  id                   Int              @id @default(autoincrement())
-  name                 String
-  description          String?
-  startTime            DateTime
-  endTime              DateTime
-  numberOfParticipants Int?
-  createdAt            DateTime?        @default(now())
-  updatedAt            DateTime?        @default(now()) @updatedAt
-  activityId           Int
-  activity             Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  shiftLocations       ShiftLocation[]
-  shiftContacts        ShiftContact[]
-  shiftSkills          ShiftSkill[]
-  shiftVolunteers      VolunteerShift[]
-  shiftManagers        ShiftManager[]
+  id                    Int              @id @default(autoincrement())
+  name                  String
+  description           String?
+  startTime             DateTime
+  endTime               DateTime
+  status                String           @default("pending")
+  automaticStatusUpdate Boolean          @default(true)
+  numberOfParticipants  Int?
+  availableSlots        Int?
+  joinedParticipants    Int              @default(0)
+  createdAt             DateTime?        @default(now())
+  updatedAt             DateTime?        @default(now()) @updatedAt
+  activityId            Int
+  activity              Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  shiftLocations        ShiftLocation[]
+  shiftContacts         ShiftContact[]
+  shiftSkills           ShiftSkill[]
+  shiftVolunteers       VolunteerShift[]
+  shiftManagers         ShiftManager[]
+  shiftMetadata         ShiftMetadata?
 }
 
 model ShiftMetadata {
-  id                Int       @id @unique
-  joinedParticpants Int
-  availableSlots    Int
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @default(now()) @updatedAt
+  id                 Int       @id @unique
+  joinedParticipants Int
+  availableSlots     Int?
+  createdAt          DateTime? @default(now())
+  updatedAt          DateTime? @default(now()) @updatedAt
+  shift              Shift     @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model AccountBan {
@@ -391,6 +397,7 @@ model VolunteerShift {
   accountId       Int
   attendant       Boolean   @default(false)
   status          String
+  active          Boolean   @default(true)
   completion      Float     @default(0)
   censorId        Int?
   shift           Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)

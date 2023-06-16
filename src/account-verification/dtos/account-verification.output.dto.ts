@@ -5,6 +5,9 @@ import { AccountVerificationStatus } from '../constants';
 
 export class AccountVerificationOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   accountId: number;
 
   @Expose()

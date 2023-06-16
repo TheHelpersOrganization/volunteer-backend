@@ -5,6 +5,7 @@ import { ShiftManagerOutputDto } from './shift-manager.output.dto';
 
 import { ShiftSkillOutputDto } from 'src/shift-skill/dtos';
 import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
+import { ShiftStatus } from '../constants';
 
 export class ShiftOutputDto {
   @Expose()
@@ -20,6 +21,9 @@ export class ShiftOutputDto {
   description: string;
 
   @Expose()
+  status: ShiftStatus;
+
+  @Expose()
   startTime: Date;
 
   @Expose()
@@ -27,6 +31,12 @@ export class ShiftOutputDto {
 
   @Expose()
   numberOfParticipants: number;
+
+  @Expose()
+  joinedParticipants: number;
+
+  @Expose()
+  availableSlots: number;
 
   @Expose()
   @Type(() => LocationOutputDto)
@@ -49,9 +59,6 @@ export class ShiftOutputDto {
   shiftManagers: ShiftManagerOutputDto;
 
   // ----- Extra fields -----
-
-  @Expose()
-  joinedParticipants: number;
 
   @Expose()
   @Type(() => ShiftVolunteerOutputDto)

@@ -32,7 +32,7 @@ export const getNextAccountBanId = () => accountBanId++;
 export const getNextSkillId = () => skillId++;
 export const getNextRoleId = () => roleId++;
 
-export const throwIfNullish = <T>(
+export const requireNonNullish = <T>(
   value: T | null | undefined,
   message = 'Value is null',
 ) => {

@@ -148,12 +148,27 @@ CREATE TABLE "Shift" (
     "description" TEXT,
     "startTime" TIMESTAMP(3) NOT NULL,
     "endTime" TIMESTAMP(3) NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "automaticStatusUpdate" BOOLEAN NOT NULL DEFAULT true,
     "numberOfParticipants" INTEGER,
+    "availableSlots" INTEGER,
+    "joinedParticipants" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "activityId" INTEGER NOT NULL,
 
     CONSTRAINT "Shift_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ShiftMetadata" (
+    "id" INTEGER NOT NULL,
+    "joinedParticipants" INTEGER NOT NULL,
+    "availableSlots" INTEGER,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ShiftMetadata_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -339,6 +354,7 @@ CREATE TABLE "VolunteerShift" (
     "accountId" INTEGER NOT NULL,
     "attendant" BOOLEAN NOT NULL DEFAULT false,
     "status" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
     "completion" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "censorId" INTEGER,
     "rejectionReason" TEXT,
@@ -386,6 +402,9 @@ CREATE UNIQUE INDEX "Organization_banner_key" ON "Organization"("banner");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Activity_thumbnail_key" ON "Activity"("thumbnail");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShiftMetadata_id_key" ON "ShiftMetadata"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AccountVerificationFile_fileId_key" ON "AccountVerificationFile"("fileId");
@@ -440,6 +459,9 @@ ALTER TABLE "Activity" ADD CONSTRAINT "Activity_organizationId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "Shift" ADD CONSTRAINT "Shift_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShiftMetadata" ADD CONSTRAINT "ShiftMetadata_id_fkey" FOREIGN KEY ("id") REFERENCES "Shift"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AccountBan" ADD CONSTRAINT "AccountBan_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

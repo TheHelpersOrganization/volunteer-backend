@@ -23,6 +23,9 @@ export class ShiftVolunteerOutputDto {
   status: ShiftVolunteerStatus;
 
   @Expose()
+  active: boolean;
+
+  @Expose()
   @Type(() => ProfileOutputDto)
   profile?: ProfileOutputDto;
 

@@ -6,7 +6,7 @@ import * as mimeTypes from 'mime-types';
 import { nanoid } from 'nanoid';
 import * as fs from 'node:fs';
 import * as path from 'path';
-import { getNextFileId, normalizeFileSize, throwIfNullish } from './utils';
+import { getNextFileId, normalizeFileSize, requireNonNullish } from './utils';
 
 type FileOutput = { path: string; name: string; mimetype?: string };
 
@@ -14,11 +14,11 @@ const s3Client = new S3({
   endpoint: process.env.FILE_ENDPOINT,
   region: process.env.FILE_REGION,
   credentials: {
-    accessKeyId: throwIfNullish(process.env.FILE_ACCESS_KEY),
-    secretAccessKey: throwIfNullish(process.env.FILE_SECRET_KEY),
+    accessKeyId: requireNonNullish(process.env.FILE_ACCESS_KEY),
+    secretAccessKey: requireNonNullish(process.env.FILE_SECRET_KEY),
   },
 });
-const bucket = throwIfNullish(process.env.FILE_BUCKET);
+const bucket = requireNonNullish(process.env.FILE_BUCKET);
 
 const axios = new Axios({
   headers: {
