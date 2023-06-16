@@ -30,6 +30,19 @@ import {
   requireNonNullish,
 } from './utils';
 
+const weightedNumberOfParticipants = Array.from({ length: 30 }).map((_, i) => ({
+  weight: 30 / (i + 1),
+  value: i + 3,
+}));
+const weightedShiftTimeRange = Array.from({ length: 30 }).map((_, i) => ({
+  value: (i + 1) * 0.0001,
+  weight: 30 / (i + 1),
+}));
+const weightedNumberOfShifts = Array.from({ length: 10 }).map((_, i) => ({
+  value: i + 1,
+  weight: (1 / (i + 1)) ^ i,
+}));
+
 export const seedActivities = async (
   prisma: PrismaClient,
   organizations: Organization[],
@@ -109,7 +122,9 @@ export const seedActivities = async (
   const shiftVolunteers: VolunteerShift[] = [];
 
   activities.forEach((activity) => {
-    const numberOfShifts = fakerEn.number.int({ min: 2, max: 5 });
+    const numberOfShifts = fakerEn.helpers.weightedArrayElement(
+      weightedNumberOfShifts,
+    );
     for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
       const shiftStatus = requireNonNullish(
@@ -119,25 +134,30 @@ export const seedActivities = async (
       let shiftStartTime: Date;
       let shiftEndTime: Date;
       if (shiftStatus === ShiftStatus.Pending) {
-        shiftStartTime = fakerEn.date.future({ years: 1, refDate: refTime });
+        shiftStartTime = fakerEn.date.future({ years: 0.05, refDate: refTime });
         shiftEndTime = fakerEn.date.future({
-          years: 1,
+          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
           refDate: shiftStartTime,
         });
       } else if (shiftStatus === ShiftStatus.Ongoing) {
-        shiftStartTime = fakerEn.date.past({ years: 0.1, refDate: refTime });
+        shiftStartTime = fakerEn.date.past({
+          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
+          refDate: refTime,
+        });
         shiftEndTime = fakerEn.date.future({
-          years: 1,
+          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
           refDate: shiftStartTime,
         });
       } else {
         shiftStartTime = fakerEn.date.past({ years: 1, refDate: refTime });
-        shiftEndTime = fakerEn.date.between({
-          from: shiftStartTime,
-          to: refTime,
+        shiftEndTime = fakerEn.date.future({
+          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
+          refDate: shiftStartTime,
         });
       }
-      const numberOfParticipants = fakerEn.number.int({ min: 0, max: 30 });
+      const numberOfParticipants = fakerEn.helpers.weightedArrayElement(
+        weightedNumberOfParticipants,
+      );
 
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const location = generateViLocation();
@@ -183,7 +203,12 @@ export const seedActivities = async (
       let numberOfApprovedVolunteers = 0;
       _.sampleSize(
         [...volunteerAccounts, ...defaultAccounts],
-        fakerEn.number.int({ min: 5, max: numberOfParticipants + 20 }),
+        fakerEn.helpers.weightedArrayElement(
+          Array.from({ length: numberOfParticipants + 5 }, (_, i) => ({
+            value: i + 1,
+            weight: 1 / (i + 1),
+          })),
+        ),
       ).forEach((account) => {
         const status =
           shiftStatus === ShiftStatus.Pending
@@ -260,7 +285,12 @@ export const seedActivities = async (
 
         _.sampleSize(
           [...volunteerAccounts, ...defaultAccounts],
-          fakerEn.number.int({ min: min, max: max }),
+          fakerEn.helpers.weightedArrayElement(
+            Array.from({ length: max }, (_, i) => ({
+              value: i,
+              weight: 1 / (i + 1),
+            })),
+          ),
         ).forEach((account) => {
           if (status === ShiftVolunteerStatus.Approved) {
             numberOfApprovedVolunteers++;

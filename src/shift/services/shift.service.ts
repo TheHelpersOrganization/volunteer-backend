@@ -13,6 +13,7 @@ import {
   CreateShiftInputDto,
   GetShiftInclude,
   GetShiftQueryDto,
+  GetShiftSort,
   GetShiftsQueryDto,
   ShiftOutputDto,
   UpdateShiftInputDto,
@@ -73,6 +74,7 @@ export class ShiftService extends AbstractService {
       take: query.limit,
       skip: query.offset,
       include: this.getShiftInclude(context, query),
+      orderBy: this.getShiftSort(query),
     });
     return res.map((r) => this.mapToOutput(context, r));
   }
@@ -396,6 +398,23 @@ export class ShiftService extends AbstractService {
       include.shiftManagers = true;
     }
     return include;
+  }
+
+  getShiftSort(query: GetShiftsQueryDto) {
+    const sort: Prisma.ShiftOrderByWithRelationInput = {};
+    if (query.sort) {
+      if (query.sort.includes(GetShiftSort.StartTimeAscending)) {
+        sort.startTime = 'asc';
+      } else if (query.sort.includes(GetShiftSort.StartTimeDescending)) {
+        sort.startTime = 'desc';
+      }
+      if (query.sort.includes(GetShiftSort.EndTimeAscending)) {
+        sort.endTime = 'asc';
+      } else if (query.sort.includes(GetShiftSort.EndTimeDescending)) {
+        sort.endTime = 'desc';
+      }
+    }
+    return sort;
   }
 
   mapToOutput(context: RequestContext, raw: any): ShiftOutputDto {
