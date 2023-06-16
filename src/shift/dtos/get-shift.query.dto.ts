@@ -20,6 +20,13 @@ export enum GetShiftInclude {
   ShiftManager = 'shiftManager',
 }
 
+export enum GetShiftSort {
+  StartTimeAscending = 'startTime',
+  StartTimeDescending = '-startTime',
+  EndTimeAscending = 'endTime',
+  EndTimeDescending = '-endTime',
+}
+
 export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsArray()
@@ -101,6 +108,13 @@ export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsEnum(GetShiftInclude, { each: true })
   @Transform(({ value }) => value.split(',').filter((v) => v))
   include?: GetShiftInclude[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(GetShiftSort, { each: true })
+  @Transform(({ value }) => value.split(','))
+  sort?: GetShiftSort[];
 }
 
 export class GetShiftQueryDto {
