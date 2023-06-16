@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { ShiftSkillService } from 'src/shift-skill/services';
+import { ShiftStatus } from 'src/shift/constants';
 import {
   InvalidStatusException,
   ShiftHasAlreadyStartedException,
@@ -288,39 +289,49 @@ export class ShiftVolunteerService extends AbstractService {
       throw new ShiftNotFoundException();
     }
 
-    const pendingOrApprovedShiftVolunteer = shift.shiftVolunteers.find(
-      (v) =>
-        v.accountId === context.account.id &&
-        (v.status === ShiftVolunteerStatus.Pending ||
-          v.status === ShiftVolunteerStatus.Approved),
-    );
-    if (pendingOrApprovedShiftVolunteer != null) {
+    const volunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        accountId: context.account.id,
+        shiftId: shiftId,
+        active: true,
+      },
+    });
+    if (
+      volunteer != null &&
+      (volunteer.status === ShiftVolunteerStatus.Pending ||
+        volunteer.status === ShiftVolunteerStatus.Approved)
+    ) {
       throw new VolunteerHasAlreadyJoinedShiftException();
     }
 
-    const approvedShiftVolunteers = shift.shiftVolunteers.filter(
-      (v) => v.status === ShiftVolunteerStatus.Approved,
-    );
-
-    const currentDate = new Date();
-    if (shift.startTime < currentDate) {
+    if (shift.status !== ShiftStatus.Pending) {
       throw new ShiftHasAlreadyStartedException();
     }
 
-    if (
-      shift.numberOfParticipants != null &&
-      shift.numberOfParticipants != 0 &&
-      approvedShiftVolunteers.length >= shift.numberOfParticipants
-    ) {
+    if (shift.availableSlots != null && shift.availableSlots <= 0) {
       throw new ShiftIsFullException();
     }
 
-    const res = await this.prisma.volunteerShift.create({
-      data: {
-        accountId: context.account.id,
-        status: ShiftVolunteerStatus.Pending,
-        shiftId: shiftId,
-      },
+    const res = this.prisma.$transaction(async (tx) => {
+      // Mark other volunteer shifts as inactive
+      await tx.volunteerShift.updateMany({
+        where: {
+          accountId: context.account.id,
+          shiftId: shiftId,
+          active: true,
+        },
+        data: {
+          active: false,
+        },
+      });
+      const res = await tx.volunteerShift.create({
+        data: {
+          accountId: context.account.id,
+          status: ShiftVolunteerStatus.Pending,
+          shiftId: shiftId,
+        },
+      });
+      return res;
     });
 
     return this.output(ShiftVolunteerOutputDto, res);
@@ -346,19 +357,24 @@ export class ShiftVolunteerService extends AbstractService {
         shiftId: shiftId,
         accountId: context.account.id,
         status: ShiftVolunteerStatus.Pending,
+        active: true,
       },
     });
     if (shiftVolunteer == null) {
       throw new InvalidStatusException();
     }
 
-    const res = await this.prisma.volunteerShift.update({
-      where: {
-        id: shiftVolunteer.id,
-      },
-      data: {
-        status: ShiftVolunteerStatus.Cancelled,
-      },
+    const res = this.prisma.$transaction(async (tx) => {
+      const res = await tx.volunteerShift.update({
+        where: {
+          id: shiftVolunteer.id,
+        },
+        data: {
+          status: ShiftVolunteerStatus.Cancelled,
+        },
+      });
+
+      return res;
     });
 
     return this.output(ShiftVolunteerOutputDto, res);
@@ -382,24 +398,53 @@ export class ShiftVolunteerService extends AbstractService {
         shiftId: shiftId,
         accountId: context.account.id,
         status: ShiftVolunteerStatus.Approved,
+        active: true,
       },
     });
     if (shiftVolunteer == null) {
       throw new InvalidStatusException();
     }
 
-    const currentDate = new Date();
-    if (shift.startTime < currentDate) {
+    if (shift.status !== ShiftStatus.Pending) {
       throw new ShiftHasAlreadyStartedException();
     }
 
-    const res = await this.prisma.volunteerShift.update({
-      where: {
-        id: shiftVolunteer.id,
-      },
-      data: {
-        status: ShiftVolunteerStatus.Leaved,
-      },
+    const res = this.prisma.$transaction(async (tx) => {
+      if (shift.numberOfParticipants != null) {
+        await tx.shift.update({
+          where: {
+            id: shiftId,
+          },
+          data: {
+            joinedParticipants: {
+              decrement: 1,
+            },
+            availableSlots: {
+              increment: 1,
+            },
+          },
+        });
+      } else {
+        await tx.shift.update({
+          where: {
+            id: shiftId,
+          },
+          data: {
+            joinedParticipants: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+      const res = await tx.volunteerShift.update({
+        where: {
+          id: shiftVolunteer.id,
+        },
+        data: {
+          status: ShiftVolunteerStatus.Leaved,
+        },
+      });
+      return res;
     });
 
     return this.output(ShiftVolunteerOutputDto, res);
@@ -443,6 +488,7 @@ export class ShiftVolunteerService extends AbstractService {
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
         id: id,
+        active: true,
       },
     });
     if (shiftVolunteer == null) {
@@ -482,6 +528,8 @@ export class ShiftVolunteerService extends AbstractService {
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
         id: id,
+        shiftId: shiftId,
+        active: true,
       },
     });
     if (shiftVolunteer == null) {
@@ -491,15 +539,47 @@ export class ShiftVolunteerService extends AbstractService {
       throw new InvalidStatusException();
     }
 
-    const res = await this.prisma.volunteerShift.update({
-      where: {
-        id: id,
-      },
-      data: {
-        status: dto.status,
-        censorId: context.account.id,
-      },
+    const res = this.prisma.$transaction(async (tx) => {
+      if (dto.status === ShiftVolunteerStatus.Approved) {
+        if (shift.numberOfParticipants != null) {
+          await tx.shift.update({
+            where: {
+              id: shiftId,
+            },
+            data: {
+              joinedParticipants: {
+                increment: 1,
+              },
+              availableSlots: {
+                decrement: 1,
+              },
+            },
+          });
+        } else {
+          await tx.shift.update({
+            where: {
+              id: shiftId,
+            },
+            data: {
+              joinedParticipants: {
+                increment: 1,
+              },
+            },
+          });
+        }
+      }
+      const res = await tx.volunteerShift.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: dto.status,
+          censorId: context.account.id,
+        },
+      });
+      return res;
     });
+    console.log(await this.prisma.shift.findUnique({ where: { id: shiftId } }));
 
     return this.output(ShiftVolunteerOutputDto, res);
   }
@@ -523,6 +603,8 @@ export class ShiftVolunteerService extends AbstractService {
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
         id: id,
+        shiftId: shiftId,
+        active: true,
       },
     });
     if (shiftVolunteer == null) {
@@ -532,14 +614,39 @@ export class ShiftVolunteerService extends AbstractService {
       throw new VolunteerStatusNotApprovedException();
     }
 
-    const res = await this.prisma.volunteerShift.update({
-      where: {
-        id: id,
-      },
-      data: {
-        status: ShiftVolunteerStatus.Removed,
-        censorId: context.account.id,
-      },
+    const res = this.prisma.$transaction(async (tx) => {
+      const input: Prisma.ShiftUpdateInput =
+        shift.numberOfParticipants != null
+          ? {
+              joinedParticipants: {
+                decrement: 1,
+              },
+              availableSlots: {
+                increment: 1,
+              },
+            }
+          : {
+              joinedParticipants: {
+                decrement: 1,
+              },
+            };
+      await tx.shift.update({
+        where: {
+          id: shiftId,
+        },
+        data: input,
+      });
+
+      const res = await tx.volunteerShift.update({
+        where: {
+          id: shiftVolunteer.id,
+        },
+        data: {
+          status: ShiftVolunteerStatus.Removed,
+          censorId: context.account.id,
+        },
+      });
+      return res;
     });
 
     return this.output(ShiftVolunteerOutputDto, res);

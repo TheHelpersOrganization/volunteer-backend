@@ -7,9 +7,8 @@ import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 
-import { maxBy } from 'lodash';
+import { max } from 'lodash';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { ShiftStatus } from '../constants';
 import {
   CreateShiftInputDto,
   GetShiftInclude,
@@ -18,6 +17,7 @@ import {
   ShiftOutputDto,
   UpdateShiftInputDto,
 } from '../dtos';
+import { ShiftNotFoundException } from '../exceptions';
 
 @Injectable()
 export class ShiftService extends AbstractService {
@@ -68,9 +68,6 @@ export class ShiftService extends AbstractService {
     const where = await this.getShiftFilter(query, {
       joinStatusAccount: context.account.id,
     });
-    if (where === -1) {
-      return [];
-    }
     const res = await this.prisma.shift.findMany({
       where: where,
       take: query.limit,
@@ -95,6 +92,11 @@ export class ShiftService extends AbstractService {
     if (res == null) {
       return null;
     }
+    console.log(
+      res.shiftVolunteers?.filter(
+        (v) => v.status === ShiftVolunteerStatus.Approved,
+      ).length,
+    );
     return this.mapToOutput(context, res);
   }
 
@@ -125,6 +127,7 @@ export class ShiftService extends AbstractService {
             name: dto.name,
             description: dto.description,
             numberOfParticipants: dto.numberOfParticipants,
+            availableSlots: dto.numberOfParticipants,
             startTime: dto.startTime,
             endTime: dto.endTime,
             shiftLocations: {
@@ -165,9 +168,34 @@ export class ShiftService extends AbstractService {
     query: GetShiftQueryDto,
   ): Promise<ShiftOutputDto> {
     this.logCaller(context, this.updateShift);
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
     return this.prisma.$transaction(
       async () => {
         const include = this.getShiftInclude(context, query);
+
+        const numberOfParticipants = dto.numberOfParticipants;
+        let availableSlots: number | null | undefined = undefined;
+
+        if (dto.numberOfParticipants != shift.numberOfParticipants) {
+          const volunteersCount = await this.prisma.volunteerShift.count({
+            where: {
+              shiftId: id,
+              status: ShiftVolunteerStatus.Approved,
+            },
+          });
+          availableSlots =
+            dto.numberOfParticipants == null
+              ? null
+              : max([0, dto.numberOfParticipants - volunteersCount]);
+        }
+
         const res = await this.prisma.shift.update({
           where: {
             id: id,
@@ -175,9 +203,10 @@ export class ShiftService extends AbstractService {
           data: {
             name: dto.name,
             description: dto.description,
-            numberOfParticipants: dto.numberOfParticipants,
             startTime: dto.startTime,
             endTime: dto.endTime,
+            availableSlots: availableSlots,
+            numberOfParticipants: numberOfParticipants,
             shiftLocations:
               dto.locations === undefined
                 ? undefined
@@ -282,82 +311,41 @@ export class ShiftService extends AbstractService {
     }
 
     if (query.numberOfParticipants) {
-      filter.AND = [
+      filter.OR = [
         {
-          OR: [
-            {
-              numberOfParticipants: null,
-            },
-            {
-              numberOfParticipants: {
-                gte: query.numberOfParticipants[0],
-                lte: query.numberOfParticipants[1],
-              },
-            },
-          ],
+          numberOfParticipants: null,
+        },
+        {
+          numberOfParticipants: {
+            gte: query.numberOfParticipants[0],
+            lte: query.numberOfParticipants[1],
+          },
         },
       ];
     }
 
     if (query.myJoinStatus && extra?.joinStatusAccount) {
-      // Check the latest status
-      const vss = await this.prisma.volunteerShift.findMany({
-        where: {
-          accountId: extra.joinStatusAccount,
-        },
-      });
-      const vs = maxBy(vss, (v) => v.updatedAt);
-      if (
-        vs == null ||
-        !query.myJoinStatus.map((v) => v.toString()).includes(vs.status)
-      ) {
-        return -1;
-      }
       filter.shiftVolunteers = {
         some: {
           accountId: extra.joinStatusAccount,
           status: {
             in: query.myJoinStatus,
           },
+          active: true,
         },
       };
     }
-    const now = new Date();
     if (query.status) {
-      const status = query.status;
-      const where: any = filter.OR ? filter.OR : [];
-      if (!filter.OR) {
-        filter.OR = [];
-      }
-      if (status.includes(ShiftStatus.Pending)) {
-        where.push({
-          startTime: {
-            gt: now,
-          },
-        });
-      }
-      if (status.includes(ShiftStatus.Ongoing)) {
-        where.push({
-          startTime: {
-            lte: now,
-          },
-          endTime: {
-            gte: now,
-          },
-        });
-      }
-      if (status.includes(ShiftStatus.Completed)) {
-        where.push({
-          endTime: {
-            lt: now,
-          },
-        });
-      }
-      filter.OR = where;
+      filter.status = {
+        in: query.status,
+      };
     }
     if (query.availableSlots) {
+      filter.availableSlots = {
+        gte: query.availableSlots[0],
+        lte: query.availableSlots[1],
+      };
     }
-    console.log(JSON.stringify(filter));
 
     return filter;
   }
@@ -419,10 +407,9 @@ export class ShiftService extends AbstractService {
       ...raw,
       locations: raw.shiftLocations.map((sl) => sl.location),
       contacts: raw.shiftContacts.map((sc) => sc.contact),
-      joinedParticipants: raw._count.shiftVolunteers,
       myShiftVolunteer:
         myShiftVolunteers?.length > 0 === true
-          ? maxBy(myShiftVolunteers, (sv) => sv.updatedAt)
+          ? myShiftVolunteers.find((sv) => sv.active === true)
           : null,
     });
   }

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import {
   Contact,
   Location,
-  Prisma,
   Shift,
   ShiftContact,
   ShiftLocation,
@@ -34,9 +33,6 @@ export class ModShiftService extends AbstractService {
     const where = await this.shiftService.getShiftFilter(query, {
       joinStatusAccount: context.account.id,
     });
-    if (where === -1) {
-      return [];
-    }
     const res = await this.prisma.shift.findMany({
       where: where,
       take: query.limit,
@@ -97,69 +93,6 @@ export class ModShiftService extends AbstractService {
       return null;
     }
     return this.mapToOutput(res);
-  }
-
-  getShiftFilter(
-    query: GetShiftsQueryDto,
-    extra?: { joinStatusAccount?: number },
-  ) {
-    const filter: Prisma.ShiftWhereInput = {};
-    if (query.id) {
-      filter.id = {
-        in: query.id,
-      };
-    }
-    if (query.activityId) {
-      filter.activityId = {
-        in: query.activityId,
-      };
-    }
-    if (query.org) {
-      filter.activity = {
-        organizationId: {
-          in: query.org,
-        },
-      };
-    }
-    if (query.name) {
-      filter.name = {
-        contains: query.name.trim(),
-        mode: 'insensitive',
-      };
-    }
-    if (query.startTime) {
-      filter.startTime = {
-        gte: query.startTime[0],
-        lte: query.startTime[1],
-      };
-    }
-    if (query.endTime) {
-      filter.endTime = {
-        gte: query.endTime[0],
-        lte: query.endTime[1],
-      };
-    }
-    if (query.numberOfParticipants) {
-      filter.numberOfParticipants = {
-        gte: query.numberOfParticipants[0],
-        lte: query.numberOfParticipants[1],
-      };
-    }
-
-    if (query.myJoinStatus && extra?.joinStatusAccount) {
-      filter.shiftVolunteers = {
-        some: {
-          accountId: extra.joinStatusAccount,
-          status: {
-            in: query.myJoinStatus,
-          },
-        },
-      };
-    }
-    if (query.availableSlots) {
-    }
-
-    return filter;
   }
 
   mapToOutput(

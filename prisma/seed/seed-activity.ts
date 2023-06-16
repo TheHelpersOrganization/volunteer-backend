@@ -17,6 +17,7 @@ import {
 import * as _ from 'lodash';
 import { ActivityStatus } from 'src/activity/constants';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import { ShiftStatus } from 'src/shift/constants';
 import { OrganizationStatus } from '../../src/organization/constants';
 import { seedFiles } from './seed-file';
 import {
@@ -26,6 +27,7 @@ import {
   getNextActivityId,
   getNextShiftId,
   getNextShiftVolunteerId,
+  requireNonNullish,
 } from './utils';
 
 export const seedActivities = async (
@@ -107,22 +109,35 @@ export const seedActivities = async (
   const shiftVolunteers: VolunteerShift[] = [];
 
   activities.forEach((activity) => {
-    const startTime = fakerEn.date.future();
     const numberOfShifts = fakerEn.number.int({ min: 2, max: 5 });
     for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
-
-      shifts.push({
-        id: shiftId,
-        name: capitalizeWords(fakerEn.lorem.words()),
-        description: fakerEn.lorem.paragraphs(),
-        startTime: startTime,
-        endTime: fakerEn.date.future({ years: 1, refDate: startTime }),
-        numberOfParticipants: fakerEn.number.int({ min: 0, max: 100 }),
-        activityId: activity.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      const shiftStatus = requireNonNullish(
+        _.sample(Object.values(ShiftStatus)),
+      );
+      const refTime = new Date();
+      let shiftStartTime: Date;
+      let shiftEndTime: Date;
+      if (shiftStatus === ShiftStatus.Pending) {
+        shiftStartTime = fakerEn.date.future({ years: 1, refDate: refTime });
+        shiftEndTime = fakerEn.date.future({
+          years: 1,
+          refDate: shiftStartTime,
+        });
+      } else if (shiftStatus === ShiftStatus.Ongoing) {
+        shiftStartTime = fakerEn.date.past({ years: 0.1, refDate: refTime });
+        shiftEndTime = fakerEn.date.future({
+          years: 1,
+          refDate: shiftStartTime,
+        });
+      } else {
+        shiftStartTime = fakerEn.date.past({ years: 1, refDate: refTime });
+        shiftEndTime = fakerEn.date.between({
+          from: shiftStartTime,
+          to: refTime,
+        });
+      }
+      const numberOfParticipants = fakerEn.number.int({ min: 0, max: 30 });
 
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const location = generateViLocation();
@@ -163,11 +178,103 @@ export const seedActivities = async (
         });
       });
 
-      Object.values(ShiftVolunteerStatus).forEach((status) => {
+      // Create approved or pending volunteers first, then use created at to determine the rest
+      const accountActiveVolunteers: { [key: number]: Date } = {};
+      let numberOfApprovedVolunteers = 0;
+      _.sampleSize(
+        [...volunteerAccounts, ...defaultAccounts],
+        fakerEn.number.int({ min: 5, max: numberOfParticipants + 20 }),
+      ).forEach((account) => {
+        const status =
+          shiftStatus === ShiftStatus.Pending
+            ? requireNonNullish(
+                _.sample([
+                  ShiftVolunteerStatus.Approved,
+                  ShiftVolunteerStatus.Pending,
+                ]),
+              )
+            : ShiftVolunteerStatus.Approved;
+        if (status === ShiftVolunteerStatus.Approved) {
+          numberOfApprovedVolunteers++;
+        }
+
+        const createdAt = fakerEn.date.past({
+          years: 0.1,
+          refDate: shiftStartTime,
+        });
+        const updatedAt = fakerEn.date.between({
+          from: createdAt,
+          to: shiftEndTime,
+        });
+        accountActiveVolunteers[account.id] = createdAt;
+
+        shiftVolunteers.push({
+          id: getNextShiftVolunteerId(),
+          shiftId: shiftId,
+          status: status,
+          attendant: false,
+          completion:
+            status === ShiftVolunteerStatus.Approved
+              ? fakerEn.number.float({ min: 0, max: 1 })
+              : 0,
+          accountId: account.id,
+          active: true,
+          censorId: [
+            ShiftVolunteerStatus.Pending,
+            ShiftVolunteerStatus.Cancelled,
+          ].includes(status)
+            ? null
+            : organizations.find((o) => o.id === activity.organizationId)
+                ?.ownerId ?? null,
+          rejectionReason: [
+            ShiftVolunteerStatus.Rejected,
+            ShiftVolunteerStatus.Removed,
+          ].includes(status)
+            ? fakerEn.lorem.sentence()
+            : null,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        });
+      });
+
+      [
+        ShiftVolunteerStatus.Cancelled,
+        ShiftVolunteerStatus.Rejected,
+        ShiftVolunteerStatus.Leaved,
+        ShiftVolunteerStatus.Removed,
+      ].forEach((status) => {
+        const min = 0;
+        let max = 0;
+        if (status === ShiftVolunteerStatus.Approved) {
+          max = numberOfParticipants + 20;
+        } else if (status === ShiftVolunteerStatus.Pending) {
+          if (shiftStatus !== ShiftStatus.Pending) {
+            return;
+          }
+          max = numberOfParticipants + 20;
+        } else if (status === ShiftVolunteerStatus.Rejected) {
+          max = numberOfParticipants + 20;
+        } else {
+          max = 3;
+        }
+
         _.sampleSize(
           [...volunteerAccounts, ...defaultAccounts],
-          fakerEn.number.int({ min: 5, max: 20 }),
+          fakerEn.number.int({ min: min, max: max }),
         ).forEach((account) => {
+          if (status === ShiftVolunteerStatus.Approved) {
+            numberOfApprovedVolunteers++;
+          }
+
+          // These status must be created before approved or pending volunteers
+          const createdAt = fakerEn.date.past({
+            years: 0.1,
+            refDate: accountActiveVolunteers[account.id] ?? shiftStartTime,
+          });
+          const updatedAt = fakerEn.date.between({
+            from: createdAt,
+            to: accountActiveVolunteers[account.id] ?? shiftStartTime,
+          });
           shiftVolunteers.push({
             id: getNextShiftVolunteerId(),
             shiftId: shiftId,
@@ -178,6 +285,7 @@ export const seedActivities = async (
                 ? fakerEn.number.float({ min: 0, max: 1 })
                 : 0,
             accountId: account.id,
+            active: false,
             censorId: [
               ShiftVolunteerStatus.Pending,
               ShiftVolunteerStatus.Cancelled,
@@ -191,10 +299,31 @@ export const seedActivities = async (
             ].includes(status)
               ? fakerEn.lorem.sentence()
               : null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
           });
         });
+      });
+
+      shifts.push({
+        id: shiftId,
+        name: capitalizeWords(fakerEn.lorem.words()),
+        description: fakerEn.lorem.paragraphs(),
+        startTime: shiftStartTime,
+        endTime: shiftEndTime,
+        status: shiftStatus,
+        automaticStatusUpdate: true,
+        numberOfParticipants: numberOfParticipants,
+        availableSlots:
+          numberOfParticipants == null
+            ? null
+            : requireNonNullish(
+                _.max([0, numberOfParticipants - numberOfApprovedVolunteers]),
+              ),
+        joinedParticipants: numberOfApprovedVolunteers,
+        activityId: activity.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     }
   });

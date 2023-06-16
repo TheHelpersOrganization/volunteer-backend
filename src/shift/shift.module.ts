@@ -9,12 +9,12 @@ import {
   ModShiftController,
   ShiftController,
 } from './controllers';
-import { ModShiftService, ShiftService } from './services';
+import { ModShiftService, ShiftService, ShiftTaskService } from './services';
 
 @Module({
   imports: [CommonModule, LocationModule, ContactModule, ShiftSkillModule],
   controllers: [ActivityShiftController, ShiftController, ModShiftController],
-  providers: [ShiftService, ModShiftService],
+  providers: [ShiftService, ModShiftService, ShiftTaskService],
   exports: [ShiftService],
 })
 export class ShiftModule {}
