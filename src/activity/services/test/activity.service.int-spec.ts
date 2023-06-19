@@ -5,7 +5,7 @@ import { Role } from 'src/auth/constants';
 import { CommonModule } from 'src/common/common.module';
 import { RequestContext } from 'src/common/request-context';
 import { AppPrismaClient } from 'src/prisma';
-import { ShiftVolunteerStatus } from 'src/shift/constants';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftService } from 'src/shift/services';
 import { ActivityService } from '../activity.service';
 

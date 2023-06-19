@@ -7,7 +7,8 @@ import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
 
-import { max } from 'lodash';
+import { max, min } from 'lodash';
+import { ActivityNotFoundException } from 'src/activity/exceptions';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   CreateShiftInputDto,
@@ -108,21 +109,38 @@ export class ShiftService extends AbstractService {
   ): Promise<ShiftOutputDto> {
     this.logCaller(context, this.createShift);
     return this.prisma.$transaction(
-      async () => {
+      async (tx) => {
+        const activity = await tx.activity.findUnique({
+          where: {
+            id: dto.activityId,
+          },
+        });
+        if (activity == null) {
+          throw new ActivityNotFoundException();
+        }
         const locationIds = dto.locations
-          ? (await this.locationService.createMany(context, dto.locations)).map(
-              (l) => ({
-                locationId: l.id,
-              }),
-            )
+          ? (
+              await this.locationService.createManyTransaction(
+                context,
+                dto.locations,
+                tx,
+              )
+            ).map((l) => ({
+              locationId: l.id,
+            }))
           : undefined;
         const contactIds = dto.contacts
-          ? (await this.contactService.createMany(context, dto.contacts)).map(
-              (d) => ({
-                contactId: d.id,
-              }),
-            )
+          ? (
+              await this.contactService.createManyTransaction(
+                context,
+                dto.contacts,
+                tx,
+              )
+            ).map((d) => ({
+              contactId: d.id,
+            }))
           : undefined;
+
         const res = await this.prisma.shift.create({
           data: {
             activityId: dto.activityId,
@@ -155,6 +173,23 @@ export class ShiftService extends AbstractService {
           },
           include: this.getShiftInclude(context, {}),
         });
+        const startTime =
+          activity.startTime == null
+            ? dto.startTime
+            : min([activity.startTime, dto.startTime]);
+        const endTime =
+          activity.endTime == null
+            ? dto.endTime
+            : max([activity.endTime, dto.endTime]);
+        await tx.activity.update({
+          where: {
+            id: dto.activityId,
+          },
+          data: {
+            startTime: startTime,
+            endTime: endTime,
+          },
+        });
         return this.mapToOutput(context, res);
       },
       {
@@ -179,14 +214,14 @@ export class ShiftService extends AbstractService {
       throw new ShiftNotFoundException();
     }
     return this.prisma.$transaction(
-      async () => {
+      async (tx) => {
         const include = this.getShiftInclude(context, query);
 
         const numberOfParticipants = dto.numberOfParticipants;
         let availableSlots: number | null | undefined = undefined;
 
         if (dto.numberOfParticipants != shift.numberOfParticipants) {
-          const volunteersCount = await this.prisma.volunteerShift.count({
+          const volunteersCount = await tx.volunteerShift.count({
             where: {
               shiftId: id,
               status: ShiftVolunteerStatus.Approved,
@@ -198,7 +233,7 @@ export class ShiftService extends AbstractService {
               : max([0, dto.numberOfParticipants - volunteersCount]);
         }
 
-        const res = await this.prisma.shift.update({
+        const res = await tx.shift.update({
           where: {
             id: id,
           },
@@ -248,6 +283,34 @@ export class ShiftService extends AbstractService {
           },
           include: include,
         });
+
+        const activity = await tx.activity.findUnique({
+          where: {
+            id: res.activityId,
+          },
+        });
+        if (activity == null) {
+          throw new ActivityNotFoundException();
+        }
+        const startTime =
+          activity.startTime == null
+            ? res.startTime
+            : min([activity.startTime, res.startTime]);
+
+        const endTime =
+          activity.endTime == null
+            ? res.endTime
+            : max([activity.endTime, res.endTime]);
+        await tx.activity.update({
+          where: {
+            id: res.activityId,
+          },
+          data: {
+            startTime: startTime,
+            endTime: endTime,
+          },
+        });
+
         return this.mapToOutput(context, res);
       },
       {
@@ -262,12 +325,33 @@ export class ShiftService extends AbstractService {
   ): Promise<ShiftOutputDto | null> {
     this.logCaller(context, this.deleteShift);
     const include = this.getShiftInclude(context, {});
-    const res = await this.prisma.shift.delete({
-      where: {
-        id: id,
-      },
-      include: include,
+
+    const res = await this.prisma.$transaction(async (tx) => {
+      const res = await this.prisma.shift.delete({
+        where: {
+          id: id,
+        },
+        include: include,
+      });
+      const shifts = await tx.shift.findMany({
+        where: {
+          activityId: res.activityId,
+        },
+      });
+      const startTime = min(shifts.map((d) => d.startTime)) ?? null;
+      const endTime = max(shifts.map((d) => d.endTime)) ?? null;
+      await tx.activity.update({
+        where: {
+          id: res.activityId,
+        },
+        data: {
+          startTime: startTime,
+          endTime: endTime,
+        },
+      });
+      return res;
     });
+
     return this.mapToOutput(context, res);
   }
 
@@ -424,8 +508,8 @@ export class ShiftService extends AbstractService {
 
     return this.output(ShiftOutputDto, {
       ...raw,
-      locations: raw.shiftLocations.map((sl) => sl.location),
-      contacts: raw.shiftContacts.map((sc) => sc.contact),
+      locations: raw.shiftLocations?.map((sl) => sl.location),
+      contacts: raw.shiftContacts?.map((sc) => sc.contact),
       myShiftVolunteer:
         myShiftVolunteers?.length > 0 === true
           ? myShiftVolunteers.find((sv) => sv.active === true)

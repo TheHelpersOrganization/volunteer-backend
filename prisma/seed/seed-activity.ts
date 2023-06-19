@@ -65,6 +65,8 @@ export const seedActivities = async (
         name: capitalizeWords(fakerEn.lorem.words()),
         description: fakerEn.lorem.paragraphs(),
         thumbnail: null,
+        startTime: null,
+        endTime: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -79,6 +81,8 @@ export const seedActivities = async (
             name: capitalizeWords(fakerEn.lorem.words()),
             description: fakerEn.lorem.paragraphs(),
             thumbnail: null,
+            startTime: null,
+            endTime: null,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
@@ -155,9 +159,7 @@ export const seedActivities = async (
           refDate: shiftStartTime,
         });
       }
-      const numberOfParticipants = fakerEn.helpers.weightedArrayElement(
-        weightedNumberOfParticipants,
-      );
+      const numberOfParticipants = fakerEn.number.int({ min: 5, max: 30 });
 
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const location = generateViLocation();
@@ -232,14 +234,18 @@ export const seedActivities = async (
           to: shiftEndTime,
         });
         accountActiveVolunteers[account.id] = createdAt;
+        const attendant =
+          shiftStatus === ShiftStatus.Completed
+            ? fakerEn.datatype.boolean()
+            : false;
 
         shiftVolunteers.push({
           id: getNextShiftVolunteerId(),
           shiftId: shiftId,
           status: status,
-          attendant: false,
+          attendant: attendant,
           completion:
-            status === ShiftVolunteerStatus.Approved
+            status === ShiftVolunteerStatus.Approved && attendant
               ? fakerEn.number.float({ min: 0, max: 1 })
               : 0,
           accountId: account.id,
@@ -268,29 +274,27 @@ export const seedActivities = async (
         ShiftVolunteerStatus.Leaved,
         ShiftVolunteerStatus.Removed,
       ].forEach((status) => {
-        const min = 0;
+        const min = 3;
         let max = 0;
         if (status === ShiftVolunteerStatus.Approved) {
           max = numberOfParticipants + 20;
         } else if (status === ShiftVolunteerStatus.Pending) {
-          if (shiftStatus !== ShiftStatus.Pending) {
-            return;
-          }
           max = numberOfParticipants + 20;
         } else if (status === ShiftVolunteerStatus.Rejected) {
           max = numberOfParticipants + 20;
         } else {
-          max = 3;
+          max = 10;
         }
 
         _.sampleSize(
           [...volunteerAccounts, ...defaultAccounts],
-          fakerEn.helpers.weightedArrayElement(
-            Array.from({ length: max }, (_, i) => ({
-              value: i,
-              weight: 1 / (i + 1),
-            })),
-          ),
+          // fakerEn.helpers.weightedArrayElement(
+          //   Array.from({ length: max }, (_, i) => ({
+          //     value: i,
+          //     weight: 1 / (i + 1),
+          //   })),
+          // ),
+          fakerEn.number.int({ min: min, max: max }),
         ).forEach((account) => {
           if (status === ShiftVolunteerStatus.Approved) {
             numberOfApprovedVolunteers++;
@@ -305,13 +309,17 @@ export const seedActivities = async (
             from: createdAt,
             to: accountActiveVolunteers[account.id] ?? shiftStartTime,
           });
+          const attendant =
+            shiftStatus === ShiftStatus.Completed
+              ? fakerEn.datatype.boolean()
+              : false;
           shiftVolunteers.push({
             id: getNextShiftVolunteerId(),
             shiftId: shiftId,
             status: status,
-            attendant: false,
+            attendant: attendant,
             completion:
-              status === ShiftVolunteerStatus.Approved
+              status === ShiftVolunteerStatus.Approved && attendant
                 ? fakerEn.number.float({ min: 0, max: 1 })
                 : 0,
             accountId: account.id,
@@ -355,6 +363,14 @@ export const seedActivities = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      activity.startTime =
+        activity.startTime == null
+          ? shiftStartTime
+          : _.min([activity.startTime, shiftStartTime]) ?? null;
+      activity.endTime =
+        activity.endTime == null
+          ? shiftEndTime
+          : _.max([activity.endTime, shiftEndTime]) ?? null;
     }
   });
 

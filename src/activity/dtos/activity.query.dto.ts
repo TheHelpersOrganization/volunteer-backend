@@ -27,6 +27,15 @@ export enum GetActivityInclude {
   Shift = 'shift',
 }
 
+export enum GetActivitySort {
+  NameAsc = 'name',
+  NameDesc = '-name',
+  StartTimeAsc = 'startTime',
+  StartTimeDesc = '-startTime',
+  EndTimeAsc = 'endTime',
+  EndTimeDesc = '-endTime',
+}
+
 export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsString()
@@ -39,7 +48,7 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @ArrayMaxSize(2)
   @IsDate({ each: true })
   @Transform(({ value }) => value.split(',').map((v) => new Date(Number(v))))
-  startDate?: Date[];
+  startTime?: Date[];
 
   // End date range
   @IsOptional()
@@ -48,7 +57,7 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @ArrayMaxSize(2)
   @IsDate({ each: true })
   @Transform(({ value }) => value.split(',').map((v) => new Date(Number(v))))
-  endDate?: Date[];
+  endTime?: Date[];
 
   // Number of participants
   @IsOptional()
@@ -99,6 +108,12 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @IsEnum(GetActivityInclude, { each: true })
   @Transform(({ value }) => value.split(',').filter((v) => v))
   include?: GetActivityInclude[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetActivitySort, { each: true })
+  @Transform(({ value }) => value.split(',').filter((v) => v))
+  sort?: GetActivitySort[];
 }
 
 export class GetActivityByIdQueryDto extends BaseGetActivityQueryDto {
