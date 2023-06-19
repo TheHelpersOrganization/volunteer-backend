@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsDate,
   IsEnum,
   IsISO31661Alpha2,
@@ -16,7 +17,10 @@ import {
   Min,
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
-import { separatedCommaNumberArrayTransform } from 'src/common/transformers';
+import {
+  separatedCommaNumberArrayTransform,
+  stringToBoolean,
+} from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
@@ -68,6 +72,16 @@ export class BaseGetActivityQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsNumberString()
   availableSlots?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBoolean)
+  isManager?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBoolean)
+  isShiftManager?: boolean;
 
   // Skills
   @IsOptional()

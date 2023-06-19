@@ -40,8 +40,8 @@ export class ContactService extends AbstractService {
     dtos: CreateContactInputDto[],
   ): Promise<ContactOutputDto[]> {
     this.logCaller(context, this.createMany);
-    const contacts = await this.prisma.$transaction(async (tx) =>
-      dtos.map((dto) => tx.contact.create({ data: dto })),
+    const contacts = await this.prisma.$transaction(
+      dtos.map((dto) => this.prisma.contact.create({ data: dto })),
     );
     return this.outputArray(ContactOutputDto, contacts);
   }
@@ -55,9 +55,12 @@ export class ContactService extends AbstractService {
     >,
   ): Promise<ContactOutputDto[]> {
     this.logCaller(context, this.createMany);
-    const contacts = await dtos.map((dto) =>
-      transaction.contact.create({ data: dto }),
-    );
+
+    const contacts: any[] = [];
+    for (const dto of dtos) {
+      const contact = await transaction.contact.create({ data: dto });
+      contacts.push(contact);
+    }
 
     return this.outputArray(ContactOutputDto, contacts);
   }

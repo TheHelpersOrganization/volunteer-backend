@@ -42,7 +42,7 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGet);
 
-    const activityQuery = getActivityFilter(query, {
+    const activityQuery = getActivityFilter(context, query, {
       joiner: context.account.id,
     });
     const sort = getActivitySort(query);
@@ -93,7 +93,7 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGetById);
 
-    const activityQuery = getActivityFilter(query, {
+    const activityQuery = getActivityFilter(context, query, {
       joiner: context.account.id,
     });
 

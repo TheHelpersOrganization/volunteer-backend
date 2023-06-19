@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsDate,
   IsEnum,
   IsInt,
@@ -10,6 +11,7 @@ import {
   IsString,
 } from 'class-validator';
 import { PaginationParamsDto } from 'src/common/dtos';
+import { stringToBoolean } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from '../constants';
 
@@ -101,6 +103,11 @@ export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsEnum(ShiftStatus, { each: true })
   @Transform(({ value }) => value.split(','))
   status?: ShiftStatus[];
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBoolean)
+  isManager?: boolean;
 
   @IsOptional()
   @IsArray()
