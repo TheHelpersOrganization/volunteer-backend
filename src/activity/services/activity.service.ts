@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -16,6 +15,7 @@ import {
   extendActivity,
   filterExtendedActivity,
   getActivityFilter,
+  getActivitySort,
 } from '../utils';
 
 @Injectable()
@@ -45,6 +45,7 @@ export class ActivityService extends AbstractService {
     const activityQuery = getActivityFilter(query, {
       joiner: context.account.id,
     });
+    const sort = getActivitySort(query);
 
     const res = await this.prisma.activity.findMany({
       where: activityQuery,
@@ -75,6 +76,7 @@ export class ActivityService extends AbstractService {
           },
         },
       },
+      orderBy: sort,
     });
 
     const extendedActivities = res
@@ -231,17 +233,9 @@ export class ActivityService extends AbstractService {
       activityManagerIds: activity.activityManagers?.map(
         (activityManager) => activityManager.accountId,
       ),
+      startTime: activity.startTime,
+      endTime: activity.endTime,
       organizationId: activity.organizationId,
-      startTime:
-        activity.startTime ??
-        (activity.shifts
-          ? _.min(activity.shifts.map((s) => s.startTime))
-          : undefined),
-      endTime:
-        activity.endTime ??
-        (activity.shifts
-          ? _.max(activity.shifts.map((s) => s.endTime))
-          : undefined),
       location: activity.location,
       contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,

@@ -5,6 +5,7 @@ import {
   BaseGetActivityQueryDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
+  GetActivitySort,
   ModGetActivitiesQueryDto,
 } from '../dtos';
 import { ExtendedActivity, ExtendedActivityInput } from '../types';
@@ -15,37 +16,37 @@ export const getShiftFilter = (
 ) => {
   let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
 
-  let shiftSomeAndQuery: Prisma.Enumerable<Prisma.ShiftWhereInput> | undefined =
-    undefined;
-  if (query.startDate) {
-    shiftSomeAndQuery = [
-      {
-        startTime: {
-          gte: query.startDate[0],
-          lte: query.startDate[1],
-        },
-      },
-    ];
-    shiftQuery = {
-      some: {
-        AND: shiftSomeAndQuery,
-      },
-    };
-  }
-  if (query.endDate) {
-    shiftQuery = {
-      ...shiftQuery,
-      some: {
-        endTime: {
-          gte: query.endDate[0],
-          lte: query.endDate[1],
-        },
-      },
-    };
-  }
+  const shiftSomeAndQuery:
+    | Prisma.Enumerable<Prisma.ShiftWhereInput>
+    | undefined = undefined;
+  // if (query.startTime) {
+  //   shiftSomeAndQuery = [
+  //     {
+  //       startTime: {
+  //         gte: query.startTime[0],
+  //         lte: query.startTime[1],
+  //       },
+  //     },
+  //   ];
+  //   shiftQuery = {
+  //     some: {
+  //       AND: shiftSomeAndQuery,
+  //     },
+  //   };
+  // }
+  // if (query.endTime) {
+  //   shiftQuery = {
+  //     ...shiftQuery,
+  //     some: {
+  //       endTime: {
+  //         gte: query.endTime[0],
+  //         lte: query.endTime[1],
+  //       },
+  //     },
+  //   };
+  // }
   if (query.skill) {
     shiftQuery = {
-      ...shiftQuery,
       some: {
         shiftSkills: {
           some: {
@@ -122,6 +123,24 @@ export const getActivityFilter = (
       },
     };
   }
+  if (query.startTime) {
+    activityQuery = {
+      ...activityQuery,
+      startTime: {
+        gte: query.startTime[0],
+        lte: query.startTime[1],
+      },
+    };
+  }
+  if (query.endTime) {
+    activityQuery = {
+      ...activityQuery,
+      endTime: {
+        gte: query.endTime[0],
+        lte: query.endTime[1],
+      },
+    };
+  }
   if (
     query instanceof GetActivityByIdQueryDto ||
     query instanceof ModGetActivitiesQueryDto
@@ -157,13 +176,31 @@ export const getActivityFilter = (
   return activityQuery;
 };
 
+export const getActivitySort = (query: BaseGetActivityQueryDto) => {
+  const sort: Prisma.ActivityOrderByWithRelationInput = {};
+  if (query.sort?.includes(GetActivitySort.NameAsc)) {
+    sort.name = 'asc';
+  } else if (query.sort?.includes(GetActivitySort.NameDesc)) {
+    sort.name = 'desc';
+  }
+  if (query.sort?.includes(GetActivitySort.StartTimeAsc)) {
+    sort.startTime = 'asc';
+  } else if (query.sort?.includes(GetActivitySort.StartTimeAsc)) {
+    sort.startTime = 'desc';
+  }
+  if (query.sort?.includes(GetActivitySort.EndTimeAsc)) {
+    sort.endTime = 'asc';
+  } else if (query.sort?.includes(GetActivitySort.EndTimeDesc)) {
+    sort.endTime = 'desc';
+  }
+  return sort;
+};
+
 export const extendActivity = (
   activity: ExtendedActivityInput,
 ): ExtendedActivity => {
   let maxParticipants: number | null = 0;
   let joinedParticipants = 0;
-  let startTime: Date | undefined = undefined;
-  let endTime: Date | undefined = undefined;
 
   for (const shift of activity.shifts) {
     if (maxParticipants != null) {
@@ -180,16 +217,6 @@ export const extendActivity = (
       ) {
         joinedParticipants++;
       }
-    }
-    if (startTime == null) {
-      startTime = shift.startTime;
-    } else if (shift.startTime.getTime() < startTime.getTime()) {
-      startTime = shift.startTime;
-    }
-    if (endTime == null) {
-      endTime = shift.endTime;
-    } else if (shift.endTime.getTime() > endTime.getTime()) {
-      endTime = shift.endTime;
     }
   }
 
@@ -221,8 +248,6 @@ export const extendActivity = (
     ...activity,
     maxParticipants,
     joinedParticipants,
-    startTime,
-    endTime,
     skillIds: filteredSkillIds,
     location: unionLocation,
     contacts,
@@ -243,27 +268,27 @@ export const filterExtendedActivity = (
       return false;
     }
   }
-  if (query.startDate != null) {
-    if (activity.startTime == null) {
-      return false;
-    }
-    if (
-      activity.startTime.getTime() < query.startDate[0].getTime() ||
-      activity.startTime.getTime() > query.startDate[1].getTime()
-    ) {
-      return false;
-    }
-  }
-  if (query.endDate != null) {
-    if (activity.endTime == null) {
-      return false;
-    }
-    if (
-      activity.endTime.getTime() < query.endDate[0].getTime() ||
-      activity.endTime.getTime() > query.endDate[1].getTime()
-    ) {
-      return false;
-    }
-  }
+  // if (query.startTime != null) {
+  //   if (activity.startTime == null) {
+  //     return false;
+  //   }
+  //   if (
+  //     activity.startTime.getTime() < query.startTime[0].getTime() ||
+  //     activity.startTime.getTime() > query.startTime[1].getTime()
+  //   ) {
+  //     return false;
+  //   }
+  // }
+  // if (query.endTime != null) {
+  //   if (activity.endTime == null) {
+  //     return false;
+  //   }
+  //   if (
+  //     activity.endTime.getTime() < query.endTime[0].getTime() ||
+  //     activity.endTime.getTime() > query.endTime[1].getTime()
+  //   ) {
+  //     return false;
+  //   }
+  // }
   return true;
 };

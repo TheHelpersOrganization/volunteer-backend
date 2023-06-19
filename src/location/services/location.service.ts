@@ -72,6 +72,30 @@ export class LocationService extends AbstractService {
     return this.outputArray(LocationOutputDto, locations);
   }
 
+  async createManyTransaction(
+    context: RequestContext,
+    dtos: CreateLocationInputDto[],
+    transaction: Omit<
+      PrismaService,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'
+    >,
+  ): Promise<LocationOutputDto[]> {
+    this.logCaller(context, this.createMany);
+    for (const dto of dtos) {
+      if (
+        (dto.longitude == null && dto.latitude != null) ||
+        (dto.longitude != null && dto.latitude == null)
+      ) {
+        throw new InvalidCoordinateException();
+      }
+    }
+    const locations = dtos.map((dto) =>
+      transaction.location.create({ data: dto }),
+    );
+
+    return this.outputArray(LocationOutputDto, locations);
+  }
+
   async getById(
     context: RequestContext,
     id: number,

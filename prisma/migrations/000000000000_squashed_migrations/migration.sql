@@ -133,6 +133,8 @@ CREATE TABLE "Activity" (
     "description" TEXT,
     "isDisabled" BOOLEAN NOT NULL DEFAULT false,
     "status" TEXT NOT NULL DEFAULT 'pending',
+    "startTime" TIMESTAMP(3),
+    "endTime" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "thumbnail" INTEGER,

@@ -15,6 +15,7 @@ import {
   extendActivity,
   filterExtendedActivity,
   getActivityFilter,
+  getActivitySort,
 } from '../utils';
 
 @Injectable()
@@ -59,6 +60,7 @@ export class ModActivityService extends AbstractService {
           },
         },
       },
+      orderBy: getActivitySort(query),
     });
     const extendedActivities = activities
       .map(extendActivity)

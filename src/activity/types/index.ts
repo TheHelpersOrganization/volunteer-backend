@@ -30,8 +30,6 @@ export type ExtendedActivityInput = Activity & {
 export type ExtendedActivity = ExtendedActivityInput & {
   maxParticipants?: number | null;
   joinedParticipants: number;
-  startTime?: Date;
-  endTime?: Date;
   skillIds?: number[];
   location?: ShortLocationOutputDto;
   contacts?: Contact[];
@@ -50,8 +48,8 @@ export type RawActivity = Activity & {
   })[];
   maxParticipants?: number | null;
   joinedParticipants?: number;
-  startTime?: Date;
-  endTime?: Date;
+  startTime?: Date | null;
+  endTime?: Date | null;
   skillIds?: number[];
   location?: ShortLocationOutputDto;
   contacts?: Contact[];
