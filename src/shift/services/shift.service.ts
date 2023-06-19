@@ -68,7 +68,7 @@ export class ShiftService extends AbstractService {
   async getShifts(context: RequestContext, query: GetShiftsQueryDto) {
     this.logCaller(context, this.getShifts);
     const where = await this.getShiftFilter(query, {
-      joinStatusAccount: context.account.id,
+      contextAccountId: context.account.id,
     });
     const res = await this.prisma.shift.findMany({
       where: where,
@@ -118,27 +118,21 @@ export class ShiftService extends AbstractService {
         if (activity == null) {
           throw new ActivityNotFoundException();
         }
+        console.log('sfddsfsdf');
         const locationIds = dto.locations
-          ? (
-              await this.locationService.createManyTransaction(
-                context,
-                dto.locations,
-                tx,
-              )
-            ).map((l) => ({
-              locationId: l.id,
-            }))
+          ? (await this.locationService.createMany(context, dto.locations)).map(
+              (l) => ({
+                locationId: l.id,
+              }),
+            )
           : undefined;
+        console.log(locationIds);
         const contactIds = dto.contacts
-          ? (
-              await this.contactService.createManyTransaction(
-                context,
-                dto.contacts,
-                tx,
-              )
-            ).map((d) => ({
-              contactId: d.id,
-            }))
+          ? (await this.contactService.createMany(context, dto.contacts)).map(
+              (d) => ({
+                contactId: d.id,
+              }),
+            )
           : undefined;
 
         const res = await this.prisma.shift.create({
@@ -357,7 +351,7 @@ export class ShiftService extends AbstractService {
 
   async getShiftFilter(
     query: GetShiftsQueryDto,
-    extra?: { joinStatusAccount?: number },
+    extra?: { contextAccountId?: number },
   ) {
     const filter: Prisma.ShiftWhereInput = {};
     if (query.id) {
@@ -410,10 +404,10 @@ export class ShiftService extends AbstractService {
       ];
     }
 
-    if (query.myJoinStatus && extra?.joinStatusAccount) {
+    if (query.myJoinStatus && extra?.contextAccountId) {
       filter.shiftVolunteers = {
         some: {
-          accountId: extra.joinStatusAccount,
+          accountId: extra.contextAccountId,
           status: {
             in: query.myJoinStatus,
           },
@@ -430,6 +424,13 @@ export class ShiftService extends AbstractService {
       filter.availableSlots = {
         gte: query.availableSlots[0],
         lte: query.availableSlots[1],
+      };
+    }
+    if (query.isManager && extra?.contextAccountId) {
+      filter.shiftManagers = {
+        some: {
+          accountId: extra.contextAccountId,
+        },
       };
     }
 

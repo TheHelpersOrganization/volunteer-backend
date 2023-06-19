@@ -31,7 +31,7 @@ export class ModActivityService extends AbstractService {
   ): Promise<ActivityOutputDto[]> {
     this.logCaller(context, this.getActivities);
 
-    const activityFilter = getActivityFilter(query);
+    const activityFilter = getActivityFilter(context, query);
 
     const activities = await this.prisma.activity.findMany({
       where: { ...activityFilter, organizationId: organizationId },

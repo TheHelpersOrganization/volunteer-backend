@@ -89,9 +89,11 @@ export class LocationService extends AbstractService {
         throw new InvalidCoordinateException();
       }
     }
-    const locations = dtos.map((dto) =>
-      transaction.location.create({ data: dto }),
-    );
+    const locations: any[] = [];
+    for (const dto of dtos) {
+      const location = await transaction.location.create({ data: dto });
+      locations.push(location);
+    }
 
     return this.outputArray(LocationOutputDto, locations);
   }

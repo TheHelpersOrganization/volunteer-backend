@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { RequestContext } from 'src/common/request-context';
 import { unionLocationsTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
@@ -11,40 +12,23 @@ import {
 import { ExtendedActivity, ExtendedActivityInput } from '../types';
 
 export const getShiftFilter = (
+  context: RequestContext,
   query: BaseGetActivityQueryDto,
   extra?: { joiner?: number },
 ) => {
   let shiftQuery: Prisma.ShiftListRelationFilter | undefined = undefined;
 
-  const shiftSomeAndQuery:
-    | Prisma.Enumerable<Prisma.ShiftWhereInput>
-    | undefined = undefined;
-  // if (query.startTime) {
-  //   shiftSomeAndQuery = [
-  //     {
-  //       startTime: {
-  //         gte: query.startTime[0],
-  //         lte: query.startTime[1],
-  //       },
-  //     },
-  //   ];
-  //   shiftQuery = {
-  //     some: {
-  //       AND: shiftSomeAndQuery,
-  //     },
-  //   };
-  // }
-  // if (query.endTime) {
-  //   shiftQuery = {
-  //     ...shiftQuery,
-  //     some: {
-  //       endTime: {
-  //         gte: query.endTime[0],
-  //         lte: query.endTime[1],
-  //       },
-  //     },
-  //   };
-  // }
+  if (query.isShiftManager) {
+    shiftQuery = {
+      some: {
+        shiftManagers: {
+          some: {
+            accountId: context.account.id,
+          },
+        },
+      },
+    };
+  }
   if (query.skill) {
     shiftQuery = {
       some: {
@@ -102,6 +86,7 @@ export const getShiftFilter = (
 };
 
 export const getActivityFilter = (
+  context: RequestContext,
   query: BaseGetActivityQueryDto,
   extra?: { joiner?: number; organizationOwner?: number },
 ) => {
@@ -132,6 +117,17 @@ export const getActivityFilter = (
       },
     };
   }
+  if (query.isManager) {
+    activityQuery = {
+      ...activityQuery,
+      activityManagers: {
+        some: {
+          accountId: context.account.id,
+        },
+      },
+    };
+  }
+
   if (query.endTime) {
     activityQuery = {
       ...activityQuery,
@@ -166,7 +162,7 @@ export const getActivityFilter = (
     }
   }
 
-  const shiftQuery = getShiftFilter(query, extra);
+  const shiftQuery = getShiftFilter(context, query, extra);
   if (shiftQuery) {
     activityQuery = {
       ...activityQuery,
