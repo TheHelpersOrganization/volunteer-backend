@@ -8,6 +8,7 @@ import {
   Shift,
   ShiftContact,
   ShiftLocation,
+  ShiftManager,
   ShiftSkill,
   VolunteerShift,
 } from '@prisma/client';
@@ -24,6 +25,7 @@ export type ExtendedActivityInput = Activity & {
     shiftSkills: ShiftSkill[];
     shiftContacts: (ShiftContact & { contact: Contact })[];
     shiftVolunteers: VolunteerShift[];
+    shiftManagers: ShiftManager[];
   })[];
 };
 
@@ -34,6 +36,9 @@ export type ExtendedActivity = ExtendedActivityInput & {
   location?: ShortLocationOutputDto;
   contacts?: Contact[];
   activityManagerIds?: number[];
+  isManager?: boolean;
+  isShiftManager?: boolean;
+  shiftManagerCount?: number;
 };
 
 export type RawActivity = Activity & {
@@ -53,4 +58,7 @@ export type RawActivity = Activity & {
   skillIds?: number[];
   location?: ShortLocationOutputDto;
   contacts?: Contact[];
+  isManager?: boolean;
+  isShiftManager?: boolean;
+  shiftManagerCount?: number;
 };

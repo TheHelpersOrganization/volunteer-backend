@@ -29,6 +29,7 @@ import {
 
 export enum GetActivityInclude {
   Shift = 'shift',
+  Me = 'me',
 }
 
 export enum GetActivitySort {
