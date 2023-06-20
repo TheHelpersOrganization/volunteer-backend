@@ -3,6 +3,7 @@ import { CommonModule } from 'src/common/common.module';
 import { ContactModule } from 'src/contact/contact.module';
 import { LocationModule } from 'src/location/location.module';
 
+import { ActivityModule } from 'src/activity/activity.module';
 import { ProfileModule } from 'src/profile/profile.module';
 import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
 import {
@@ -19,6 +20,7 @@ import { ModShiftService, ShiftService, ShiftTaskService } from './services';
     ContactModule,
     ShiftSkillModule,
     ProfileModule,
+    ActivityModule,
   ],
   controllers: [ActivityShiftController, ShiftController, ModShiftController],
   providers: [ShiftService, ModShiftService, ShiftTaskService],

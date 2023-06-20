@@ -8,5 +8,6 @@ import { ActivityService, ModActivityService } from './services';
   imports: [CommonModule],
   controllers: [ActivityController, ModActivityController],
   providers: [ActivityService, ModActivityService],
+  exports: [ActivityService, ModActivityService],
 })
 export class ActivityModule {}

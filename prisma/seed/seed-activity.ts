@@ -49,6 +49,12 @@ export const seedActivities = async (
   skills: Skill[],
   volunteerAccounts: Account[],
   defaultAccounts: Account[],
+  options?: {
+    activityPerOrganization?: {
+      min?: number;
+      max?: number;
+    };
+  },
 ) => {
   const activities: Activity[] = [];
   const activityContacts: Contact[] = [];
@@ -57,38 +63,46 @@ export const seedActivities = async (
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
-      activities.push({
-        id: getNextActivityId(),
-        isDisabled: false,
-        status: ActivityStatus.Pending,
-        organizationId: organization.id,
-        name: capitalizeWords(fakerEn.lorem.words()),
-        description: fakerEn.lorem.paragraphs(),
-        thumbnail: null,
-        startTime: null,
-        endTime: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // activities.push({
+      //   id: getNextActivityId(),
+      //   isDisabled: false,
+      //   status: ActivityStatus.Pending,
+      //   organizationId: organization.id,
+      //   name: capitalizeWords(fakerEn.lorem.words()),
+      //   description: fakerEn.lorem.paragraphs(),
+      //   thumbnail: null,
+      //   startTime: null,
+      //   endTime: null,
+      //   createdAt: new Date(),
+      //   updatedAt: new Date(),
+      // });
 
-      Object.values(ActivityStatus).forEach((status) => {
-        for (let i = 0; i < fakerEn.number.int({ min: 2, max: 5 }); i++) {
-          activities.push({
-            id: getNextActivityId(),
-            isDisabled: fakerEn.datatype.boolean(),
-            status: status,
-            organizationId: organization.id,
-            name: capitalizeWords(fakerEn.lorem.words()),
-            description: fakerEn.lorem.paragraphs(),
-            thumbnail: null,
-            startTime: null,
-            endTime: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        }
-      });
+      // Object.values(ActivityStatus).forEach((status) => {
+      for (
+        let i = 0;
+        i <
+        fakerEn.number.int({
+          min: options?.activityPerOrganization?.min ?? 2,
+          max: options?.activityPerOrganization?.max ?? 5,
+        });
+        i++
+      ) {
+        activities.push({
+          id: getNextActivityId(),
+          isDisabled: fakerEn.datatype.boolean(),
+          status: ActivityStatus.Pending,
+          organizationId: organization.id,
+          name: capitalizeWords(fakerEn.lorem.words()),
+          description: fakerEn.lorem.paragraphs(),
+          thumbnail: null,
+          startTime: null,
+          endTime: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
     });
+  //});
 
   const thumbnails = await seedFiles(
     prisma,
@@ -129,6 +143,7 @@ export const seedActivities = async (
     const numberOfShifts = fakerEn.helpers.weightedArrayElement(
       weightedNumberOfShifts,
     );
+    let correctedActivityStatus: ActivityStatus | undefined = undefined;
     for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
       const shiftStatus = requireNonNullish(
@@ -363,6 +378,30 @@ export const seedActivities = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      if (correctedActivityStatus == null) {
+        switch (shiftStatus) {
+          case ShiftStatus.Pending:
+            correctedActivityStatus = ActivityStatus.Pending;
+            break;
+          case ShiftStatus.Completed:
+            correctedActivityStatus = ActivityStatus.Completed;
+            break;
+          case ShiftStatus.Ongoing:
+            correctedActivityStatus = ActivityStatus.Ongoing;
+            break;
+        }
+      } else {
+        if (correctedActivityStatus === ActivityStatus.Pending) {
+          if (shiftStatus !== ShiftStatus.Pending) {
+            correctedActivityStatus = ActivityStatus.Ongoing;
+          }
+        }
+        if (correctedActivityStatus === ActivityStatus.Completed) {
+          if (shiftStatus !== ShiftStatus.Completed) {
+            correctedActivityStatus = ActivityStatus.Ongoing;
+          }
+        }
+      }
       activity.startTime =
         activity.startTime == null
           ? shiftStartTime
@@ -371,6 +410,7 @@ export const seedActivities = async (
         activity.endTime == null
           ? shiftEndTime
           : _.max([activity.endTime, shiftEndTime]) ?? null;
+      activity.status = correctedActivityStatus;
     }
   });
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
+import { ActivityService } from 'src/activity/services';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
@@ -8,7 +9,11 @@ import { ShiftStatus } from '../constants';
 
 @Injectable()
 export class ShiftTaskService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly activityService: ActivityService,
+  ) {
     super(logger);
   }
 
@@ -117,5 +122,7 @@ export class ShiftTaskService extends AbstractService {
       });
       res = shifts;
     }
+
+    await this.activityService.refreshActivitiesStatus(undefined);
   }
 }

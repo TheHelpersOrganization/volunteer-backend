@@ -7,7 +7,6 @@ import {
   IsDate,
   IsEnum,
   IsISO31661Alpha2,
-  IsIn,
   IsLatitude,
   IsLongitude,
   IsNumber,
@@ -22,10 +21,7 @@ import {
   stringToBoolean,
 } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import {
-  AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES,
-  ActivityStatus,
-} from '../constants';
+import { ActivityStatus } from '../constants';
 
 export enum GetActivityInclude {
   Shift = 'shift',
@@ -135,7 +131,6 @@ export class GetActivityByIdQueryDto extends BaseGetActivityQueryDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  @IsIn(AVAILABLE_VOLUNTEER_ACTIVITY_STATUSES, { each: true })
   @Transform(({ value }) => value.split(',').map(String))
   status?: ActivityStatus[];
 
