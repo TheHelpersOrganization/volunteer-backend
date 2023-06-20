@@ -4,6 +4,9 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 
+import { Prisma } from '@prisma/client';
+import { ShiftStatus } from 'src/shift/constants';
+import { ActivityStatus } from '../constants';
 import {
   ActivityOutputDto,
   GetActivitiesQueryDto,
@@ -223,6 +226,119 @@ export class ActivityService extends AbstractService {
       },
     });
     return this.mapToDto(res);
+  }
+
+  async refreshActivitiesStatus(context?: RequestContext) {
+    this.logCaller(context, this.refreshActivitiesStatus);
+    const where: Prisma.ActivityWhereInput = {
+      OR: [
+        {
+          status: ActivityStatus.Pending,
+          shifts: {
+            some: {
+              status: {
+                not: ShiftStatus.Pending,
+              },
+            },
+          },
+        },
+        {
+          status: ActivityStatus.Ongoing,
+          shifts: {
+            none: {
+              status: ShiftStatus.Ongoing,
+            },
+          },
+        },
+        {
+          status: ActivityStatus.Completed,
+          shifts: {
+            some: {
+              status: {
+                not: ShiftStatus.Completed,
+              },
+            },
+          },
+        },
+      ],
+    };
+    // Query first 100 records
+    let res = await this.prisma.activity.findMany({
+      where: where,
+      take: 100,
+      select: {
+        id: true,
+        status: true,
+        shifts: {
+          select: {
+            status: true,
+          },
+        },
+      },
+    });
+    // Then query next 100 records using cursor until no more records
+    while (res.length > 0) {
+      const activities = await this.prisma.activity.findMany({
+        where: where,
+        cursor: { id: res[res.length - 1].id },
+        take: 100,
+        skip: 1,
+        select: {
+          id: true,
+          status: true,
+          shifts: {
+            select: {
+              status: true,
+            },
+          },
+        },
+      });
+      const updateToPending: number[] = [];
+      const updateToOngoing: number[] = [];
+      const updateToCompleted: number[] = [];
+      activities.forEach((activity) => {
+        if (
+          activity.shifts.every((shift) => shift.status === ShiftStatus.Pending)
+        ) {
+          updateToPending.push(activity.id);
+        } else if (
+          activity.shifts.every(
+            (shift) => shift.status === ShiftStatus.Completed,
+          )
+        ) {
+          updateToCompleted.push(activity.id);
+        } else {
+          // Catch other cases
+          updateToOngoing.push(activity.id);
+        }
+      });
+      await this.prisma.activity.updateMany({
+        where: {
+          id: { in: updateToPending },
+        },
+        data: {
+          status: ActivityStatus.Pending,
+        },
+      });
+      await this.prisma.activity.updateMany({
+        where: {
+          id: { in: updateToOngoing },
+        },
+        data: {
+          status: ActivityStatus.Ongoing,
+        },
+      });
+      await this.prisma.activity.updateMany({
+        where: {
+          id: { in: updateToCompleted },
+        },
+        data: {
+          status: ActivityStatus.Completed,
+        },
+      });
+
+      res = activities;
+    }
   }
 
   private mapToDto(activity: RawActivity): ActivityOutputDto {
