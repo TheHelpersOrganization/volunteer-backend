@@ -108,7 +108,7 @@ export class GetShiftsQueryDto extends PaginationParamsDto {
   @IsOptional()
   @IsBoolean()
   @Transform(stringToBoolean)
-  isManager?: boolean;
+  isShiftManager?: boolean;
 
   @IsOptional()
   @IsArray()
