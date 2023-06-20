@@ -155,6 +155,8 @@ CREATE TABLE "Shift" (
     "numberOfParticipants" INTEGER,
     "availableSlots" INTEGER,
     "joinedParticipants" INTEGER NOT NULL DEFAULT 0,
+    "checkInMinutesLimit" INTEGER,
+    "checkOutMinutesLimit" INTEGER,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "activityId" INTEGER NOT NULL,
@@ -350,16 +352,34 @@ CREATE TABLE "ShiftSkill" (
 );
 
 -- CreateTable
+CREATE TABLE "ShiftSkillValue" (
+    "shiftId" INTEGER NOT NULL,
+    "skillId" INTEGER NOT NULL,
+    "hours" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ShiftSkillValue_pkey" PRIMARY KEY ("shiftId","skillId")
+);
+
+-- CreateTable
 CREATE TABLE "VolunteerShift" (
     "id" SERIAL NOT NULL,
     "shiftId" INTEGER NOT NULL,
     "accountId" INTEGER NOT NULL,
-    "attendant" BOOLEAN NOT NULL DEFAULT false,
     "status" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
-    "completion" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "censorId" INTEGER,
     "rejectionReason" TEXT,
+    "censorId" INTEGER,
+    "attendant" BOOLEAN NOT NULL DEFAULT false,
+    "checkedIn" BOOLEAN,
+    "checkedOut" BOOLEAN,
+    "isCheckInVerified" BOOLEAN,
+    "isCheckOutVerified" BOOLEAN,
+    "checkInOutVerifierId" INTEGER,
+    "completion" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "reviewNote" TEXT,
+    "reviewerId" INTEGER,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
@@ -571,6 +591,12 @@ ALTER TABLE "ShiftSkill" ADD CONSTRAINT "ShiftSkill_shiftId_fkey" FOREIGN KEY ("
 ALTER TABLE "ShiftSkill" ADD CONSTRAINT "ShiftSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ShiftSkillValue" ADD CONSTRAINT "ShiftSkillValue_shiftId_fkey" FOREIGN KEY ("shiftId") REFERENCES "Shift"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShiftSkillValue" ADD CONSTRAINT "ShiftSkillValue_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "VolunteerShift" ADD CONSTRAINT "VolunteerShift_shiftId_fkey" FOREIGN KEY ("shiftId") REFERENCES "Shift"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -578,6 +604,12 @@ ALTER TABLE "VolunteerShift" ADD CONSTRAINT "VolunteerShift_accountId_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "VolunteerShift" ADD CONSTRAINT "VolunteerShift_censorId_fkey" FOREIGN KEY ("censorId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerShift" ADD CONSTRAINT "VolunteerShift_checkInOutVerifierId_fkey" FOREIGN KEY ("checkInOutVerifierId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VolunteerShift" ADD CONSTRAINT "VolunteerShift_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ShiftManager" ADD CONSTRAINT "ShiftManager_shiftId_fkey" FOREIGN KEY ("shiftId") REFERENCES "Shift"("id") ON DELETE CASCADE ON UPDATE CASCADE;

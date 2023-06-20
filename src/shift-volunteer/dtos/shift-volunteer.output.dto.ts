@@ -14,16 +14,37 @@ export class ShiftVolunteerOutputDto {
   accountId: number;
 
   @Expose()
+  status: ShiftVolunteerStatus;
+
+  @Expose()
+  active: boolean;
+
+  @Expose()
+  checkedIn?: boolean;
+
+  @Expose()
+  checkedOut?: boolean;
+
+  @Expose()
+  isCheckInVerified?: boolean;
+
+  @Expose()
+  isCheckOutVerified?: boolean;
+
+  @Expose()
+  checkInOutVerifierId?: number;
+
+  @Expose()
   attendant: boolean;
 
   @Expose()
   completion: number;
 
   @Expose()
-  status: ShiftVolunteerStatus;
+  reviewNote?: string;
 
   @Expose()
-  active: boolean;
+  reviewerId?: number;
 
   @Expose()
   @Type(() => ProfileOutputDto)

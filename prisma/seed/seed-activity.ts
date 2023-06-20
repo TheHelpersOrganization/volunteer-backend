@@ -48,6 +48,7 @@ export const seedActivities = async (
   organizations: Organization[],
   skills: Skill[],
   volunteerAccounts: Account[],
+  modAccounts: Account[],
   defaultAccounts: Account[],
   options?: {
     activityPerOrganization?: {
@@ -259,10 +260,18 @@ export const seedActivities = async (
           shiftId: shiftId,
           status: status,
           attendant: attendant,
-          completion:
-            status === ShiftVolunteerStatus.Approved && attendant
-              ? fakerEn.number.float({ min: 0, max: 1 })
-              : 0,
+          checkedIn: attendant ? fakerEn.datatype.boolean() : false,
+          checkedOut: attendant ? fakerEn.datatype.boolean() : false,
+          isCheckInVerified: attendant ? fakerEn.datatype.boolean() : false,
+          isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : false,
+          checkInOutVerifierId: attendant
+            ? fakerEn.helpers.arrayElement(modAccounts).id
+            : null,
+          completion: attendant ? fakerEn.number.float({ min: 0, max: 1 }) : 0,
+          reviewerId: attendant
+            ? fakerEn.helpers.arrayElement(volunteerAccounts).id
+            : null,
+          reviewNote: fakerEn.lorem.sentence(),
           accountId: account.id,
           active: true,
           censorId: [
@@ -333,10 +342,20 @@ export const seedActivities = async (
             shiftId: shiftId,
             status: status,
             attendant: attendant,
-            completion:
-              status === ShiftVolunteerStatus.Approved && attendant
-                ? fakerEn.number.float({ min: 0, max: 1 })
-                : 0,
+            checkedIn: attendant ? fakerEn.datatype.boolean() : false,
+            checkedOut: attendant ? fakerEn.datatype.boolean() : false,
+            isCheckInVerified: attendant ? fakerEn.datatype.boolean() : false,
+            isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : false,
+            checkInOutVerifierId: attendant
+              ? fakerEn.helpers.arrayElement(modAccounts).id
+              : null,
+            completion: attendant
+              ? fakerEn.number.float({ min: 0, max: 1 })
+              : 0,
+            reviewerId: attendant
+              ? fakerEn.helpers.arrayElement(volunteerAccounts).id
+              : null,
+            reviewNote: fakerEn.lorem.sentence(),
             accountId: account.id,
             active: false,
             censorId: [
@@ -374,6 +393,8 @@ export const seedActivities = async (
                 _.max([0, numberOfParticipants - numberOfApprovedVolunteers]),
               ),
         joinedParticipants: numberOfApprovedVolunteers,
+        checkInMinutesLimit: null,
+        checkOutMinutesLimit: null,
         activityId: activity.id,
         createdAt: new Date(),
         updatedAt: new Date(),

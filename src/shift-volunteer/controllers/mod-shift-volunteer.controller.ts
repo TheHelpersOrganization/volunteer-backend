@@ -14,8 +14,8 @@ import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateShiftVolunteerInputDto,
   GetShiftVolunteerQueryDto,
+  ReviewShiftVolunteerInputDto,
   ShiftVolunteerOutputDto,
-  UpdateShiftVolunteerInputDto,
   UpdateShiftVolunteerStatus,
 } from '../dtos';
 import { ModShiftVolunteerService, ShiftVolunteerService } from '../services';
@@ -58,9 +58,9 @@ export class ModShiftVolunteerController {
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
     @Param('id') id: number,
-    @Body() dto: UpdateShiftVolunteerInputDto,
+    @Body() dto: ReviewShiftVolunteerInputDto,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.update(context, shiftId, id, dto);
+    return this.shiftVolunteerService.review(context, shiftId, id, dto);
   }
 
   @Put(':id/registration/status')

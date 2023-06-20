@@ -64,6 +64,7 @@ const seed = async () => {
         organizations,
         skills,
         volunteerAccounts,
+        modAccounts,
         defaultAccounts,
       ),
     '- Seeding activities...',
