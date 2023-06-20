@@ -13,7 +13,8 @@ import { AbstractService } from 'src/common/services';
 import { ContactService } from 'src/contact/services';
 import { LocationService } from 'src/location/services';
 import { PrismaService } from 'src/prisma';
-import { GetShiftsQueryDto, ShiftOutputDto } from '../dtos';
+import { ProfileService } from 'src/profile/services';
+import { GetShiftInclude, GetShiftsQueryDto, ShiftOutputDto } from '../dtos';
 import { ShiftService } from './shift.service';
 
 @Injectable()
@@ -24,6 +25,7 @@ export class ModShiftService extends AbstractService {
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
     private readonly shiftService: ShiftService,
+    private readonly profileService: ProfileService,
   ) {
     super(logger);
   }
@@ -33,7 +35,7 @@ export class ModShiftService extends AbstractService {
     const where = await this.shiftService.getShiftFilter(query, {
       contextAccountId: context.account.id,
     });
-    const res = await this.prisma.shift.findMany({
+    const res: any = await this.prisma.shift.findMany({
       where: where,
       take: query.limit,
       skip: query.offset,
@@ -57,6 +59,18 @@ export class ModShiftService extends AbstractService {
         shiftManagers: true,
       },
     });
+    if (
+      query.include?.includes(GetShiftInclude.ShiftVolunteerProfile) &&
+      res.shiftVolunteers
+    ) {
+      const profiles = await this.profileService.getProfiles(
+        context,
+        res.shiftVolunteers.map((v) => v.accountId),
+      );
+      res.shiftVolunteers.forEach((v) => {
+        v.profile = profiles.find((p) => p.id === v.accountId);
+      });
+    }
     return res.map((r) => this.mapToOutput(r));
   }
 

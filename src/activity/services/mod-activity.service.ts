@@ -50,6 +50,7 @@ export class ModActivityService extends AbstractService {
               },
             },
             shiftSkills: true,
+            shiftManagers: true,
           },
         },
         activitySkills: true,
@@ -63,9 +64,10 @@ export class ModActivityService extends AbstractService {
       orderBy: getActivitySort(query),
     });
     const extendedActivities = activities
-      .map(extendActivity)
+      .map((v) => extendActivity(v, { contextAccountId: context.account.id }))
       .filter((a) => filterExtendedActivity(a, query));
-    return this.outputArray(ActivityOutputDto, extendedActivities);
+    const mapped = extendedActivities.map((a) => this.mapToDto(a));
+    return this.outputArray(ActivityOutputDto, mapped);
   }
 
   async createActivity(
@@ -186,6 +188,11 @@ export class ModActivityService extends AbstractService {
       contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,
       joinedParticipants: activity.joinedParticipants,
+      me: {
+        isManager: activity.isManager,
+        isShiftManager: activity.isShiftManager,
+        shiftManagerCount: activity.shiftManagerCount,
+      },
     });
   }
 }

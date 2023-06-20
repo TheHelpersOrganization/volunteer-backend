@@ -42,6 +42,7 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGet);
 
+    const accountId = context.account.id;
     const activityQuery = getActivityFilter(context, query, {
       joiner: context.account.id,
     });
@@ -66,6 +67,7 @@ export class ActivityService extends AbstractService {
               },
             },
             shiftSkills: true,
+            shiftManagers: true,
           },
         },
         activitySkills: true,
@@ -78,9 +80,8 @@ export class ActivityService extends AbstractService {
       },
       orderBy: sort,
     });
-
     const extendedActivities = res
-      .map(extendActivity)
+      .map((v) => extendActivity(v, { contextAccountId: accountId }))
       .filter((a) => filterExtendedActivity(a, query));
 
     return extendedActivities;
@@ -93,6 +94,7 @@ export class ActivityService extends AbstractService {
   ) {
     this.logCaller(context, this.internalGetById);
 
+    const accountId = context.account.id;
     const activityQuery = getActivityFilter(context, query, {
       joiner: context.account.id,
     });
@@ -114,6 +116,7 @@ export class ActivityService extends AbstractService {
               },
             },
             shiftSkills: true,
+            shiftManagers: true,
           },
         },
         activitySkills: true,
@@ -130,7 +133,7 @@ export class ActivityService extends AbstractService {
       return null;
     }
 
-    return extendActivity(activity);
+    return extendActivity(activity, { contextAccountId: accountId });
   }
 
   async getById(
@@ -240,6 +243,11 @@ export class ActivityService extends AbstractService {
       contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,
       joinedParticipants: activity.joinedParticipants,
+      me: {
+        isManager: activity.isManager,
+        isShiftManager: activity.isShiftManager,
+        shiftManagerCount: activity.shiftManagerCount,
+      },
     });
   }
 }

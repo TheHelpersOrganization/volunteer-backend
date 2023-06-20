@@ -9,6 +9,8 @@ import { PrismaService } from 'src/prisma';
 
 import { max, min } from 'lodash';
 import { ActivityNotFoundException } from 'src/activity/exceptions';
+import { getProfileBasicSelect } from 'src/profile/dtos';
+import { ProfileService } from 'src/profile/services';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   CreateShiftInputDto,
@@ -28,6 +30,7 @@ export class ShiftService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
+    private readonly profileService: ProfileService,
   ) {
     super(logger);
   }
@@ -70,13 +73,29 @@ export class ShiftService extends AbstractService {
     const where = await this.getShiftFilter(query, {
       contextAccountId: context.account.id,
     });
-    const res = await this.prisma.shift.findMany({
+    const res: any[] = await this.prisma.shift.findMany({
       where: where,
       take: query.limit,
       skip: query.offset,
       include: this.getShiftInclude(context, query),
       orderBy: this.getShiftSort(query),
     });
+    if (query.include?.includes(GetShiftInclude.ShiftVolunteerProfile)) {
+      const set = new Set<number>();
+      res.forEach((shift) => {
+        shift.shiftVolunteers.forEach((v) => set.add(v.accountId));
+      });
+      const profiles = await this.profileService.getProfiles(context, {
+        ids: Array.from(set),
+        select: getProfileBasicSelect,
+      });
+      res.forEach((shift) => {
+        shift.shiftVolunteers.forEach((v) => {
+          v.profile = profiles.find((p) => p.id === v.accountId);
+        });
+      });
+    }
+
     return res.map((r) => this.mapToOutput(context, r));
   }
 
@@ -95,11 +114,6 @@ export class ShiftService extends AbstractService {
     if (res == null) {
       return null;
     }
-    console.log(
-      res.shiftVolunteers?.filter(
-        (v) => v.status === ShiftVolunteerStatus.Approved,
-      ).length,
-    );
     return this.mapToOutput(context, res);
   }
 
@@ -118,7 +132,6 @@ export class ShiftService extends AbstractService {
         if (activity == null) {
           throw new ActivityNotFoundException();
         }
-        console.log('sfddsfsdf');
         const locationIds = dto.locations
           ? (await this.locationService.createMany(context, dto.locations)).map(
               (l) => ({
@@ -126,7 +139,6 @@ export class ShiftService extends AbstractService {
               }),
             )
           : undefined;
-        console.log(locationIds);
         const contactIds = dto.contacts
           ? (await this.contactService.createMany(context, dto.contacts)).map(
               (d) => ({
@@ -466,11 +478,15 @@ export class ShiftService extends AbstractService {
         },
       };
     }
-    if (query.include?.includes(GetShiftInclude.ShiftVolunteer)) {
+    if (
+      query.include?.includes(GetShiftInclude.ShiftVolunteer) ||
+      query.include?.includes(GetShiftInclude.ShiftVolunteerProfile)
+    ) {
       include.shiftVolunteers = true;
     }
     if (
       query.include?.includes(GetShiftInclude.ShiftVolunteer) != true &&
+      query.include?.includes(GetShiftInclude.ShiftVolunteerProfile) != true &&
       query.include?.includes(GetShiftInclude.MyShiftVolunteer)
     ) {
       include.shiftVolunteers = {

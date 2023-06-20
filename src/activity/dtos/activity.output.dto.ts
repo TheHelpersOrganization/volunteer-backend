@@ -3,6 +3,17 @@ import { ContactOutputDto } from 'src/contact/dtos';
 import { ShortLocationOutputDto } from 'src/location/dtos';
 import { ActivityStatus } from '../constants';
 
+export class ActivityMeOutputDto {
+  @Expose()
+  isManager?: boolean;
+
+  @Expose()
+  isShiftManager?: boolean;
+
+  @Expose()
+  shiftManagerCount?: number;
+}
+
 export class ActivityOutputDto {
   @Expose()
   id: number;
@@ -15,6 +26,12 @@ export class ActivityOutputDto {
 
   @Expose()
   description: string;
+
+  @Expose()
+  startTime: Date;
+
+  @Expose()
+  endTime: Date;
 
   @Expose()
   thumbnail: number;
@@ -31,12 +48,6 @@ export class ActivityOutputDto {
   // ---- Computed fields ----
 
   @Expose()
-  startTime: Date;
-
-  @Expose()
-  endTime: Date;
-
-  @Expose()
   @Type(() => ShortLocationOutputDto)
   location: ShortLocationOutputDto;
 
@@ -49,4 +60,8 @@ export class ActivityOutputDto {
 
   @Expose()
   joinedParticipants: number;
+
+  @Expose()
+  @Type(() => ActivityMeOutputDto)
+  me?: ActivityMeOutputDto;
 }

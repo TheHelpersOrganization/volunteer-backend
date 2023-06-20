@@ -194,6 +194,9 @@ export const getActivitySort = (query: BaseGetActivityQueryDto) => {
 
 export const extendActivity = (
   activity: ExtendedActivityInput,
+  extra: {
+    contextAccountId: number;
+  },
 ): ExtendedActivity => {
   let maxParticipants: number | null = 0;
   let joinedParticipants = 0;
@@ -240,6 +243,21 @@ export const extendActivity = (
   const activityManagerIds = activity.activityManagers?.map(
     (am) => am.accountId,
   );
+  const isManager = activityManagerIds?.includes(extra.contextAccountId);
+  let isShiftManager = false;
+  let shiftManagerCount = 0;
+  activity.shifts?.forEach((shift) => {
+    const shiftManagerIds = shift.shiftManagers?.find(
+      (sm) => sm.accountId === extra.contextAccountId,
+    );
+    const res = shiftManagerIds != null;
+    if (res) {
+      shiftManagerCount++;
+      isShiftManager = true;
+    }
+    return res;
+  });
+  console.log('isShiftManager', isShiftManager);
   return {
     ...activity,
     maxParticipants,
@@ -248,6 +266,9 @@ export const extendActivity = (
     location: unionLocation,
     contacts,
     activityManagerIds,
+    isManager,
+    isShiftManager,
+    shiftManagerCount,
   };
 };
 
