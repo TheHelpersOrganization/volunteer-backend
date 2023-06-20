@@ -7,6 +7,11 @@ import { ShiftSkillOutputDto } from 'src/shift-skill/dtos';
 import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
 import { ShiftStatus } from '../constants';
 
+export class ShiftMeOutputDto {
+  @Expose()
+  isShiftManager?: boolean;
+}
+
 export class ShiftOutputDto {
   @Expose()
   id: number;
@@ -63,4 +68,8 @@ export class ShiftOutputDto {
   @Expose()
   @Type(() => ShiftVolunteerOutputDto)
   myShiftVolunteer: ShiftVolunteerOutputDto;
+
+  @Expose()
+  @Type(() => ShiftMeOutputDto)
+  me?: ShiftMeOutputDto;
 }

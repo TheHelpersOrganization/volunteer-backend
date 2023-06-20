@@ -438,7 +438,7 @@ export class ShiftService extends AbstractService {
         lte: query.availableSlots[1],
       };
     }
-    if (query.isManager && extra?.contextAccountId) {
+    if (query.isShiftManager && extra?.contextAccountId) {
       filter.shiftManagers = {
         some: {
           accountId: extra.contextAccountId,
@@ -531,6 +531,11 @@ export class ShiftService extends AbstractService {
         myShiftVolunteers?.length > 0 === true
           ? myShiftVolunteers.find((sv) => sv.active === true)
           : null,
+      me: {
+        isShiftManager: raw.shiftManagers?.some(
+          (v) => v.accountId === context.account.id,
+        ),
+      },
     });
   }
 }
