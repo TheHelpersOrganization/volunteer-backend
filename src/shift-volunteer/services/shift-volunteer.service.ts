@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, VolunteerShift } from '@prisma/client';
+import * as dayjs from 'dayjs';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -10,7 +11,12 @@ import { ShiftSkillService } from 'src/shift-skill/services';
 import { ShiftStatus } from 'src/shift/constants';
 import {
   InvalidStatusException,
-  ShiftHasAlreadyStartedException,
+  ShiftCheckInTimeLimitExceededException,
+  ShiftCheckOutTimeLimitExceededException,
+  ShiftHasEndedException,
+  ShiftHasNotYetEndedException,
+  ShiftHasNotYetStartedException,
+  ShiftHasStartedException,
   ShiftIsFullException,
   ShiftNotFoundException,
 } from 'src/shift/exceptions';
@@ -18,14 +24,17 @@ import { ShiftVolunteerStatus } from '../constants';
 import {
   CreateShiftVolunteerInputDto,
   GetShiftVolunteerQueryDto,
+  ReviewShiftVolunteerInputDto,
   ShiftVolunteerInclude,
   ShiftVolunteerOutputDto,
-  UpdateShiftVolunteerInputDto,
   UpdateShiftVolunteerStatus,
+  VerifyCheckInInputDto,
+  VerifyVolunteerCheckInByIdInputDto,
 } from '../dtos';
 import {
   VolunteerHasAlreadyJoinedShiftException,
   VolunteerHasNotJoinedShiftException,
+  VolunteerNotFoundException,
   VolunteerStatusNotApprovedException,
 } from '../exception';
 
@@ -305,7 +314,7 @@ export class ShiftVolunteerService extends AbstractService {
     }
 
     if (shift.status !== ShiftStatus.Pending) {
-      throw new ShiftHasAlreadyStartedException();
+      throw new ShiftHasStartedException();
     }
 
     if (shift.availableSlots != null && shift.availableSlots <= 0) {
@@ -406,7 +415,7 @@ export class ShiftVolunteerService extends AbstractService {
     }
 
     if (shift.status !== ShiftStatus.Pending) {
-      throw new ShiftHasAlreadyStartedException();
+      throw new ShiftHasStartedException();
     }
 
     const res = this.prisma.$transaction(async (tx) => {
@@ -468,13 +477,13 @@ export class ShiftVolunteerService extends AbstractService {
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  async update(
+  async review(
     context: RequestContext,
     shiftId: number,
     id: number,
-    dto: UpdateShiftVolunteerInputDto,
+    dto: ReviewShiftVolunteerInputDto,
   ): Promise<ShiftVolunteerOutputDto> {
-    this.logCaller(context, this.update);
+    this.logCaller(context, this.review);
 
     const shift = await this.prisma.shift.findUnique({
       where: {
@@ -488,13 +497,12 @@ export class ShiftVolunteerService extends AbstractService {
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
         id: id,
+        shiftId: shiftId,
+        status: ShiftVolunteerStatus.Approved,
         active: true,
       },
     });
     if (shiftVolunteer == null) {
-      throw new InvalidStatusException();
-    }
-    if (shiftVolunteer.status != ShiftVolunteerStatus.Approved) {
       throw new InvalidStatusException();
     }
 
@@ -502,7 +510,10 @@ export class ShiftVolunteerService extends AbstractService {
       where: {
         id: id,
       },
-      data: dto,
+      data: {
+        ...dto,
+        reviewerId: context.account.id,
+      },
     });
 
     return this.output(ShiftVolunteerOutputDto, res);
@@ -649,6 +660,177 @@ export class ShiftVolunteerService extends AbstractService {
       return res;
     });
 
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async checkIn(
+    context: RequestContext,
+    shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    this.logCaller(context, this.checkIn);
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const volunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+        status: ShiftVolunteerStatus.Approved,
+        active: true,
+      },
+    });
+    if (volunteer == null) {
+      throw new VolunteerNotFoundException();
+    }
+    if (dayjs(shift.startTime).isAfter(dayjs())) {
+      throw new ShiftHasNotYetStartedException();
+    }
+    if (dayjs(shift.endTime).isBefore(dayjs())) {
+      throw new ShiftHasEndedException();
+    }
+    if (
+      shift.checkInMinutesLimit &&
+      dayjs(shift.startTime)
+        .add(shift.checkInMinutesLimit ?? 0, 'minute')
+        .isBefore(dayjs())
+    ) {
+      throw new ShiftCheckInTimeLimitExceededException();
+    }
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: volunteer.id,
+      },
+      data: {
+        checkedIn: true,
+      },
+    });
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async checkOut(
+    context: RequestContext,
+    shiftId: number,
+  ): Promise<ShiftVolunteerOutputDto> {
+    this.logCaller(context, this.checkOut);
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const volunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        shiftId: shiftId,
+        accountId: context.account.id,
+        status: ShiftVolunteerStatus.Approved,
+        active: true,
+      },
+    });
+    if (volunteer == null) {
+      throw new VolunteerNotFoundException();
+    }
+    if (dayjs(shift.endTime).isAfter(dayjs())) {
+      throw new ShiftHasNotYetEndedException();
+    }
+    if (
+      shift.checkOutMinutesLimit &&
+      dayjs(shift.endTime)
+        .add(shift.checkOutMinutesLimit ?? 0, 'minute')
+        .isBefore(dayjs())
+    ) {
+      throw new ShiftCheckOutTimeLimitExceededException();
+    }
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: volunteer.id,
+      },
+      data: {
+        checkedOut: true,
+      },
+    });
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async verifyCheckIn(
+    context: RequestContext,
+    shiftId: number,
+    dto: VerifyCheckInInputDto,
+  ) {
+    this.logCaller(context, this.verifyCheckIn);
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const res = await this.prisma.$transaction(async (tx) => {
+      const res: VolunteerShift[] = [];
+      for (const volunteer of dto.volunteers) {
+        const r = await tx.volunteerShift.update({
+          where: {
+            id: volunteer.id,
+            shiftId: shiftId,
+            status: ShiftVolunteerStatus.Approved,
+            active: true,
+          },
+          data: {
+            isCheckInVerified: volunteer.checkIn,
+            isCheckOutVerified: volunteer.checkOut,
+            checkInOutVerifierId: context.account.id,
+          },
+        });
+        res.push(r);
+      }
+      return res;
+    });
+    return this.outputArray(ShiftVolunteerOutputDto, res);
+  }
+
+  async verifyCheckInById(
+    context: RequestContext,
+    shiftId: number,
+    id: number,
+    dto: VerifyVolunteerCheckInByIdInputDto,
+  ) {
+    this.logCaller(context, this.verifyCheckInById);
+    const shift = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const volunteer = await this.prisma.volunteerShift.findUnique({
+      where: {
+        id: id,
+        shiftId: shiftId,
+        status: ShiftVolunteerStatus.Approved,
+        active: true,
+      },
+    });
+    if (volunteer == null) {
+      throw new VolunteerNotFoundException();
+    }
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isCheckInVerified: dto.checkIn,
+        isCheckOutVerified: dto.checkOut,
+        checkInOutVerifierId: context.account.id,
+      },
+    });
     return this.output(ShiftVolunteerOutputDto, res);
   }
 }

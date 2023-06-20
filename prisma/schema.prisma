@@ -10,30 +10,32 @@ datasource db {
 }
 
 model Account {
-  id                    Int                   @id @default(autoincrement())
-  email                 String                @unique
-  password              String
-  isAccountDisabled     Boolean               @default(false)
-  isAccountVerified     Boolean               @default(false)
-  createdAt             DateTime?             @default(now())
-  updatedAt             DateTime?             @default(now()) @updatedAt
-  files                 File[]
-  profile               Profile?
-  tokens                Token[]
-  organizationOwners    Organization[]        @relation(name: "organizationOwner")
-  members               Member[]              @relation(name: "memberAccount")
-  memberCensors         Member[]              @relation(name: "memberCensor")
-  activityManagers      ActivityManager[]
-  organizationVerifiers Organization[]        @relation(name: "organizationVerifier")
-  volunteerSkills       VolunteerSkill[]
-  volunteerShifts       VolunteerShift[]      @relation(name: "volunteerShiftAccount")
-  volunteerShiftCensors VolunteerShift[]      @relation(name: "volunteerShiftCensor")
-  shiftManagers         ShiftManager[]
-  accountRoles          AccountRole[]
-  accountBannedBy       AccountBan[]          @relation(name: "accountBannedBy")
-  accountBan            AccountBan[]          @relation(name: "accountBan")
-  accountVerifiedBy     AccountVerification[] @relation(name: "accountVerifiedBy")
-  accountVerification   AccountVerification[] @relation(name: "accountVerification")
+  id                               Int                   @id @default(autoincrement())
+  email                            String                @unique
+  password                         String
+  isAccountDisabled                Boolean               @default(false)
+  isAccountVerified                Boolean               @default(false)
+  createdAt                        DateTime?             @default(now())
+  updatedAt                        DateTime?             @default(now()) @updatedAt
+  files                            File[]
+  profile                          Profile?
+  tokens                           Token[]
+  organizationOwners               Organization[]        @relation(name: "organizationOwner")
+  members                          Member[]              @relation(name: "memberAccount")
+  memberCensors                    Member[]              @relation(name: "memberCensor")
+  activityManagers                 ActivityManager[]
+  organizationVerifiers            Organization[]        @relation(name: "organizationVerifier")
+  volunteerSkills                  VolunteerSkill[]
+  volunteerShifts                  VolunteerShift[]      @relation(name: "volunteerShiftAccount")
+  volunteerShiftCensors            VolunteerShift[]      @relation(name: "volunteerShiftCensor")
+  shiftManagers                    ShiftManager[]
+  accountRoles                     AccountRole[]
+  accountBannedBy                  AccountBan[]          @relation(name: "accountBannedBy")
+  accountBan                       AccountBan[]          @relation(name: "accountBan")
+  accountVerifiedBy                AccountVerification[] @relation(name: "accountVerifiedBy")
+  accountVerification              AccountVerification[] @relation(name: "accountVerification")
+  volunteerShiftCheckInOutVerifier VolunteerShift[]      @relation(name: "volunteerShiftCheckInOutVerifier")
+  volunteerShiftReviewer           VolunteerShift[]      @relation(name: "volunteerShiftReviewer")
 }
 
 model Role {
@@ -157,6 +159,7 @@ model Skill {
   createdAt               DateTime?                @default(now())
   updatedAt               DateTime?                @default(now()) @updatedAt
   shiftSkills             ShiftSkill[]
+  shiftSkillValue         ShiftSkillValue[]
   volunteerSkills         VolunteerSkill[]
   profileInterestedSkills ProfileInterestedSkill[]
   organizationSkills      OrganizationSkill[]
@@ -184,26 +187,29 @@ model Activity {
 }
 
 model Shift {
-  id                    Int              @id @default(autoincrement())
+  id                    Int               @id @default(autoincrement())
   name                  String
   description           String?
   startTime             DateTime
   endTime               DateTime
-  status                String           @default("pending")
-  automaticStatusUpdate Boolean          @default(true)
+  status                String            @default("pending")
+  automaticStatusUpdate Boolean           @default(true)
   numberOfParticipants  Int?
   availableSlots        Int?
-  joinedParticipants    Int              @default(0)
-  createdAt             DateTime?        @default(now())
-  updatedAt             DateTime?        @default(now()) @updatedAt
+  joinedParticipants    Int               @default(0)
+  checkInMinutesLimit   Int?
+  checkOutMinutesLimit  Int?
+  createdAt             DateTime?         @default(now())
+  updatedAt             DateTime?         @default(now()) @updatedAt
   activityId            Int
-  activity              Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activity              Activity          @relation(fields: [activityId], references: [id], onDelete: Cascade)
   shiftLocations        ShiftLocation[]
   shiftContacts         ShiftContact[]
   shiftSkills           ShiftSkill[]
   shiftVolunteers       VolunteerShift[]
   shiftManagers         ShiftManager[]
   shiftMetadata         ShiftMetadata?
+  shiftSkillValue       ShiftSkillValue[]
 }
 
 model ShiftMetadata {
@@ -393,21 +399,42 @@ model ShiftSkill {
   @@id([shiftId, skillId])
 }
 
+model ShiftSkillValue {
+  shiftId   Int
+  skillId   Int
+  hours     Float
+  shift     Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  @@id([shiftId, skillId])
+}
+
 model VolunteerShift {
-  id              Int       @id @default(autoincrement())
-  shiftId         Int
-  accountId       Int
-  attendant       Boolean   @default(false)
-  status          String
-  active          Boolean   @default(true)
-  completion      Float     @default(0)
-  censorId        Int?
-  shift           Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
-  account         Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
-  censor          Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
-  rejectionReason String?
-  createdAt       DateTime? @default(now())
-  updatedAt       DateTime? @default(now()) @updatedAt
+  id                   Int       @id @default(autoincrement())
+  shiftId              Int
+  shift                Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  accountId            Int
+  account              Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  status               String
+  active               Boolean   @default(true)
+  rejectionReason      String?
+  censorId             Int?
+  censor               Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  attendant            Boolean   @default(false)
+  checkedIn            Boolean?
+  checkedOut           Boolean?
+  isCheckInVerified    Boolean?
+  isCheckOutVerified   Boolean?
+  checkInOutVerifierId Int?
+  checkInOutVerifier   Account?  @relation(name: "volunteerShiftCheckInOutVerifier", fields: [checkInOutVerifierId], references: [id], onDelete: SetNull)
+  completion           Float     @default(0)
+  reviewNote           String?
+  reviewerId           Int?
+  reviewer             Account?  @relation(name: "volunteerShiftReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  createdAt            DateTime? @default(now())
+  updatedAt            DateTime? @default(now()) @updatedAt
 }
 
 model ShiftManager {
