@@ -10,10 +10,10 @@ import {
 
 export class VerifyVolunteerCheckInByIdInputDto {
   @IsBoolean()
-  checkIn: boolean;
+  checkedIn: boolean;
 
   @IsBoolean()
-  checkOut: boolean;
+  checkedOut: boolean;
 }
 
 export class VerifyVolunteerCheckInInputDto {
@@ -21,10 +21,10 @@ export class VerifyVolunteerCheckInInputDto {
   id: number;
 
   @IsBoolean()
-  checkIn: boolean;
+  checkedIn: boolean;
 
   @IsBoolean()
-  checkOut: boolean;
+  checkedOut: boolean;
 }
 
 export class VerifyCheckInInputDto {
