@@ -3,6 +3,7 @@ import { ContactOutputDto } from 'src/contact/dtos';
 import { LocationOutputDto } from 'src/location/dtos';
 import { ShiftManagerOutputDto } from './shift-manager.output.dto';
 
+import { ActivityOutputDto } from 'src/activity/dtos';
 import { ShiftSkillOutputDto } from 'src/shift-skill/dtos';
 import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
 import { ShiftStatus } from '../constants';
@@ -72,4 +73,8 @@ export class ShiftOutputDto {
   @Expose()
   @Type(() => ShiftMeOutputDto)
   me?: ShiftMeOutputDto;
+
+  @Expose()
+  @Type(() => ActivityOutputDto)
+  activity: ActivityOutputDto;
 }

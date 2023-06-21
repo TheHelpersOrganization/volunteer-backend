@@ -471,6 +471,17 @@ export class ShiftService extends AbstractService {
         },
       },
     };
+    if (query.include?.includes(GetShiftInclude.Activity)) {
+      include.activity = {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          status: true,
+          organizationId: true,
+        },
+      };
+    }
     if (query.include?.includes(GetShiftInclude.ShiftSkill)) {
       include.shiftSkills = {
         include: {
