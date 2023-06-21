@@ -783,8 +783,8 @@ export class ShiftVolunteerService extends AbstractService {
             active: true,
           },
           data: {
-            isCheckInVerified: volunteer.checkIn,
-            isCheckOutVerified: volunteer.checkOut,
+            isCheckInVerified: volunteer.checkedIn,
+            isCheckOutVerified: volunteer.checkedOut,
             checkInOutVerifierId: context.account.id,
           },
         });
@@ -826,8 +826,8 @@ export class ShiftVolunteerService extends AbstractService {
         id: id,
       },
       data: {
-        isCheckInVerified: dto.checkIn,
-        isCheckOutVerified: dto.checkOut,
+        isCheckInVerified: dto.checkedIn,
+        isCheckOutVerified: dto.checkedOut,
         checkInOutVerifierId: context.account.id,
       },
     });
