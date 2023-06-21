@@ -11,6 +11,12 @@ import { ShiftStatus } from '../constants';
 export class ShiftMeOutputDto {
   @Expose()
   isShiftManager?: boolean;
+
+  @Expose()
+  canCheckIn?: boolean;
+
+  @Expose()
+  canCheckOut?: boolean;
 }
 
 export class ShiftOutputDto {

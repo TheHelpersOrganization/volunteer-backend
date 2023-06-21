@@ -6,6 +6,7 @@ import { LocationModule } from 'src/location/location.module';
 import { ActivityModule } from 'src/activity/activity.module';
 import { ProfileModule } from 'src/profile/profile.module';
 import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
+import { ShiftVolunteerModule } from 'src/shift-volunteer/shift-volunteer.module';
 import {
   ActivityShiftController,
   ModShiftController,
@@ -21,6 +22,7 @@ import { ModShiftService, ShiftService, ShiftTaskService } from './services';
     ShiftSkillModule,
     ProfileModule,
     ActivityModule,
+    ShiftVolunteerModule,
   ],
   controllers: [ActivityShiftController, ShiftController, ModShiftController],
   providers: [ShiftService, ModShiftService, ShiftTaskService],

@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AccountVerification, Prisma } from '@prisma/client';
-import {
-  AccountAlreadyVerifiedException,
-  AccountIsAlreadyAwaitingVerificationException,
-} from 'src/account/exceptions';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
@@ -17,6 +13,13 @@ import {
   GetAccountVerificationQueryDto,
   GetAccountVerificationsQueryDto,
 } from '../dtos';
+import {
+  AccountAlreadyVerifiedException,
+  AccountIsAlreadyAwaitingVerificationException,
+  AccountVerificationIsBlockedException,
+  NoBlockedAccountVerificationException,
+  NoPendingAccountVerificationException,
+} from '../exceptions';
 
 @Injectable()
 export class AccountVerificationService extends AbstractService {
@@ -85,11 +88,22 @@ export class AccountVerificationService extends AbstractService {
       await this.prisma.accountVerification.findFirst({
         where: {
           accountId: account.id,
-          status: AccountVerificationStatus.Pending,
+          status: {
+            in: [
+              AccountVerificationStatus.Pending,
+              AccountVerificationStatus.Blocked,
+            ],
+          },
         },
       });
-    if (existingVerificationRequest) {
+    if (
+      existingVerificationRequest?.status == AccountVerificationStatus.Pending
+    ) {
       throw new AccountIsAlreadyAwaitingVerificationException();
+    } else if (
+      existingVerificationRequest?.status == AccountVerificationStatus.Blocked
+    ) {
+      throw new AccountVerificationIsBlockedException();
     }
 
     const verificationRequest = await this.prisma.accountVerification.create({
@@ -108,6 +122,54 @@ export class AccountVerificationService extends AbstractService {
     });
 
     return this.mapToDto(verificationRequest);
+  }
+
+  async blockVerificationRequest(context: RequestContext, id: number) {
+    this.logCaller(context, this.blockVerificationRequest);
+
+    const existingVerificationRequest =
+      await this.prisma.accountVerification.findFirst({
+        where: {
+          id: id,
+          status: AccountVerificationStatus.Pending,
+        },
+      });
+    if (
+      existingVerificationRequest?.status != AccountVerificationStatus.Pending
+    ) {
+      throw new NoPendingAccountVerificationException();
+    }
+
+    return this.prisma.accountVerification.update({
+      where: { id: id },
+      data: {
+        status: AccountVerificationStatus.Blocked,
+        performedBy: context.account.id,
+      },
+    });
+  }
+
+  async unblockVerificationRequest(context: RequestContext, id: number) {
+    this.logCaller(context, this.unblockVerificationRequest);
+
+    const existingVerificationRequest =
+      await this.prisma.accountVerification.findFirst({
+        where: {
+          id: id,
+          status: AccountVerificationStatus.Blocked,
+        },
+      });
+    if (existingVerificationRequest == null) {
+      throw new NoBlockedAccountVerificationException();
+    }
+
+    return this.prisma.accountVerification.update({
+      where: { id: id },
+      data: {
+        status: AccountVerificationStatus.Pending,
+        performedBy: context.account.id,
+      },
+    });
   }
 
   getFilter(query: GetAccountVerificationsQueryDto) {

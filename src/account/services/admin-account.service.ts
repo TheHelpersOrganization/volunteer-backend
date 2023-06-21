@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { AccountVerificationStatus } from 'src/account-verification/constants';
-import { AccountHasNoPendingVerificationRequestException } from 'src/account-verification/exceptions';
+import {
+  AccountVerificationIsBlockedException,
+  NoPendingAccountVerificationException,
+  UnableToVerifySelfAccountException,
+} from 'src/account-verification/exceptions';
 import { Role } from 'src/auth/constants';
 import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
 import { AppLogger } from 'src/common/logger';
@@ -17,10 +21,7 @@ import {
   GetAccountIncludes,
   GetAccountQueryDto,
 } from '../dtos';
-import {
-  UnableToBanSelfAccountException,
-  UnableToVerifySelfAccountException,
-} from '../exceptions';
+import { UnableToBanSelfAccountException } from '../exceptions';
 import { RawExtendedAccount } from '../types';
 
 @Injectable()
@@ -105,11 +106,19 @@ export class AdminAccountService extends AbstractService {
     const verification = await this.prisma.accountVerification.findFirst({
       where: {
         accountId: id,
-        status: AccountVerificationStatus.Pending,
+        status: {
+          in: [
+            AccountVerificationStatus.Pending,
+            AccountVerificationStatus.Blocked,
+          ],
+        },
       },
     });
     if (!verification) {
-      throw new AccountHasNoPendingVerificationRequestException();
+      throw new NoPendingAccountVerificationException();
+    }
+    if (verification.status === AccountVerificationStatus.Blocked) {
+      throw new AccountVerificationIsBlockedException();
     }
 
     const updated = await this.prisma.$transaction(
