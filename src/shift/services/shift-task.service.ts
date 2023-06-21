@@ -78,7 +78,7 @@ export class ShiftTaskService extends AbstractService {
         }
       });
       if (updateToPending.length > 0) {
-        await this.prisma.volunteerShift.updateMany({
+        await this.prisma.shift.updateMany({
           where: {
             id: {
               in: updateToPending,
@@ -90,7 +90,7 @@ export class ShiftTaskService extends AbstractService {
         });
       }
       if (updateToOngoing.length > 0) {
-        await this.prisma.volunteerShift.updateMany({
+        await this.prisma.shift.updateMany({
           where: {
             id: {
               in: updateToOngoing,
@@ -102,7 +102,7 @@ export class ShiftTaskService extends AbstractService {
         });
       }
       if (updateToCompleted.length > 0) {
-        await this.prisma.volunteerShift.updateMany({
+        await this.prisma.shift.updateMany({
           where: {
             id: {
               in: updateToCompleted,

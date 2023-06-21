@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
@@ -55,6 +56,28 @@ export class AccountVerificationController {
       context,
       dto,
       query,
+    );
+  }
+
+  @Put(':id/block')
+  async blockVerificationRequest(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.accountVerificationService.blockVerificationRequest(
+      context,
+      id,
+    );
+  }
+
+  @Put(':id/unblock')
+  async unblockVerificationRequest(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.accountVerificationService.unblockVerificationRequest(
+      context,
+      id,
     );
   }
 }

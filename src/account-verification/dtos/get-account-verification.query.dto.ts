@@ -5,6 +5,7 @@ import { AccountVerificationStatus } from '../constants';
 
 export enum GetAccountVerificationInclude {
   File = 'file',
+  History = 'history',
 }
 
 export class GetAccountVerificationQueryDto extends PaginationParamsDto {

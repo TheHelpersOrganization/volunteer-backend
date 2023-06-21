@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, VolunteerShift } from '@prisma/client';
+import { Prisma, Shift, VolunteerShift } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
@@ -687,20 +687,7 @@ export class ShiftVolunteerService extends AbstractService {
     if (volunteer == null) {
       throw new VolunteerNotFoundException();
     }
-    if (dayjs(shift.startTime).isAfter(dayjs())) {
-      throw new ShiftHasNotYetStartedException();
-    }
-    if (dayjs(shift.endTime).isBefore(dayjs())) {
-      throw new ShiftHasEndedException();
-    }
-    if (
-      shift.checkInMinutesLimit &&
-      dayjs(shift.startTime)
-        .add(shift.checkInMinutesLimit ?? 0, 'minute')
-        .isBefore(dayjs())
-    ) {
-      throw new ShiftCheckInTimeLimitExceededException();
-    }
+    this.checkCanCheckIn(shift);
     const res = await this.prisma.volunteerShift.update({
       where: {
         id: volunteer.id,
@@ -710,6 +697,33 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  checkCanCheckIn(shift: Shift, throwException = true) {
+    if (dayjs(shift.startTime).isAfter(dayjs())) {
+      if (throwException) {
+        throw new ShiftHasNotYetStartedException();
+      }
+      return false;
+    }
+    if (dayjs(shift.endTime).isBefore(dayjs())) {
+      if (throwException) {
+        throw new ShiftHasEndedException();
+      }
+      return false;
+    }
+    if (
+      shift.checkInMinutesLimit &&
+      dayjs(shift.startTime)
+        .add(shift.checkInMinutesLimit ?? 0, 'minute')
+        .isBefore(dayjs())
+    ) {
+      if (throwException) {
+        throw new ShiftCheckInTimeLimitExceededException();
+      }
+      return false;
+    }
+    return true;
   }
 
   async checkOut(
@@ -736,17 +750,7 @@ export class ShiftVolunteerService extends AbstractService {
     if (volunteer == null) {
       throw new VolunteerNotFoundException();
     }
-    if (dayjs(shift.endTime).isAfter(dayjs())) {
-      throw new ShiftHasNotYetEndedException();
-    }
-    if (
-      shift.checkOutMinutesLimit &&
-      dayjs(shift.endTime)
-        .add(shift.checkOutMinutesLimit ?? 0, 'minute')
-        .isBefore(dayjs())
-    ) {
-      throw new ShiftCheckOutTimeLimitExceededException();
-    }
+    this.checkCanCheckOut(shift);
     const res = await this.prisma.volunteerShift.update({
       where: {
         id: volunteer.id,
@@ -756,6 +760,27 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  checkCanCheckOut(shift: Shift, throwException = true) {
+    if (dayjs(shift.endTime).isAfter(dayjs())) {
+      if (throwException) {
+        throw new ShiftHasNotYetEndedException();
+      }
+      return false;
+    }
+    if (
+      shift.checkOutMinutesLimit &&
+      dayjs(shift.endTime)
+        .add(shift.checkOutMinutesLimit ?? 0, 'minute')
+        .isBefore(dayjs())
+    ) {
+      if (throwException) {
+        throw new ShiftCheckOutTimeLimitExceededException();
+      }
+      return false;
+    }
+    return true;
   }
 
   async verifyCheckIn(

@@ -12,6 +12,7 @@ import { ActivityNotFoundException } from 'src/activity/exceptions';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import { ShiftVolunteerService } from 'src/shift-volunteer/services';
 import {
   CreateShiftInputDto,
   GetShiftInclude,
@@ -31,6 +32,7 @@ export class ShiftService extends AbstractService {
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
     private readonly profileService: ProfileService,
+    private readonly shiftVolunteerService: ShiftVolunteerService,
   ) {
     super(logger);
   }
@@ -461,6 +463,7 @@ export class ShiftService extends AbstractService {
           contact: true,
         },
       },
+      shiftManagers: true,
       _count: {
         select: {
           shiftVolunteers: {
@@ -533,19 +536,27 @@ export class ShiftService extends AbstractService {
     const myShiftVolunteers: VolunteerShift[] = raw.shiftVolunteers?.filter(
       (sv) => sv.accountId == context.account.id,
     );
+    const myShiftVolunteer = myShiftVolunteers?.find(
+      (sv) => sv.active === true,
+    );
+    const canCheckIn =
+      myShiftVolunteer?.status === ShiftVolunteerStatus.Approved &&
+      this.shiftVolunteerService.checkCanCheckIn(raw, false);
+    const canCheckOut =
+      myShiftVolunteer?.status === ShiftVolunteerStatus.Approved &&
+      this.shiftVolunteerService.checkCanCheckOut(raw, false);
 
     return this.output(ShiftOutputDto, {
       ...raw,
       locations: raw.shiftLocations?.map((sl) => sl.location),
       contacts: raw.shiftContacts?.map((sc) => sc.contact),
-      myShiftVolunteer:
-        myShiftVolunteers?.length > 0 === true
-          ? myShiftVolunteers.find((sv) => sv.active === true)
-          : null,
+      myShiftVolunteer: myShiftVolunteer,
       me: {
         isShiftManager: raw.shiftManagers?.some(
           (v) => v.accountId === context.account.id,
         ),
+        canCheckIn: canCheckIn,
+        canCheckOut: canCheckOut,
       },
     });
   }
