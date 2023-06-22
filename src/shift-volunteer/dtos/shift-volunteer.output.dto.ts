@@ -23,6 +23,12 @@ export class ShiftVolunteerOutputDto {
   checkedIn?: boolean;
 
   @Expose()
+  checkInAt?: Date;
+
+  @Expose()
+  checkOutAt?: Date;
+
+  @Expose()
   checkedOut?: boolean;
 
   @Expose()
