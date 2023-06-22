@@ -14,6 +14,7 @@ import {
   Skill,
   VolunteerShift,
 } from '@prisma/client';
+import * as dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { ActivityStatus } from 'src/activity/constants';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
@@ -154,26 +155,49 @@ export const seedActivities = async (
       let shiftStartTime: Date;
       let shiftEndTime: Date;
       if (shiftStatus === ShiftStatus.Pending) {
-        shiftStartTime = fakerEn.date.future({ years: 0.05, refDate: refTime });
-        shiftEndTime = fakerEn.date.future({
-          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
-          refDate: shiftStartTime,
-        });
+        shiftStartTime = fakerEn.date.soon({ days: 30, refDate: refTime });
+
+        let interval = dayjs(shiftStartTime)
+          .add(1, 'day')
+          .startOf('day')
+          .diff(shiftStartTime, 'hour');
+        if (interval < 1) {
+          shiftStartTime = dayjs(shiftStartTime).subtract(3, 'hour').toDate();
+          interval += 3;
+        }
+
+        shiftEndTime = dayjs(shiftStartTime)
+          .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
+          .toDate();
       } else if (shiftStatus === ShiftStatus.Ongoing) {
         shiftStartTime = fakerEn.date.past({
           years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
           refDate: refTime,
         });
-        shiftEndTime = fakerEn.date.future({
-          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
-          refDate: shiftStartTime,
-        });
+        let interval = dayjs(shiftStartTime)
+          .add(1, 'day')
+          .startOf('day')
+          .diff(shiftStartTime, 'hour');
+        if (interval < 1) {
+          shiftStartTime = dayjs(shiftStartTime).subtract(3, 'hour').toDate();
+          interval += 3;
+        }
+        shiftEndTime = dayjs(shiftStartTime)
+          .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
+          .toDate();
       } else {
         shiftStartTime = fakerEn.date.past({ years: 1, refDate: refTime });
-        shiftEndTime = fakerEn.date.future({
-          years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
-          refDate: shiftStartTime,
-        });
+        let interval = dayjs(shiftStartTime)
+          .add(1, 'day')
+          .startOf('day')
+          .diff(shiftStartTime, 'hour');
+        if (interval < 1) {
+          shiftStartTime = dayjs(shiftStartTime).subtract(3, 'hour').toDate();
+          interval += 3;
+        }
+        shiftEndTime = dayjs(shiftStartTime)
+          .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
+          .toDate();
       }
       const numberOfParticipants = fakerEn.number.int({ min: 5, max: 30 });
 
@@ -254,16 +278,32 @@ export const seedActivities = async (
           shiftStatus === ShiftStatus.Completed
             ? fakerEn.datatype.boolean()
             : false;
-
+        const checkedIn = attendant ? fakerEn.datatype.boolean() : null;
+        const checkedInAt = checkedIn
+          ? fakerEn.date.between({
+              from: shiftStartTime,
+              to: shiftEndTime,
+            })
+          : null;
+        const checkedOut = checkedIn ? fakerEn.datatype.boolean() : null;
+        const checkOutAt =
+          checkedOut && checkedInAt
+            ? fakerEn.date.between({
+                from: checkedInAt,
+                to: shiftEndTime,
+              })
+            : null;
         shiftVolunteers.push({
           id: getNextShiftVolunteerId(),
           shiftId: shiftId,
           status: status,
           attendant: attendant,
-          checkedIn: attendant ? fakerEn.datatype.boolean() : false,
-          checkedOut: attendant ? fakerEn.datatype.boolean() : false,
-          isCheckInVerified: attendant ? fakerEn.datatype.boolean() : false,
-          isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : false,
+          checkedIn: checkedIn,
+          checkInAt: checkedInAt,
+          checkedOut: checkedOut,
+          checkOutAt: checkOutAt,
+          isCheckInVerified: attendant ? fakerEn.datatype.boolean() : null,
+          isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : null,
           checkInOutVerifierId: attendant
             ? fakerEn.helpers.arrayElement(modAccounts).id
             : null,
@@ -337,15 +377,32 @@ export const seedActivities = async (
             shiftStatus === ShiftStatus.Completed
               ? fakerEn.datatype.boolean()
               : false;
+          const checkedIn = attendant ? fakerEn.datatype.boolean() : null;
+          const checkedInAt = checkedIn
+            ? fakerEn.date.between({
+                from: shiftStartTime,
+                to: shiftEndTime,
+              })
+            : null;
+          const checkedOut = checkedIn ? fakerEn.datatype.boolean() : null;
+          const checkOutAt =
+            checkedOut && checkedInAt
+              ? fakerEn.date.between({
+                  from: checkedInAt,
+                  to: shiftEndTime,
+                })
+              : null;
           shiftVolunteers.push({
             id: getNextShiftVolunteerId(),
             shiftId: shiftId,
             status: status,
             attendant: attendant,
-            checkedIn: attendant ? fakerEn.datatype.boolean() : false,
-            checkedOut: attendant ? fakerEn.datatype.boolean() : false,
-            isCheckInVerified: attendant ? fakerEn.datatype.boolean() : false,
-            isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : false,
+            checkedIn: checkedIn,
+            checkInAt: checkedInAt,
+            checkedOut: checkedOut,
+            checkOutAt: checkOutAt,
+            isCheckInVerified: attendant ? fakerEn.datatype.boolean() : null,
+            isCheckOutVerified: attendant ? fakerEn.datatype.boolean() : null,
             checkInOutVerifierId: attendant
               ? fakerEn.helpers.arrayElement(modAccounts).id
               : null,
@@ -355,7 +412,7 @@ export const seedActivities = async (
             reviewerId: attendant
               ? fakerEn.helpers.arrayElement(volunteerAccounts).id
               : null,
-            reviewNote: fakerEn.lorem.sentence(),
+            reviewNote: attendant ? fakerEn.lorem.sentence() : null,
             accountId: account.id,
             active: false,
             censorId: [

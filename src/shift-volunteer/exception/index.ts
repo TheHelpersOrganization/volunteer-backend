@@ -10,3 +10,21 @@ export class VolunteerNotFoundException extends BaseApiException {
     super('Volunteer not found', undefined, 404);
   }
 }
+
+export class VolunteerHasAlreadyCheckedInException extends BaseApiException {
+  constructor() {
+    super('Volunteer has already checked in');
+  }
+}
+
+export class VolunteerHasNotCheckedInException extends BaseApiException {
+  constructor() {
+    super('Volunteer has not checked in');
+  }
+}
+
+export class VolunteerHasAlreadyCheckedOutException extends BaseApiException {
+  constructor() {
+    super('Volunteer has already checked out');
+  }
+}

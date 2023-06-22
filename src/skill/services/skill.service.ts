@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PaginationParamsDto } from 'src/common/dtos';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';

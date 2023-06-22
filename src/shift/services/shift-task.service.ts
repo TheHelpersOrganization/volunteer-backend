@@ -19,7 +19,7 @@ export class ShiftTaskService extends AbstractService {
 
   // Perform automatic status update for shifts
   // Need to use cursor to get data slowly
-  @Interval(60 * 60 * 1000)
+  @Interval(10 * 60 * 1000)
   async updateShiftVolunteerStatus() {
     this.logCaller(undefined, this.updateShiftVolunteerStatus);
     const where: Prisma.ShiftWhereInput = {

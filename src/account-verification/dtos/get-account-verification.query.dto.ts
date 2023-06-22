@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 import { AccountVerificationStatus } from '../constants';
 
 export enum GetAccountVerificationInclude {
@@ -8,7 +8,7 @@ export enum GetAccountVerificationInclude {
   History = 'history',
 }
 
-export class GetAccountVerificationQueryDto extends PaginationParamsDto {
+export class GetAccountVerificationQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(GetAccountVerificationInclude, { each: true })
   @Transform(({ value }) => value.split(','))

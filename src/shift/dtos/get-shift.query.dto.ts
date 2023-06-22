@@ -10,7 +10,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBoolean } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from '../constants';
@@ -31,7 +31,7 @@ export enum GetShiftSort {
   EndTimeDescending = '-endTime',
 }
 
-export class GetShiftsQueryDto extends PaginationParamsDto {
+export class GetShiftsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })

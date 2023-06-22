@@ -15,7 +15,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 import {
   separatedCommaNumberArrayTransform,
   stringToBoolean,
@@ -37,7 +37,7 @@ export enum GetActivitySort {
   EndTimeDesc = '-endTime',
 }
 
-export class BaseGetActivityQueryDto extends PaginationParamsDto {
+export class BaseGetActivityQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   name?: string;

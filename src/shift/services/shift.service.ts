@@ -541,10 +541,10 @@ export class ShiftService extends AbstractService {
     );
     const canCheckIn =
       myShiftVolunteer?.status === ShiftVolunteerStatus.Approved &&
-      this.shiftVolunteerService.checkCanCheckIn(raw, false);
+      this.shiftVolunteerService.checkCanCheckIn(raw, myShiftVolunteer, false);
     const canCheckOut =
       myShiftVolunteer?.status === ShiftVolunteerStatus.Approved &&
-      this.shiftVolunteerService.checkCanCheckOut(raw, false);
+      this.shiftVolunteerService.checkCanCheckOut(raw, myShiftVolunteer, false);
 
     return this.output(ShiftOutputDto, {
       ...raw,

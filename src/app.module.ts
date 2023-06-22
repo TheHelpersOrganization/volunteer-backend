@@ -20,6 +20,7 @@ import { VALIDATION_PIPE_OPTIONS } from './common/pipes';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
 import { LocationModule } from './location/location.module';
+import { NotificationModule } from './notification/notification.module';
 import { OrganizationModule } from './organization/organization.module';
 import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
@@ -45,6 +46,7 @@ import { SkillModule } from './skill/skill.module';
     ShiftVolunteerModule,
     ShiftSkillModule,
     ActivityModule,
+    NotificationModule,
   ],
   providers: [
     {

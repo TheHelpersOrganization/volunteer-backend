@@ -11,7 +11,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBoolean } from 'src/common/transformers';
 import { EMAIL_MAX_LENGTH } from '../constants';
 
@@ -20,7 +20,7 @@ export enum GetAccountIncludes {
   BanList = 'ban-list',
 }
 
-export class BaseAccountQueryDto extends PaginationParamsDto {
+export class BaseAccountQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(GetAccountIncludes, { each: true })

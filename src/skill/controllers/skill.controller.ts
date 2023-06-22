@@ -8,7 +8,6 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { PaginationParamsDto } from 'src/common/dtos';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import {

@@ -36,6 +36,7 @@ model Account {
   accountVerification              AccountVerification[] @relation(name: "accountVerification")
   volunteerShiftCheckInOutVerifier VolunteerShift[]      @relation(name: "volunteerShiftCheckInOutVerifier")
   volunteerShiftReviewer           VolunteerShift[]      @relation(name: "volunteerShiftReviewer")
+  notification                     Notification[]
 }
 
 model Role {
@@ -219,6 +220,19 @@ model ShiftMetadata {
   createdAt          DateTime? @default(now())
   updatedAt          DateTime? @default(now()) @updatedAt
   shift              Shift     @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id               Int       @id @default(autoincrement())
+  accountId        Int
+  account          Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  from             String?
+  title            String?
+  description      String?
+  shortDescription String?
+  read             Boolean   @default(false)
+  createdAt        DateTime? @default(now())
+  updatedAt        DateTime? @default(now()) @updatedAt
 }
 
 model AccountBan {
@@ -425,11 +439,13 @@ model VolunteerShift {
   attendant            Boolean   @default(false)
   checkedIn            Boolean?
   checkedOut           Boolean?
+  checkInAt            DateTime?
+  checkOutAt           DateTime?
   isCheckInVerified    Boolean?
   isCheckOutVerified   Boolean?
   checkInOutVerifierId Int?
   checkInOutVerifier   Account?  @relation(name: "volunteerShiftCheckInOutVerifier", fields: [checkInOutVerifierId], references: [id], onDelete: SetNull)
-  completion           Float     @default(0)
+  completion           Float?
   reviewNote           String?
   reviewerId           Int?
   reviewer             Account?  @relation(name: "volunteerShiftReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)

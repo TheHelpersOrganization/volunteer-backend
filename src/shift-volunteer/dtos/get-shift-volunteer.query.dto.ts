@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBoolean } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from '../constants';
 
@@ -16,7 +16,7 @@ export enum ShiftVolunteerInclude {
   Shift = 'shift',
 }
 
-export class GetShiftVolunteerQueryDto extends PaginationParamsDto {
+export class GetShiftVolunteerQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })

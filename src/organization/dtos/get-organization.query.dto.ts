@@ -2,10 +2,10 @@ import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 
 import { Transform } from 'class-transformer';
 import { stringToBoolean } from 'src/common/transformers';
-import { PaginationParamsDto } from '../../common/dtos';
+import { PaginationQueryDto } from '../../common/dtos';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 
-export class OrganizationQueryDto extends PaginationParamsDto {
+export class OrganizationQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   name?: string;

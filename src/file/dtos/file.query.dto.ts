@@ -1,8 +1,8 @@
 import { Transform } from 'class-transformer';
 import { IsArray, IsInt, IsOptional } from 'class-validator';
-import { PaginationParamsDto } from 'src/common/dtos';
+import { PaginationQueryDto } from 'src/common/dtos';
 
-export class FileQueryDto extends PaginationParamsDto {
+export class FileQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })

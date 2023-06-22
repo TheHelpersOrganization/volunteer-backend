@@ -176,6 +176,21 @@ CREATE TABLE "ShiftMetadata" (
 );
 
 -- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "accountId" INTEGER NOT NULL,
+    "from" TEXT,
+    "title" TEXT,
+    "description" TEXT,
+    "shortDescription" TEXT,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "AccountBan" (
     "id" SERIAL NOT NULL,
     "accountId" INTEGER NOT NULL,
@@ -374,10 +389,12 @@ CREATE TABLE "VolunteerShift" (
     "attendant" BOOLEAN NOT NULL DEFAULT false,
     "checkedIn" BOOLEAN,
     "checkedOut" BOOLEAN,
+    "checkInAt" TIMESTAMP(3),
+    "checkOutAt" TIMESTAMP(3),
     "isCheckInVerified" BOOLEAN,
     "isCheckOutVerified" BOOLEAN,
     "checkInOutVerifierId" INTEGER,
-    "completion" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "completion" DOUBLE PRECISION,
     "reviewNote" TEXT,
     "reviewerId" INTEGER,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
@@ -484,6 +501,9 @@ ALTER TABLE "Shift" ADD CONSTRAINT "Shift_activityId_fkey" FOREIGN KEY ("activit
 
 -- AddForeignKey
 ALTER TABLE "ShiftMetadata" ADD CONSTRAINT "ShiftMetadata_id_fkey" FOREIGN KEY ("id") REFERENCES "Shift"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AccountBan" ADD CONSTRAINT "AccountBan_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

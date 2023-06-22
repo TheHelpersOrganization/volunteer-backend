@@ -3,6 +3,7 @@ import { faker as fakerVi } from '@faker-js/faker/locale/vi';
 import { AppPrismaClient } from 'src/prisma';
 import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
+import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
 import { seedSkills } from './seed-skill';
@@ -70,6 +71,11 @@ const seed = async () => {
     '- Seeding activities...',
   );
 
+  await runWithTimer(
+    () => seedNotifications(prisma, accounts),
+    '- Seeding notifications...',
+  );
+
   // Fix sequences
   await runWithTimer(async () => {
     await prisma.$executeRaw`SELECT setval('"Account_id_seq"', (SELECT MAX(id) from "Account"));`;
@@ -85,6 +91,7 @@ const seed = async () => {
     await prisma.$executeRaw`SELECT setval('"Location_id_seq"', (SELECT MAX(id) from "Location"));`;
     await prisma.$executeRaw`SELECT setval('"Contact_id_seq"', (SELECT MAX(id) from "Contact"));`;
     await prisma.$executeRaw`SELECT setval('"File_id_seq"', (SELECT MAX(id) from "File"));`;
+    await prisma.$executeRaw`SELECT setval('"Notification_id_seq"', (SELECT MAX(id) from "Notification"));`;
   }, 'Fixing sequences...');
 };
 

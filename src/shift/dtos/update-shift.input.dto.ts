@@ -14,6 +14,7 @@ import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 import { CreateShiftManagerInputDto } from '.';
 
+import { IsOnTheSameDay } from 'src/common/validators';
 import { CreateShiftSkillInputDto } from 'src/shift-skill/dtos';
 import {
   SHIFT_DESCRIPTION_MAX_LENGTH,
@@ -38,6 +39,7 @@ export class UpdateShiftInputDto {
   @IsOptional()
   @IsDateString()
   @ValidateIf((target, value) => value >= target.startTime)
+  @IsOnTheSameDay({ ref: 'startTime' })
   endTime?: Date;
 
   @IsOptional()

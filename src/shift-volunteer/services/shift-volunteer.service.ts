@@ -32,7 +32,10 @@ import {
   VerifyVolunteerCheckInByIdInputDto,
 } from '../dtos';
 import {
+  VolunteerHasAlreadyCheckedInException,
+  VolunteerHasAlreadyCheckedOutException,
   VolunteerHasAlreadyJoinedShiftException,
+  VolunteerHasNotCheckedInException,
   VolunteerHasNotJoinedShiftException,
   VolunteerNotFoundException,
   VolunteerStatusNotApprovedException,
@@ -687,19 +690,30 @@ export class ShiftVolunteerService extends AbstractService {
     if (volunteer == null) {
       throw new VolunteerNotFoundException();
     }
-    this.checkCanCheckIn(shift);
+    this.checkCanCheckIn(shift, volunteer);
     const res = await this.prisma.volunteerShift.update({
       where: {
         id: volunteer.id,
       },
       data: {
         checkedIn: true,
+        checkInAt: new Date(),
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  checkCanCheckIn(shift: Shift, throwException = true) {
+  checkCanCheckIn(
+    shift: Shift,
+    volunteer: VolunteerShift,
+    throwException = true,
+  ) {
+    if (volunteer.checkedIn) {
+      if (throwException) {
+        throw new VolunteerHasAlreadyCheckedInException();
+      }
+      return false;
+    }
     if (dayjs(shift.startTime).isAfter(dayjs())) {
       if (throwException) {
         throw new ShiftHasNotYetStartedException();
@@ -750,19 +764,36 @@ export class ShiftVolunteerService extends AbstractService {
     if (volunteer == null) {
       throw new VolunteerNotFoundException();
     }
-    this.checkCanCheckOut(shift);
+    this.checkCanCheckOut(shift, volunteer);
     const res = await this.prisma.volunteerShift.update({
       where: {
         id: volunteer.id,
       },
       data: {
         checkedOut: true,
+        checkInAt: new Date(),
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  checkCanCheckOut(shift: Shift, throwException = true) {
+  checkCanCheckOut(
+    shift: Shift,
+    volunteer: VolunteerShift,
+    throwException = true,
+  ) {
+    if (!volunteer.checkedIn) {
+      if (throwException) {
+        throw new VolunteerHasNotCheckedInException();
+      }
+      return false;
+    }
+    if (volunteer.checkedOut) {
+      if (throwException) {
+        throw new VolunteerHasAlreadyCheckedOutException();
+      }
+      return false;
+    }
     if (dayjs(shift.endTime).isAfter(dayjs())) {
       if (throwException) {
         throw new ShiftHasNotYetEndedException();
