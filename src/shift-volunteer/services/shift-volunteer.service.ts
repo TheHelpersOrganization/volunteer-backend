@@ -592,7 +592,6 @@ export class ShiftVolunteerService extends AbstractService {
       });
       return res;
     });
-    console.log(await this.prisma.shift.findUnique({ where: { id: shiftId } }));
 
     return this.output(ShiftVolunteerOutputDto, res);
   }
@@ -770,7 +769,7 @@ export class ShiftVolunteerService extends AbstractService {
       },
       data: {
         checkedOut: true,
-        checkInAt: new Date(),
+        checkOutAt: new Date(),
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
