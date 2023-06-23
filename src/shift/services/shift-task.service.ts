@@ -9,6 +9,8 @@ import { ShiftStatus } from '../constants';
 
 @Injectable()
 export class ShiftTaskService extends AbstractService {
+  private isRunning = false;
+
   constructor(
     logger: AppLogger,
     private readonly prisma: PrismaService,
@@ -19,9 +21,16 @@ export class ShiftTaskService extends AbstractService {
 
   // Perform automatic status update for shifts
   // Need to use cursor to get data slowly
-  @Interval(10 * 60 * 1000)
+  // Need to use cron job to run this task every 3 minutes
+  @Interval(3 * 60 * 1000)
   async updateShiftVolunteerStatus() {
     this.logCaller(undefined, this.updateShiftVolunteerStatus);
+    // Guard to prevent multiple runs
+    if (this.isRunning) {
+      this.logger.warn(undefined, 'Task is already running. Skip this run.');
+      return;
+    }
+    this.isRunning = true;
     const where: Prisma.ShiftWhereInput = {
       OR: [
         {
@@ -124,5 +133,7 @@ export class ShiftTaskService extends AbstractService {
     }
 
     await this.activityService.refreshActivitiesStatus(undefined);
+
+    this.isRunning = false;
   }
 }

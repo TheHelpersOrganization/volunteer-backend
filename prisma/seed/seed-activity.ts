@@ -41,7 +41,7 @@ const weightedShiftTimeRange = Array.from({ length: 30 }).map((_, i) => ({
 }));
 const weightedNumberOfShifts = Array.from({ length: 10 }).map((_, i) => ({
   value: i + 1,
-  weight: (1 / (i + 1)) ^ i,
+  weight: 1 / (i + 1),
 }));
 
 export const seedActivities = async (
@@ -84,7 +84,7 @@ export const seedActivities = async (
         let i = 0;
         i <
         fakerEn.number.int({
-          min: options?.activityPerOrganization?.min ?? 2,
+          min: options?.activityPerOrganization?.min ?? 0,
           max: options?.activityPerOrganization?.max ?? 5,
         });
         i++
@@ -155,7 +155,7 @@ export const seedActivities = async (
       let shiftStartTime: Date;
       let shiftEndTime: Date;
       if (shiftStatus === ShiftStatus.Pending) {
-        shiftStartTime = fakerEn.date.soon({ days: 30, refDate: refTime });
+        shiftStartTime = fakerEn.date.soon({ days: 15, refDate: refTime });
 
         let interval = dayjs(shiftStartTime)
           .add(1, 'day')
@@ -183,7 +183,7 @@ export const seedActivities = async (
           interval += 3;
         }
         shiftEndTime = dayjs(shiftStartTime)
-          .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
+          .add(interval * fakerEn.number.float({ min: 0.7, max: 1 }), 'hour')
           .toDate();
       } else {
         shiftStartTime = fakerEn.date.past({ years: 1, refDate: refTime });

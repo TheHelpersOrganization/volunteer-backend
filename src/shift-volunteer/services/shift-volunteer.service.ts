@@ -14,7 +14,6 @@ import {
   ShiftCheckInTimeLimitExceededException,
   ShiftCheckOutTimeLimitExceededException,
   ShiftHasEndedException,
-  ShiftHasNotYetEndedException,
   ShiftHasNotYetStartedException,
   ShiftHasStartedException,
   ShiftIsFullException,
@@ -794,12 +793,12 @@ export class ShiftVolunteerService extends AbstractService {
       }
       return false;
     }
-    if (dayjs(shift.endTime).isAfter(dayjs())) {
-      if (throwException) {
-        throw new ShiftHasNotYetEndedException();
-      }
-      return false;
-    }
+    // if (dayjs(shift.endTime).isAfter(dayjs())) {
+    //   if (throwException) {
+    //     throw new ShiftHasNotYetEndedException();
+    //   }
+    //   return false;
+    // }
     if (
       shift.checkOutMinutesLimit &&
       dayjs(shift.endTime)

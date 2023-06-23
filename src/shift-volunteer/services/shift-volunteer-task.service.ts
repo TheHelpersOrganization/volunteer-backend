@@ -12,7 +12,8 @@ export class ShiftVolunteerTaskService extends AbstractService {
 
   // Need to update volunteer status from "pending" to "rejected" if shift has started
   // Need to use cursor to get data slowly
-  @Interval(10 * 60 * 1000)
+  // Need to use cron job to run this task every 3 minutes
+  @Interval(3 * 60 * 1000)
   async updateShiftVolunteerStatus() {
     // this.logCaller(undefined, this.updateShiftVolunteerStatus);
     // // Query first 100 records
