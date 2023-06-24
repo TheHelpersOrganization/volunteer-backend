@@ -227,8 +227,8 @@ model Notification {
   accountId        Int
   account          Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   from             String?
-  title            String?
-  description      String?
+  title            String
+  description      String
   shortDescription String?
   read             Boolean   @default(false)
   createdAt        DateTime? @default(now())
