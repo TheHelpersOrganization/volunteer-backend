@@ -28,3 +28,15 @@ export class VolunteerHasAlreadyCheckedOutException extends BaseApiException {
     super('Volunteer has already checked out');
   }
 }
+
+export class CheckInHasAlreadyBeenVerified extends BaseApiException {
+  constructor() {
+    super('Check in has already been verified');
+  }
+}
+
+export class CheckOutHasAlreadyBeenVerified extends BaseApiException {
+  constructor() {
+    super('Check out has already been verified');
+  }
+}

@@ -23,4 +23,9 @@ export class ShiftVolunteerController {
   ): Promise<ShiftVolunteerOutputDto | null> {
     return this.shiftVolunteerService.getById(context, id);
   }
+
+  @Get('me')
+  async getMyShiftVolunteers(@ReqContext() context: RequestContext) {
+    return this.shiftVolunteerService.getMe(context);
+  }
 }

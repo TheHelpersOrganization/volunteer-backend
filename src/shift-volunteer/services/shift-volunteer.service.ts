@@ -31,6 +31,8 @@ import {
   VerifyVolunteerCheckInByIdInputDto,
 } from '../dtos';
 import {
+  CheckInHasAlreadyBeenVerified,
+  CheckOutHasAlreadyBeenVerified,
   VolunteerHasAlreadyCheckedInException,
   VolunteerHasAlreadyCheckedOutException,
   VolunteerHasAlreadyJoinedShiftException,
@@ -254,14 +256,10 @@ export class ShiftVolunteerService extends AbstractService {
     return this.outputArray(ShiftVolunteerOutputDto, res);
   }
 
-  async getMe(
-    context: RequestContext,
-    shiftId: number,
-  ): Promise<ShiftVolunteerOutputDto[]> {
+  async getMe(context: RequestContext): Promise<ShiftVolunteerOutputDto[]> {
     this.logCaller(context, this.getMe);
     const res = await this.prisma.volunteerShift.findMany({
       where: {
-        shiftId: shiftId,
         accountId: context.account.id,
       },
     });
@@ -706,6 +704,12 @@ export class ShiftVolunteerService extends AbstractService {
     volunteer: VolunteerShift,
     throwException = true,
   ) {
+    if (volunteer.isCheckInVerified != null) {
+      if (throwException) {
+        throw new CheckInHasAlreadyBeenVerified();
+      }
+      return false;
+    }
     if (volunteer.checkedIn) {
       if (throwException) {
         throw new VolunteerHasAlreadyCheckedInException();
@@ -780,6 +784,12 @@ export class ShiftVolunteerService extends AbstractService {
     volunteer: VolunteerShift,
     throwException = true,
   ) {
+    if (volunteer.isCheckOutVerified != null) {
+      if (throwException) {
+        throw new CheckOutHasAlreadyBeenVerified();
+      }
+      return false;
+    }
     if (!volunteer.checkedIn) {
       if (throwException) {
         throw new VolunteerHasNotCheckedInException();
@@ -792,6 +802,7 @@ export class ShiftVolunteerService extends AbstractService {
       }
       return false;
     }
+
     // if (dayjs(shift.endTime).isAfter(dayjs())) {
     //   if (throwException) {
     //     throw new ShiftHasNotYetEndedException();
@@ -886,5 +897,21 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
     return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  mapToDto(raw: any, shift?: Shift): ShiftVolunteerOutputDto {
+    const canCheckIn =
+      shift != null && raw.status == ShiftVolunteerStatus.Approved
+        ? this.checkCanCheckIn(shift, raw, false)
+        : undefined;
+    const canCheckOut =
+      shift != null && raw.status == ShiftVolunteerStatus.Approved
+        ? this.checkCanCheckOut(shift, raw, false)
+        : undefined;
+    return this.output(ShiftVolunteerOutputDto, {
+      ...raw,
+      canCheckIn,
+      canCheckOut,
+    });
   }
 }

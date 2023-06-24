@@ -84,7 +84,7 @@ export const seedActivities = async (
         let i = 0;
         i <
         fakerEn.number.int({
-          min: options?.activityPerOrganization?.min ?? 0,
+          min: options?.activityPerOrganization?.min ?? 3,
           max: options?.activityPerOrganization?.max ?? 5,
         });
         i++
