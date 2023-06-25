@@ -11,7 +11,7 @@ import {
   IsString,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBoolean } from 'src/common/transformers';
+import { stringToBooleanTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from '../constants';
 
@@ -108,7 +108,7 @@ export class GetShiftsQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   isShiftManager?: boolean;
 
   @IsOptional()

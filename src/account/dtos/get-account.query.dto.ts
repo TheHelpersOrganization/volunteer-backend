@@ -12,7 +12,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBoolean } from 'src/common/transformers';
+import { stringToBooleanTransform } from 'src/common/transformers';
 import { EMAIL_MAX_LENGTH } from '../constants';
 
 export enum GetAccountIncludes {
@@ -36,12 +36,12 @@ export class GetAccountQueryDto extends BaseAccountQueryDto {
   ids?: number[];
 
   @IsOptional()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   @IsBoolean()
   isBanned?: boolean;
 
   @IsOptional()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   @IsBoolean()
   isVerified?: boolean;
 

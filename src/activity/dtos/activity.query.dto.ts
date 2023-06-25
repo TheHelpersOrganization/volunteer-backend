@@ -18,7 +18,7 @@ import {
 import { PaginationQueryDto } from 'src/common/dtos';
 import {
   separatedCommaNumberArrayTransform,
-  stringToBoolean,
+  stringToBooleanTransform,
 } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ActivityStatus } from '../constants';
@@ -72,12 +72,12 @@ export class BaseGetActivityQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   isManager?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   isShiftManager?: boolean;
 
   // Skills

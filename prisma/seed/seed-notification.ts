@@ -23,7 +23,7 @@ export const seedNotifications = async (
       updatedAt: new Date(),
     });
 
-    for (let i = 0; i < faker.number.int({ min: 3, max: 10 }); i++) {
+    for (let i = 0; i < faker.number.int({ min: 5, max: 30 }); i++) {
       notifications.push({
         id: getNextNotificationId(),
         title: faker.lorem.sentence(),

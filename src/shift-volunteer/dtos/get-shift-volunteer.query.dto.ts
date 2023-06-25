@@ -8,7 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBoolean } from 'src/common/transformers';
+import { stringToBooleanTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from '../constants';
 
 export enum ShiftVolunteerInclude {
@@ -35,7 +35,7 @@ export class GetShiftVolunteerQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   mine?: boolean;
 
   @IsOptional()
@@ -44,7 +44,7 @@ export class GetShiftVolunteerQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(stringToBoolean)
+  @Transform(stringToBooleanTransform)
   meetSkillRequirements?: boolean;
 
   @IsOptional()
