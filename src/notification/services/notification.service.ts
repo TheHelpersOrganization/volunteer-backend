@@ -78,6 +78,17 @@ export class NotificationService extends AbstractService {
     return sort;
   }
 
+  async getNotificationById(context: RequestContext, id: number) {
+    this.logCaller(context, this.getNotifications);
+    const res = await this.prisma.notification.findUnique({
+      where: {
+        id: id,
+        accountId: context.account.id,
+      },
+    });
+    return this.output(NotificationOutputDto, res);
+  }
+
   async markNotificationsAsRead(
     context: RequestContext,
     dto: MarkNotificationsAsReadInputDto,
