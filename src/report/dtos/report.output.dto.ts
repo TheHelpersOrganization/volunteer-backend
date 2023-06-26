@@ -29,11 +29,11 @@ export class ReportOutputDto {
   reporter?: ProfileOutputDto;
 
   @Expose()
-  reportHandlerId: number;
+  reviewerId: number;
 
   @Expose()
   @Type(() => ProfileOutputDto)
-  reportHandler?: ProfileOutputDto;
+  reviewer?: ProfileOutputDto;
 
   @Expose()
   createdAt: Date;

@@ -38,7 +38,7 @@ export const seedReports = async (
           type: ReportType.Account,
           status: status,
           reporterId: account.id,
-          reportHandlerId: faker.helpers.arrayElement(adminAccounts).id,
+          reviewerId: faker.helpers.arrayElement(adminAccounts).id,
         });
         reports.push(report);
 
@@ -55,7 +55,7 @@ export const seedReports = async (
           type: ReportType.Organization,
           status: status,
           reporterId: account.id,
-          reportHandlerId: faker.helpers.arrayElement(adminAccounts).id,
+          reviewerId: faker.helpers.arrayElement(adminAccounts).id,
         });
         reports.push(report);
 
@@ -72,7 +72,7 @@ export const seedReports = async (
           type: ReportType.Activity,
           status: status,
           reporterId: account.id,
-          reportHandlerId: faker.helpers.arrayElement(adminAccounts).id,
+          reviewerId: faker.helpers.arrayElement(adminAccounts).id,
         });
         reports.push(report);
 
@@ -148,8 +148,8 @@ const createReport = (data: {
   type: ReportType;
   status: ReportStatus;
   reporterId: number;
-  reportHandlerId: number;
-}) => {
+  reviewerId: number;
+}): Report => {
   const createdAt = faker.date.past({ years: 1, refDate: new Date() });
   const updatedAt = faker.date.between({
     from: createdAt,
@@ -163,7 +163,7 @@ const createReport = (data: {
     title: faker.lorem.sentence(),
     content: faker.lorem.paragraph(),
     reporterId: data.reporterId,
-    reportHandlerId: data.reportHandlerId,
+    reviewerId: data.reviewerId,
     createdAt: createdAt,
     updatedAt: updatedAt,
   };

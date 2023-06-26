@@ -38,7 +38,7 @@ model Account {
   volunteerShiftReviewer           VolunteerShift[]      @relation(name: "volunteerShiftReviewer")
   notification                     Notification[]
   report                           Report[]              @relation(name: "reporter")
-  handleReport                     Report[]              @relation(name: "reportHandler")
+  reviewReport                     Report[]              @relation(name: "reportReviewer")
   reportedAccount                  ReportAccount[]       @relation(name: "reportedAccount")
 }
 
@@ -243,18 +243,18 @@ model Notification {
 }
 
 model Report {
-  id              Int          @id @default(autoincrement())
-  reporterId      Int
-  reporter        Account      @relation(name: "reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  reportHandlerId Int?
-  reportHandler   Account?     @relation(name: "reportHandler", fields: [reportHandlerId], references: [id], onDelete: SetNull)
-  type            String
-  title           String
-  content         String
-  status          String       @default("pending")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @default(now()) @updatedAt
-  reportFile      ReportFile[]
+  id         Int          @id @default(autoincrement())
+  reporterId Int
+  reporter   Account      @relation(name: "reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewerId Int?
+  reviewer   Account?     @relation(name: "reportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  type       String
+  title      String
+  content    String
+  status     String       @default("pending")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now()) @updatedAt
+  reportFile ReportFile[]
 }
 
 model ReportAccount {

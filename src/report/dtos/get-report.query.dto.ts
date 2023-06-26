@@ -27,6 +27,14 @@ export enum GetReportQuerySort {
 
 export const getReportQuerySorts = Object.values(GetReportQuerySort);
 
+export enum GetReportQueryInclude {
+  Reporter = 'reporter',
+  Reviewer = 'reviewer',
+  File = 'file',
+}
+
+export const getReportQueryIncludes = Object.values(GetReportQueryInclude);
+
 export class GetReportQueryDto {
   @IsOptional()
   @IsArray()
@@ -66,6 +74,14 @@ export class GetReportQueryDto {
   @ArrayMaxSize(reportStatuses.length)
   @Transform(({ value }) => value.split(','))
   status?: ReportStatus[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetReportQueryInclude, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(getReportQueryIncludes.length)
+  @Transform(({ value }) => value.split(','))
+  include?: GetReportQueryInclude[];
 
   @IsOptional()
   @IsEnum(GetReportQuerySort)

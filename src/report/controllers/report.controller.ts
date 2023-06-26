@@ -19,7 +19,8 @@ export class ReportController {
   async getReportById(
     @ReqContext() context: RequestContext,
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: GetReportQueryDto,
   ) {
-    return this.reportService.getReportById(context, id);
+    return this.reportService.getReportById(context, id, query);
   }
 }

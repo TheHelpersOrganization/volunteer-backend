@@ -195,7 +195,7 @@ CREATE TABLE "Notification" (
 CREATE TABLE "Report" (
     "id" SERIAL NOT NULL,
     "reporterId" INTEGER NOT NULL,
-    "reportHandlerId" INTEGER,
+    "reviewerId" INTEGER,
     "type" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
@@ -571,7 +571,7 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_accountId_fkey" FOREIGN 
 ALTER TABLE "Report" ADD CONSTRAINT "Report_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Report" ADD CONSTRAINT "Report_reportHandlerId_fkey" FOREIGN KEY ("reportHandlerId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Report" ADD CONSTRAINT "Report_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReportAccount" ADD CONSTRAINT "ReportAccount_reportedAccountId_fkey" FOREIGN KEY ("reportedAccountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

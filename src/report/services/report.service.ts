@@ -5,8 +5,14 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
+import { getProfileBasicSelect } from 'src/profile/dtos';
+import { ProfileService } from 'src/profile/services';
 import { ReportType } from '../constants';
-import { GetReportQueryDto, GetReportQuerySort } from '../dtos';
+import {
+  GetReportQueryDto,
+  GetReportQueryInclude,
+  GetReportQuerySort,
+} from '../dtos';
 import { ReportOutputDto } from '../dtos/report.output.dto';
 
 @Injectable()
@@ -14,6 +20,7 @@ export class ReportService extends AbstractService {
   constructor(
     logger: AppLogger,
     private readonly prismaService: PrismaService,
+    private readonly profileService: ProfileService,
   ) {
     super(logger);
   }
@@ -22,10 +29,10 @@ export class ReportService extends AbstractService {
     this.logCaller(context, this.getReports);
     const where = this.getReportWhereInput(context, query);
     const sort = this.getReportSortInput(query);
-    const reports = await this.prismaService.report.findMany({
+    const reports: any[] = await this.prismaService.report.findMany({
       where: where,
       orderBy: sort,
-      include: this.getReportInclude(),
+      include: this.getReportInclude(query.include),
     });
     const groupedByTypes: { [key: string]: any[] } = reports.reduce(
       (acc, report) => {
@@ -49,19 +56,18 @@ export class ReportService extends AbstractService {
                 in: ids,
               },
             },
-            include: {
-              reportedAccount: {
-                include: {
-                  profile: true,
-                },
-              },
-            },
           });
-
+        const profiles = await this.profileService.getProfiles(context, {
+          ids: reportedAccounts.map((account) => account.reportedAccountId),
+          select: getProfileBasicSelect,
+        });
         reports.forEach((report) => {
-          report.reportedAccount = reportedAccounts.find(
-            (reportAccount) => reportAccount.id === report.id,
-          )?.reportedAccount.profile;
+          report.reportedAccount = profiles.find(
+            (profile) =>
+              profile.id ===
+              reportedAccounts.find((account) => account.id === report.id)
+                ?.reportedAccountId,
+          );
         });
       } else if (type == ReportType.Organization) {
         const reportedOrganizations =
@@ -93,24 +99,54 @@ export class ReportService extends AbstractService {
             },
           });
         reports.forEach((report) => {
-          report.reportActivity = reportedActivities.find(
+          report.reportedActivity = reportedActivities.find(
             (reportActivity) => reportActivity.id === report.id,
           )?.reportedActivity;
         });
       }
     }
-
+    if (query.include?.includes(GetReportQueryInclude.Reporter)) {
+      const reporterProfiles = await this.profileService.getProfiles(context, {
+        ids: reports
+          .map((report) => report.reporterId)
+          .filter((v) => v != null),
+        select: getProfileBasicSelect,
+      });
+      reports.forEach((report) => {
+        report.reporter = reporterProfiles.find(
+          (profile) => profile.id === report.reporterId,
+        );
+      });
+    }
+    if (query.include?.includes(GetReportQueryInclude.Reviewer)) {
+      const reviewerProfiles = await this.profileService.getProfiles(context, {
+        ids: reports
+          .map((report) => report.reviewerId)
+          .filter((v) => v != null),
+        select: getProfileBasicSelect,
+      });
+      reports.forEach((report) => {
+        report.reviewer = reviewerProfiles.find(
+          (profile) => profile.id === report.reviewerId,
+        );
+      });
+    }
+    console.log(reports.find((report) => report.type == ReportType.Account));
     return reports.map((report) => this.mapToDto(report));
   }
 
-  async getReportById(context: RequestContext, id: number) {
+  async getReportById(
+    context: RequestContext,
+    id: number,
+    query: GetReportQueryDto,
+  ) {
     this.logCaller(context, this.getReportById);
     const report: any = await this.prismaService.report.findUnique({
       where: {
         id: id,
         reporterId: context.isAdmin ? undefined : context.account.id,
       },
-      include: this.getReportInclude(),
+      include: this.getReportInclude(query.include),
     });
     if (report == null) {
       return null;
@@ -155,6 +191,26 @@ export class ReportService extends AbstractService {
           },
         });
       report.reportedActivity = reportedActivity?.reportedActivity;
+    }
+    if (query.include?.includes(GetReportQueryInclude.Reporter)) {
+      const reporterProfile = await this.profileService.getProfile(
+        context,
+        report.reporterId,
+        {
+          select: getProfileBasicSelect,
+        },
+      );
+      report.reporter = reporterProfile;
+    }
+    if (query.include?.includes(GetReportQueryInclude.Reviewer)) {
+      const reviewerProfile = await this.profileService.getProfile(
+        context,
+        report.reviewerId,
+        {
+          select: getProfileBasicSelect,
+        },
+      );
+      report.reviewer = reviewerProfile;
     }
     return this.mapToDto(report);
   }
@@ -214,15 +270,22 @@ export class ReportService extends AbstractService {
     return sort;
   }
 
-  getReportInclude() {
-    const include: Prisma.ReportInclude = {
-      reportFile: {
+  getReportInclude(include?: GetReportQueryInclude[]) {
+    if (include == null || include.length === 0) {
+      return undefined;
+    }
+    const res: Prisma.ReportInclude = {};
+    if (include.includes(GetReportQueryInclude.File)) {
+      res.reportFile = {
         include: {
           file: true,
         },
-      },
-    };
-    return include;
+      };
+    }
+    if (Object.keys(res).length === 0) {
+      return undefined;
+    }
+    return res;
   }
 
   mapToDto(raw: any) {
