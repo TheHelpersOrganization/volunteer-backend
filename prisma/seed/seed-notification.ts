@@ -51,7 +51,11 @@ export const seedNotifications = async (
     }
   });
 
-  await prisma.notification.createMany({
+  const res = await prisma.notification.createMany({
     data: notifications,
   });
+
+  return {
+    notifications: res,
+  };
 };

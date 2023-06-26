@@ -6,6 +6,7 @@ import { seedActivities } from './seed-activity';
 import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
+import { seedReports } from './seed-report';
 import { seedSkills } from './seed-skill';
 
 fakerEn.seed(1);
@@ -58,7 +59,7 @@ const seed = async () => {
     '- Seeding organizations...',
   );
 
-  await runWithTimer(
+  const { activities } = await runWithTimer(
     () =>
       seedActivities(
         prisma,
@@ -74,6 +75,19 @@ const seed = async () => {
   await runWithTimer(
     () => seedNotifications(prisma, accounts),
     '- Seeding notifications...',
+  );
+
+  await runWithTimer(
+    () =>
+      seedReports(
+        prisma,
+        volunteerAccounts,
+        adminAccounts,
+        accounts,
+        organizations,
+        activities,
+      ),
+    '- Seeding reports...',
   );
 
   // Fix sequences
@@ -92,6 +106,7 @@ const seed = async () => {
     await prisma.$executeRaw`SELECT setval('"Contact_id_seq"', (SELECT MAX(id) from "Contact"));`;
     await prisma.$executeRaw`SELECT setval('"File_id_seq"', (SELECT MAX(id) from "File"));`;
     await prisma.$executeRaw`SELECT setval('"Notification_id_seq"', (SELECT MAX(id) from "Notification"));`;
+    await prisma.$executeRaw`SELECT setval('"Report_id_seq"', (SELECT MAX(id) from "Report"));`;
   }, 'Fixing sequences...');
 };
 

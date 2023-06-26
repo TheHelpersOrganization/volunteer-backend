@@ -192,6 +192,45 @@ CREATE TABLE "Notification" (
 );
 
 -- CreateTable
+CREATE TABLE "Report" (
+    "id" SERIAL NOT NULL,
+    "reporterId" INTEGER NOT NULL,
+    "reportHandlerId" INTEGER,
+    "type" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ReportAccount" (
+    "id" INTEGER NOT NULL,
+    "reportedAccountId" INTEGER NOT NULL,
+
+    CONSTRAINT "ReportAccount_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ReportOrganization" (
+    "id" INTEGER NOT NULL,
+    "reportedOrganizationId" INTEGER NOT NULL,
+
+    CONSTRAINT "ReportOrganization_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ReportActivity" (
+    "id" INTEGER NOT NULL,
+    "reportedActivityId" INTEGER NOT NULL,
+
+    CONSTRAINT "ReportActivity_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "AccountBan" (
     "id" SERIAL NOT NULL,
     "accountId" INTEGER NOT NULL,
@@ -416,6 +455,16 @@ CREATE TABLE "ShiftManager" (
     CONSTRAINT "ShiftManager_pkey" PRIMARY KEY ("shiftId","accountId")
 );
 
+-- CreateTable
+CREATE TABLE "ReportFile" (
+    "reportId" INTEGER NOT NULL,
+    "fileId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ReportFile_pkey" PRIMARY KEY ("fileId")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
 
@@ -447,6 +496,15 @@ CREATE UNIQUE INDEX "Activity_thumbnail_key" ON "Activity"("thumbnail");
 CREATE UNIQUE INDEX "ShiftMetadata_id_key" ON "ShiftMetadata"("id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ReportAccount_id_key" ON "ReportAccount"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ReportOrganization_id_key" ON "ReportOrganization"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ReportActivity_id_key" ON "ReportActivity"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "AccountVerificationFile_fileId_key" ON "AccountVerificationFile"("fileId");
 
 -- CreateIndex
@@ -463,6 +521,9 @@ CREATE UNIQUE INDEX "ShiftLocation_locationId_key" ON "ShiftLocation"("locationI
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ShiftContact_contactId_key" ON "ShiftContact"("contactId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ReportFile_fileId_key" ON "ReportFile"("fileId");
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -505,6 +566,21 @@ ALTER TABLE "ShiftMetadata" ADD CONSTRAINT "ShiftMetadata_id_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Report" ADD CONSTRAINT "Report_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Report" ADD CONSTRAINT "Report_reportHandlerId_fkey" FOREIGN KEY ("reportHandlerId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportAccount" ADD CONSTRAINT "ReportAccount_reportedAccountId_fkey" FOREIGN KEY ("reportedAccountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportOrganization" ADD CONSTRAINT "ReportOrganization_reportedOrganizationId_fkey" FOREIGN KEY ("reportedOrganizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportActivity" ADD CONSTRAINT "ReportActivity_reportedActivityId_fkey" FOREIGN KEY ("reportedActivityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AccountBan" ADD CONSTRAINT "AccountBan_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -637,4 +713,10 @@ ALTER TABLE "ShiftManager" ADD CONSTRAINT "ShiftManager_shiftId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "ShiftManager" ADD CONSTRAINT "ShiftManager_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportFile" ADD CONSTRAINT "ReportFile_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "Report"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportFile" ADD CONSTRAINT "ReportFile_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "File"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

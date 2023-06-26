@@ -37,6 +37,9 @@ model Account {
   volunteerShiftCheckInOutVerifier VolunteerShift[]      @relation(name: "volunteerShiftCheckInOutVerifier")
   volunteerShiftReviewer           VolunteerShift[]      @relation(name: "volunteerShiftReviewer")
   notification                     Notification[]
+  report                           Report[]              @relation(name: "reporter")
+  handleReport                     Report[]              @relation(name: "reportHandler")
+  reportedAccount                  ReportAccount[]       @relation(name: "reportedAccount")
 }
 
 model Role {
@@ -97,6 +100,7 @@ model File {
   profile                 Profile?
   activityThumbnail       Activity?
   accountVerificationFile AccountVerificationFile?
+  reportFile              ReportFile[]
 }
 
 model Location {
@@ -151,6 +155,7 @@ model Organization {
   members                Member[]
   organizationActivities Activity[]
   organizationSkills     OrganizationSkill[]
+  reportedOrganization   ReportOrganization[]   @relation(name: "reportedOrganization")
 }
 
 model Skill {
@@ -185,6 +190,7 @@ model Activity {
   activityManagers  ActivityManager[]
   activitySkills    ActivitySkill[]
   activityContacts  ActivityContact[]
+  reportedActivity  ReportActivity[]  @relation(name: "reportedActivity")
 }
 
 model Shift {
@@ -234,6 +240,39 @@ model Notification {
   read             Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime? @default(now()) @updatedAt
+}
+
+model Report {
+  id              Int          @id @default(autoincrement())
+  reporterId      Int
+  reporter        Account      @relation(name: "reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportHandlerId Int?
+  reportHandler   Account?     @relation(name: "reportHandler", fields: [reportHandlerId], references: [id], onDelete: SetNull)
+  type            String
+  title           String
+  content         String
+  status          String       @default("pending")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @default(now()) @updatedAt
+  reportFile      ReportFile[]
+}
+
+model ReportAccount {
+  id                Int     @id @unique
+  reportedAccountId Int
+  reportedAccount   Account @relation(name: "reportedAccount", fields: [reportedAccountId], references: [id], onDelete: Cascade)
+}
+
+model ReportOrganization {
+  id                     Int          @id @unique
+  reportedOrganizationId Int
+  reportedOrganization   Organization @relation(name: "reportedOrganization", fields: [reportedOrganizationId], references: [id], onDelete: Cascade)
+}
+
+model ReportActivity {
+  id                 Int      @id @unique
+  reportedActivityId Int
+  reportedActivity   Activity @relation(name: "reportedActivity", fields: [reportedActivityId], references: [id], onDelete: Cascade)
 }
 
 model AccountBan {
@@ -465,4 +504,13 @@ model ShiftManager {
   updatedAt   DateTime @default(now()) @updatedAt
 
   @@id([shiftId, accountId])
+}
+
+model ReportFile {
+  reportId  Int
+  fileId    Int      @id @unique
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
