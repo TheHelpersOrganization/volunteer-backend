@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { NotificationType } from '../constants';
 
 export class NotificationOutputDto {
   @Expose()
@@ -9,6 +10,9 @@ export class NotificationOutputDto {
 
   @Expose()
   from?: string;
+
+  @Expose()
+  type: NotificationType;
 
   @Expose()
   title: string;

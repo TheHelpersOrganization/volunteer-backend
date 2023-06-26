@@ -179,12 +179,13 @@ CREATE TABLE "ShiftMetadata" (
 CREATE TABLE "Notification" (
     "id" SERIAL NOT NULL,
     "accountId" INTEGER NOT NULL,
+    "type" TEXT NOT NULL,
     "from" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "shortDescription" TEXT,
     "read" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")

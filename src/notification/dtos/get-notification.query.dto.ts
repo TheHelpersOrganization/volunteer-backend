@@ -4,6 +4,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
@@ -11,6 +12,12 @@ import {
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBooleanTransform } from 'src/common/transformers';
+import { NotificationType } from '../constants';
+
+export enum GetNotificationSort {
+  CreatedAtAsc = 'createdAt',
+  CreatedAtDesc = '-createdAt',
+}
 
 export class BaseGetNotificationsQueryDto extends PaginationQueryDto {
   @IsOptional()
@@ -30,6 +37,22 @@ export class BaseGetNotificationsQueryDto extends PaginationQueryDto {
   @IsBoolean()
   @Transform(stringToBooleanTransform)
   read?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(NotificationType, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(Object.values(NotificationType).length)
+  @Transform(({ value }) => value.split(','))
+  type?: NotificationType[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GetNotificationSort, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(Object.values(GetNotificationSort).length / 2)
+  @Transform(({ value }) => value.split(','))
+  sort?: GetNotificationSort[];
 }
 
 export class GetNotificationsQueryDto extends BaseGetNotificationsQueryDto {

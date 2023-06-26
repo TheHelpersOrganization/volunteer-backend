@@ -1,6 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { Account, Notification, PrismaClient } from '@prisma/client';
-import { getNextNotificationId } from './utils';
+import * as _ from 'lodash';
+import {
+  NotificationType,
+  notificationTypes,
+} from 'src/notification/constants';
+import { getNextNotificationId, requireNonNullish } from './utils';
 
 export const seedNotifications = async (
   prisma: PrismaClient,
@@ -9,6 +14,9 @@ export const seedNotifications = async (
   const notifications: Notification[] = [];
 
   accounts.forEach((account) => {
+    const createdAt = faker.date.past();
+    const updateAt = faker.date.future({ refDate: createdAt });
+
     notifications.push({
       id: getNextNotificationId(),
       title: 'Welcome to the The Helpers App!',
@@ -19,11 +27,15 @@ export const seedNotifications = async (
         'Thank you for joining us!. Start by joining a organization or volunteering for an activity!',
       accountId: account.id,
       read: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      type: NotificationType.System,
+      createdAt: createdAt,
+      updatedAt: updateAt,
     });
 
-    for (let i = 0; i < faker.number.int({ min: 5, max: 30 }); i++) {
+    for (let i = 0; i < faker.number.int({ min: 10, max: 30 }); i++) {
+      const type = requireNonNullish(_.sample(notificationTypes));
+      const createdAt = faker.date.past();
+      const updateAt = faker.date.future({ refDate: createdAt });
       notifications.push({
         id: getNextNotificationId(),
         title: faker.lorem.sentence(),
@@ -32,8 +44,9 @@ export const seedNotifications = async (
         shortDescription: faker.lorem.sentence(),
         accountId: account.id,
         read: faker.datatype.boolean(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        type: type,
+        createdAt: createdAt,
+        updatedAt: updateAt,
       });
     }
   });
