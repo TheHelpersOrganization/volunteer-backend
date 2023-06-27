@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
 import { ActivityService } from 'src/activity/services';
+import activityConfig from 'src/common/configs/subconfigs/activity.config';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
@@ -13,6 +14,7 @@ export class ShiftTaskService extends AbstractService {
 
   constructor(
     logger: AppLogger,
+    @Inject(activityConfig.KEY)
     private readonly prisma: PrismaService,
     private readonly activityService: ActivityService,
   ) {
@@ -22,7 +24,7 @@ export class ShiftTaskService extends AbstractService {
   // Perform automatic status update for shifts
   // Need to use cursor to get data slowly
   // Need to use cron job to run this task every 3 minutes
-  @Interval(3 * 60 * 1000)
+  @Interval(2 * 60 * 60 * 1000)
   async updateShiftVolunteerStatus() {
     this.logCaller(undefined, this.updateShiftVolunteerStatus);
     // Guard to prevent multiple runs

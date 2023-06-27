@@ -208,4 +208,36 @@ export class AccountService extends AbstractService {
       excludeExtraneousValues: true,
     });
   }
+
+  async getAccounts(
+    ctx: RequestContext,
+    ids: number[],
+  ): Promise<AccountOutputDto[]> {
+    this.logger.log(ctx, `${this.getAccounts.name} was called`);
+
+    const accounts = await this.prisma.account.findMany({
+      where: { id: { in: ids } },
+      include: {
+        accountRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    return accounts.map((account) => {
+      return this.mapToDto(account);
+    });
+  }
+
+  mapToDto(account: any): AccountOutputDto {
+    return this.output(
+      AccountOutputDto,
+      { ...account, roles: account.accountRoles.map((r) => r.role.name) },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
+  }
 }

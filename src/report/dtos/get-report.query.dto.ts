@@ -64,6 +64,11 @@ export class GetReportQueryDto {
   mine?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isReviewer?: boolean;
+
+  @IsOptional()
   @IsString()
   @MaxLength(256)
   name?: string;

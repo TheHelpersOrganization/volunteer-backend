@@ -17,11 +17,14 @@ import {
   ShiftOutputDto,
   UpdateShiftInputDto,
 } from '../dtos';
-import { ShiftService } from '../services';
+import { ShiftService, ShiftTaskService } from '../services';
 
 @Controller('shifts')
 export class ShiftController {
-  constructor(private readonly shiftService: ShiftService) {}
+  constructor(
+    private readonly shiftService: ShiftService,
+    private readonly shiftTaskService: ShiftTaskService,
+  ) {}
 
   @Get()
   async get(
@@ -64,5 +67,10 @@ export class ShiftController {
     @Param('id') id: number,
   ): Promise<ShiftOutputDto | null> {
     return this.shiftService.deleteShift(context, id);
+  }
+
+  @Post('refresh')
+  async refresh() {
+    return this.shiftTaskService.updateShiftVolunteerStatus();
   }
 }

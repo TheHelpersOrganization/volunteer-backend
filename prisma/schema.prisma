@@ -251,7 +251,6 @@ model Report {
   reviewer           Account?            @relation(name: "reportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
   type               String
   title              String
-  content            String
   status             String              @default("pending")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @default(now()) @updatedAt
@@ -290,6 +289,7 @@ model ReportMessage {
   senderId  Int
   sender    Account             @relation(name: "reportMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   file      ReportMessageFile[]
+  first     Boolean             @default(false)
   createdAt DateTime            @default(now())
   updatedAt DateTime            @default(now()) @updatedAt
 }

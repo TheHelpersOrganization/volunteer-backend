@@ -88,6 +88,7 @@ export const seedReports = async (
       senderId: faker.helpers.arrayElement(adminAccounts).id,
       reportCreatedAt: report.createdAt,
       reportUpdatedAt: report.updatedAt,
+      first: true,
     });
     reportMessages.push(reportMessage);
 
@@ -206,7 +207,6 @@ const createReport = (data: {
     type: data.type,
     status: data.status,
     title: faker.lorem.sentence(),
-    content: faker.lorem.paragraph(),
     reporterId: data.reporterId,
     reviewerId: data.reviewerId,
     createdAt: createdAt,
@@ -219,6 +219,7 @@ const createReportMessage = (data: {
   senderId: number;
   reportCreatedAt: Date;
   reportUpdatedAt: Date;
+  first?: boolean;
 }): ReportMessage => {
   const createdAt = faker.date.between({
     from: data.reportCreatedAt,
@@ -233,6 +234,7 @@ const createReportMessage = (data: {
     id: getNextReportId(),
     reportId: data.reportId,
     senderId: data.senderId,
+    first: data.first ?? false,
     content: faker.lorem.paragraph(),
     createdAt: createdAt,
     updatedAt: updatedAt,

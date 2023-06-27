@@ -5,7 +5,7 @@ import { OrganizationOutputDto } from 'src/organization/dtos';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import { ReportStatus, ReportType } from '../constants';
 
-export class ReportMessage {
+export class ReportMessageOutputDto {
   @Expose()
   id: number;
 
@@ -67,8 +67,8 @@ export class ReportOutputDto {
   updatedAt: Date;
 
   @Expose()
-  @Type(() => ReportMessage)
-  messages?: ReportMessage[];
+  @Type(() => ReportMessageOutputDto)
+  messages?: ReportMessageOutputDto[];
 
   @Expose()
   reportedAccount?: ProfileOutputDto;
