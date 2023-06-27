@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { requireNonNullish } from 'prisma/seed/utils';
 import { Role } from 'src/auth/constants';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
@@ -7,8 +8,8 @@ import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
-import { ReportType } from '../constants';
 import {
+  BaseGetReportQueryDto,
   GetReportQueryDto,
   GetReportQueryInclude,
   GetReportQuerySort,
@@ -34,77 +35,8 @@ export class ReportService extends AbstractService {
       orderBy: sort,
       include: this.getReportInclude(query.include),
     });
-    const groupedByTypes: { [key: string]: any[] } = reports.reduce(
-      (acc, report) => {
-        if (!acc[report.type]) {
-          acc[report.type] = [];
-        }
-        acc[report.type].push(report);
-        return acc;
-      },
-      {},
-    );
-    // Side effect on reports
-    for (const type in groupedByTypes) {
-      const reports = groupedByTypes[type];
-      const ids = reports.map((report) => report.id);
-      if (type === ReportType.Account) {
-        const reportedAccounts =
-          await this.prismaService.reportAccount.findMany({
-            where: {
-              id: {
-                in: ids,
-              },
-            },
-          });
-        const profiles = await this.profileService.getProfiles(context, {
-          ids: reportedAccounts.map((account) => account.reportedAccountId),
-          select: getProfileBasicSelect,
-        });
-        reports.forEach((report) => {
-          report.reportedAccount = profiles.find(
-            (profile) =>
-              profile.id ===
-              reportedAccounts.find((account) => account.id === report.id)
-                ?.reportedAccountId,
-          );
-        });
-      } else if (type == ReportType.Organization) {
-        const reportedOrganizations =
-          await this.prismaService.reportOrganization.findMany({
-            where: {
-              id: {
-                in: ids,
-              },
-            },
-            include: {
-              reportedOrganization: true,
-            },
-          });
-        reports.forEach((report) => {
-          report.reportedOrganization = reportedOrganizations.find(
-            (reportOrganization) => reportOrganization.id === report.id,
-          )?.reportedOrganization;
-        });
-      } else if (type == ReportType.Activity) {
-        const reportedActivities =
-          await this.prismaService.reportActivity.findMany({
-            where: {
-              id: {
-                in: ids,
-              },
-            },
-            include: {
-              reportedActivity: true,
-            },
-          });
-        reports.forEach((report) => {
-          report.reportedActivity = reportedActivities.find(
-            (reportActivity) => reportActivity.id === report.id,
-          )?.reportedActivity;
-        });
-      }
-    }
+    console.log(reports[0]);
+
     if (query.include?.includes(GetReportQueryInclude.Reporter)) {
       const reporterProfiles = await this.profileService.getProfiles(context, {
         ids: reports
@@ -118,27 +50,26 @@ export class ReportService extends AbstractService {
         );
       });
     }
-    if (query.include?.includes(GetReportQueryInclude.Reviewer)) {
-      const reviewerProfiles = await this.profileService.getProfiles(context, {
-        ids: reports
-          .map((report) => report.reviewerId)
-          .filter((v) => v != null),
+    if (query.include?.includes(GetReportQueryInclude.Message)) {
+      const senders = await this.profileService.getProfiles(context, {
+        ids: reports.flatMap((report) =>
+          requireNonNullish(report.reportMessage).map((rm) => rm.senderId),
+        ),
         select: getProfileBasicSelect,
       });
       reports.forEach((report) => {
-        report.reviewer = reviewerProfiles.find(
-          (profile) => profile.id === report.reviewerId,
-        );
+        requireNonNullish(report.reportMessage).forEach((rm) => {
+          rm.sender = senders.find((sender) => sender.id === rm.senderId);
+        });
       });
     }
-    console.log(reports.find((report) => report.type == ReportType.Account));
     return reports.map((report) => this.mapToDto(report));
   }
 
   async getReportById(
     context: RequestContext,
     id: number,
-    query: GetReportQueryDto,
+    query: BaseGetReportQueryDto,
   ) {
     this.logCaller(context, this.getReportById);
     const report: any = await this.prismaService.report.findUnique({
@@ -151,47 +82,6 @@ export class ReportService extends AbstractService {
     if (report == null) {
       return null;
     }
-    const type = report.type;
-    if (type === ReportType.Account) {
-      const reportedAccount = await this.prismaService.reportAccount.findUnique(
-        {
-          where: {
-            id: id,
-          },
-          include: {
-            reportedAccount: {
-              include: {
-                profile: true,
-              },
-            },
-          },
-        },
-      );
-
-      report.reportedAccount = reportedAccount?.reportedAccount.profile;
-    } else if (type == ReportType.Organization) {
-      const reportedOrganization =
-        await this.prismaService.reportOrganization.findUnique({
-          where: {
-            id: id,
-          },
-          include: {
-            reportedOrganization: true,
-          },
-        });
-      report.reportedOrganization = reportedOrganization?.reportedOrganization;
-    } else if (type == ReportType.Activity) {
-      const reportedActivity =
-        await this.prismaService.reportActivity.findUnique({
-          where: {
-            id: id,
-          },
-          include: {
-            reportedActivity: true,
-          },
-        });
-      report.reportedActivity = reportedActivity?.reportedActivity;
-    }
     if (query.include?.includes(GetReportQueryInclude.Reporter)) {
       const reporterProfile = await this.profileService.getProfile(
         context,
@@ -201,16 +91,6 @@ export class ReportService extends AbstractService {
         },
       );
       report.reporter = reporterProfile;
-    }
-    if (query.include?.includes(GetReportQueryInclude.Reviewer)) {
-      const reviewerProfile = await this.profileService.getProfile(
-        context,
-        report.reviewerId,
-        {
-          select: getProfileBasicSelect,
-        },
-      );
-      report.reviewer = reviewerProfile;
     }
     return this.mapToDto(report);
   }
@@ -274,11 +154,27 @@ export class ReportService extends AbstractService {
     if (include == null || include.length === 0) {
       return undefined;
     }
-    const res: Prisma.ReportInclude = {};
-    if (include.includes(GetReportQueryInclude.File)) {
-      res.reportFile = {
+    const res: Prisma.ReportInclude = {
+      reportAccount: true,
+      reportOrganization: {
         include: {
-          file: true,
+          reportedOrganization: true,
+        },
+      },
+      reportActivity: {
+        include: {
+          reportedActivity: true,
+        },
+      },
+    };
+    if (include.includes(GetReportQueryInclude.Message)) {
+      res.reportMessage = {
+        include: {
+          file: {
+            include: {
+              file: true,
+            },
+          },
         },
       };
     }
@@ -289,9 +185,16 @@ export class ReportService extends AbstractService {
   }
 
   mapToDto(raw: any) {
-    return this.output(ReportOutputDto, {
+    const output: ReportOutputDto = {
       ...raw,
-      files: raw.reportFile?.map((reportFile) => reportFile.file),
-    });
+      messages: raw.reportMessage?.map((rm) => ({
+        ...rm,
+        files: rm.file.map((f) => f.file),
+      })),
+      reportedAccount: raw.reportedAccount?.profile,
+      reportedOrganization: raw.reportedOrganization,
+      reportedActivity: raw.reportedActivity,
+    };
+    return this.output(ReportOutputDto, output);
   }
 }

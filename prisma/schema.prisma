@@ -40,6 +40,7 @@ model Account {
   report                           Report[]              @relation(name: "reporter")
   reviewReport                     Report[]              @relation(name: "reportReviewer")
   reportedAccount                  ReportAccount[]       @relation(name: "reportedAccount")
+  reportMessage                    ReportMessage[]       @relation(name: "reportMessageSender")
 }
 
 model Role {
@@ -100,7 +101,7 @@ model File {
   profile                 Profile?
   activityThumbnail       Activity?
   accountVerificationFile AccountVerificationFile?
-  reportFile              ReportFile[]
+  reportMessageFile       ReportMessageFile?
 }
 
 model Location {
@@ -243,36 +244,63 @@ model Notification {
 }
 
 model Report {
-  id         Int          @id @default(autoincrement())
-  reporterId Int
-  reporter   Account      @relation(name: "reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  reviewerId Int?
-  reviewer   Account?     @relation(name: "reportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-  type       String
-  title      String
-  content    String
-  status     String       @default("pending")
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @default(now()) @updatedAt
-  reportFile ReportFile[]
+  id                 Int                 @id @default(autoincrement())
+  reporterId         Int
+  reporter           Account             @relation(name: "reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewerId         Int?
+  reviewer           Account?            @relation(name: "reportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  type               String
+  title              String
+  content            String
+  status             String              @default("pending")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @default(now()) @updatedAt
+  reportMessage      ReportMessage[]
+  reportAccount      ReportAccount?
+  reportOrganization ReportOrganization?
+  reportActivity     ReportActivity?
 }
 
 model ReportAccount {
   id                Int     @id @unique
+  report            Report  @relation(fields: [id], references: [id], onDelete: Cascade)
   reportedAccountId Int
   reportedAccount   Account @relation(name: "reportedAccount", fields: [reportedAccountId], references: [id], onDelete: Cascade)
 }
 
 model ReportOrganization {
   id                     Int          @id @unique
+  report                 Report       @relation(fields: [id], references: [id], onDelete: Cascade)
   reportedOrganizationId Int
   reportedOrganization   Organization @relation(name: "reportedOrganization", fields: [reportedOrganizationId], references: [id], onDelete: Cascade)
 }
 
 model ReportActivity {
   id                 Int      @id @unique
+  report             Report   @relation(fields: [id], references: [id], onDelete: Cascade)
   reportedActivityId Int
   reportedActivity   Activity @relation(name: "reportedActivity", fields: [reportedActivityId], references: [id], onDelete: Cascade)
+}
+
+model ReportMessage {
+  id        Int                 @id @default(autoincrement())
+  reportId  Int
+  report    Report              @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  content   String
+  senderId  Int
+  sender    Account             @relation(name: "reportMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  file      ReportMessageFile[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @default(now()) @updatedAt
+}
+
+model ReportMessageFile {
+  reportMessageId Int
+  reportMessage   ReportMessage @relation(fields: [reportMessageId], references: [id], onDelete: Cascade)
+  fileId          Int           @id @unique
+  file            File          @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
 }
 
 model AccountBan {
@@ -504,13 +532,4 @@ model ShiftManager {
   updatedAt   DateTime @default(now()) @updatedAt
 
   @@id([shiftId, accountId])
-}
-
-model ReportFile {
-  reportId  Int
-  fileId    Int      @id @unique
-  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
 }

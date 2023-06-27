@@ -7,7 +7,8 @@ import {
   Report,
   ReportAccount,
   ReportActivity,
-  ReportFile,
+  ReportMessage,
+  ReportMessageFile,
   ReportOrganization,
 } from '@prisma/client';
 import { ReportStatus, ReportType, reportStatuses } from 'src/report/constants';
@@ -27,8 +28,9 @@ export const seedReports = async (
   const organizationReports: ReportOrganization[] = [];
   const activityReports: ReportActivity[] = [];
 
-  const reportFilesCount: { [key: number]: number } = {};
-  const reportFiles: ReportFile[] = [];
+  const reportMessages: ReportMessage[] = [];
+  const reportMessageFilesCount: { [key: number]: number } = {};
+  const reportMessageFiles: ReportMessageFile[] = [];
 
   accounts.forEach((account) => {
     reportStatuses.forEach((status) => {
@@ -46,8 +48,6 @@ export const seedReports = async (
           id: report.id,
           reportedAccountId: faker.helpers.arrayElement(volunteerAccounts).id,
         });
-
-        reportFilesCount[report.id] = faker.number.int({ min: 0, max: 2 });
       }
       const numberOfOrganizationReports = faker.number.int({ min: 0, max: 1 });
       for (let i = 0; i < numberOfOrganizationReports; i++) {
@@ -63,8 +63,6 @@ export const seedReports = async (
           id: report.id,
           reportedOrganizationId: faker.helpers.arrayElement(organizations).id,
         });
-
-        reportFilesCount[report.id] = faker.number.int({ min: 0, max: 2 });
       }
       const numberOfActivityReports = faker.number.int({ min: 0, max: 1 });
       for (let i = 0; i < numberOfActivityReports; i++) {
@@ -80,16 +78,59 @@ export const seedReports = async (
           id: report.id,
           reportedActivityId: faker.helpers.arrayElement(activities).id,
         });
-
-        reportFilesCount[report.id] = faker.number.int({ min: 0, max: 2 });
       }
     });
   });
 
+  for (const report of reports) {
+    const reportMessage = createReportMessage({
+      reportId: report.id,
+      senderId: faker.helpers.arrayElement(adminAccounts).id,
+      reportCreatedAt: report.createdAt,
+      reportUpdatedAt: report.updatedAt,
+    });
+    reportMessages.push(reportMessage);
+
+    reportMessageFilesCount[reportMessage.id] = faker.number.int({
+      min: 0,
+      max: 2,
+    });
+
+    const numberOfReportMessages = faker.number.int({ min: 0, max: 2 });
+    for (let i = 0; i < numberOfReportMessages; i++) {
+      const otherReportMessage = createReportMessage({
+        reportId: report.id,
+        senderId: faker.helpers.arrayElement([
+          report.reporterId,
+          reportMessage.senderId,
+        ]),
+        reportCreatedAt: report.createdAt,
+        reportUpdatedAt: report.updatedAt,
+      });
+      reportMessages.push(otherReportMessage);
+
+      reportMessageFilesCount[otherReportMessage.id] =
+        faker.helpers.weightedArrayElement([
+          {
+            weight: 20,
+            value: 0,
+          },
+          {
+            weight: 5,
+            value: 1,
+          },
+          {
+            weight: 1,
+            value: 2,
+          },
+        ]);
+    }
+  }
+
   const files = await seedFiles(
     prisma,
     './tmp/images/report-file',
-    Object.values(reportFilesCount).reduce((a, b) => a + b, 0),
+    Object.values(reportMessageFilesCount).reduce((a, b) => a + b, 0),
     () =>
       faker.image.urlLoremFlickr({
         width: 128,
@@ -98,16 +139,16 @@ export const seedReports = async (
   );
 
   let fileIndex = 0;
-  for (const reportId in reportFilesCount) {
-    const numberOfReportFiles = reportFilesCount[reportId];
+  for (const reportMessageId in reportMessageFilesCount) {
+    const numberOfReportFiles = reportMessageFilesCount[reportMessageId];
     for (let i = 0; i < numberOfReportFiles; i++) {
       const file = files[fileIndex];
       if (file == null) {
         fileIndex++;
         continue;
       }
-      reportFiles.push({
-        reportId: parseInt(reportId),
+      reportMessageFiles.push({
+        reportMessageId: parseInt(reportMessageId),
         fileId: file.id,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -132,8 +173,12 @@ export const seedReports = async (
     data: activityReports,
   });
 
-  await prisma.reportFile.createMany({
-    data: reportFiles,
+  await prisma.reportMessage.createMany({
+    data: reportMessages,
+  });
+
+  await prisma.reportMessageFile.createMany({
+    data: reportMessageFiles,
   });
 
   return {
@@ -164,6 +209,31 @@ const createReport = (data: {
     content: faker.lorem.paragraph(),
     reporterId: data.reporterId,
     reviewerId: data.reviewerId,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  };
+};
+
+const createReportMessage = (data: {
+  reportId: number;
+  senderId: number;
+  reportCreatedAt: Date;
+  reportUpdatedAt: Date;
+}): ReportMessage => {
+  const createdAt = faker.date.between({
+    from: data.reportCreatedAt,
+    to: data.reportUpdatedAt,
+  });
+  const updatedAt = faker.date.between({
+    from: createdAt,
+    to: data.reportUpdatedAt,
+  });
+
+  return {
+    id: getNextReportId(),
+    reportId: data.reportId,
+    senderId: data.senderId,
+    content: faker.lorem.paragraph(),
     createdAt: createdAt,
     updatedAt: updatedAt,
   };

@@ -107,6 +107,7 @@ const seed = async () => {
     await prisma.$executeRaw`SELECT setval('"File_id_seq"', (SELECT MAX(id) from "File"));`;
     await prisma.$executeRaw`SELECT setval('"Notification_id_seq"', (SELECT MAX(id) from "Notification"));`;
     await prisma.$executeRaw`SELECT setval('"Report_id_seq"', (SELECT MAX(id) from "Report"));`;
+    await prisma.$executeRaw`SELECT setval('"ReportMessage_id_seq"', (SELECT MAX(id) from "ReportMessage"));`;
   }, 'Fixing sequences...');
 };
 

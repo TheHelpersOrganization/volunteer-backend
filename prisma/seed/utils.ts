@@ -19,6 +19,7 @@ let skillId = 1;
 let roleId = 1;
 let notificationId = 1;
 let reportId = 1;
+let reportMessageId = 1;
 
 export const getNextAccountId = () => accountId++;
 export const getNextOrganizationId = () => organizationId++;
@@ -35,6 +36,7 @@ export const getNextSkillId = () => skillId++;
 export const getNextRoleId = () => roleId++;
 export const getNextNotificationId = () => notificationId++;
 export const getNextReportId = () => reportId++;
+export const getNextReportMessageId = () => reportMessageId++;
 
 export const requireNonNullish = <T>(
   value: T | null | undefined,

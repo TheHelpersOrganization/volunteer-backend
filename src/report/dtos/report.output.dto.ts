@@ -5,6 +5,31 @@ import { OrganizationOutputDto } from 'src/organization/dtos';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import { ReportStatus, ReportType } from '../constants';
 
+export class ReportMessage {
+  @Expose()
+  id: number;
+
+  @Expose()
+  senderId: number;
+
+  @Expose()
+  @Type(() => ProfileOutputDto)
+  sender?: ProfileOutputDto;
+
+  @Expose()
+  content: string;
+
+  @Expose()
+  @Type(() => FileOutputDto)
+  files: FileOutputDto[];
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
+}
+
 export class ReportOutputDto {
   @Expose()
   id: number;
@@ -42,8 +67,8 @@ export class ReportOutputDto {
   updatedAt: Date;
 
   @Expose()
-  @Type(() => FileOutputDto)
-  files?: FileOutputDto[];
+  @Type(() => ReportMessage)
+  messages?: ReportMessage[];
 
   @Expose()
   reportedAccount?: ProfileOutputDto;
