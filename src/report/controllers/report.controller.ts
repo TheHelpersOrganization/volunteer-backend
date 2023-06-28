@@ -74,11 +74,11 @@ export class ReportController {
   }
 
   @RequireRoles(Role.Admin)
-  @Post(':id/reject')
+  @Put(':id/reject')
   async rejectReport(
     @ReqContext() context: RequestContext,
-    @Body() dto: CreateReportInputDto,
+    @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.reportService.createReport(context, dto);
+    return this.reportService.rejectReport(context, id);
   }
 }
