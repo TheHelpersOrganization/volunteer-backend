@@ -5,6 +5,7 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { PrismaService } from 'src/prisma';
+import { NotificationType } from '../constants';
 import {
   BaseGetNotificationsQueryDto,
   CreateNotificationInputDto,
@@ -37,7 +38,7 @@ export class NotificationService extends AbstractService {
       skip: query.offset,
       orderBy: sort,
     });
-    return this.outputArray(NotificationOutputDto, res);
+    return res.map((n) => this.mapToDto(n));
   }
 
   async countNotifications(
@@ -192,5 +193,36 @@ export class NotificationService extends AbstractService {
       res['topic'] = mid;
     }
     return res;
+  }
+
+  mapToDto(raw: {
+    id: number;
+    accountId: number;
+    type: string;
+    from: string | null;
+    title: string;
+    description: string;
+    shortDescription: string | null;
+    read: boolean;
+    data: Prisma.JsonValue;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    let actionTitle: string | undefined;
+    let actionUrl: string | undefined;
+    switch (raw.type) {
+      case NotificationType.Activity:
+        actionTitle = 'Activity';
+        actionUrl = `/activities/${raw.data?.['activityId']}`;
+        break;
+      case NotificationType.Organization:
+        actionTitle = 'Organization';
+        actionUrl = `/organizations/${raw.data?.['organizationId']}`;
+    }
+    return this.output(NotificationOutputDto, {
+      ...raw,
+      actionTitle,
+      actionUrl,
+    });
   }
 }

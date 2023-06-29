@@ -73,7 +73,7 @@ const seed = async () => {
   );
 
   await runWithTimer(
-    () => seedNotifications(prisma, accounts),
+    () => seedNotifications(prisma, accounts, activities, organizations),
     '- Seeding notifications...',
   );
 

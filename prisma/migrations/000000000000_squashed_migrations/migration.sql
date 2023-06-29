@@ -185,8 +185,9 @@ CREATE TABLE "Notification" (
     "description" TEXT NOT NULL,
     "shortDescription" TEXT,
     "read" BOOLEAN NOT NULL DEFAULT false,
+    "data" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
@@ -198,7 +199,6 @@ CREATE TABLE "Report" (
     "reviewerId" INTEGER,
     "type" TEXT NOT NULL,
     "title" TEXT NOT NULL,
-    "content" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -236,6 +236,7 @@ CREATE TABLE "ReportMessage" (
     "reportId" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
     "senderId" INTEGER NOT NULL,
+    "first" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

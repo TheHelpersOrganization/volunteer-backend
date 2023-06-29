@@ -1,5 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { Account, Notification, PrismaClient } from '@prisma/client';
+import {
+  Account,
+  Activity,
+  Organization,
+  Prisma,
+  PrismaClient,
+} from '@prisma/client';
 import * as _ from 'lodash';
 import {
   NotificationType,
@@ -10,8 +16,10 @@ import { getNextNotificationId, requireNonNullish } from './utils';
 export const seedNotifications = async (
   prisma: PrismaClient,
   accounts: Account[],
+  activities: Activity[],
+  organizations: Organization[],
 ) => {
-  const notifications: Notification[] = [];
+  const notifications: Prisma.NotificationUncheckedCreateInput[] = [];
 
   accounts.forEach((account) => {
     const createdAt = faker.date.past();
@@ -28,12 +36,22 @@ export const seedNotifications = async (
       accountId: account.id,
       read: false,
       type: NotificationType.System,
+      data: {},
       createdAt: createdAt,
       updatedAt: updateAt,
     });
 
     for (let i = 0; i < faker.number.int({ min: 10, max: 30 }); i++) {
       const type = requireNonNullish(_.sample(notificationTypes));
+      const data = {};
+      switch (type) {
+        case NotificationType.Activity:
+          data['activityId'] = _.sample(activities)?.id;
+          break;
+        case NotificationType.Organization:
+          data['organizationId'] = _.sample(organizations)?.id;
+          break;
+      }
       const createdAt = faker.date.past();
       const updateAt = faker.date.future({ refDate: createdAt });
       notifications.push({
@@ -45,6 +63,7 @@ export const seedNotifications = async (
         accountId: account.id,
         read: faker.datatype.boolean(),
         type: type,
+        data: data,
         createdAt: createdAt,
         updatedAt: updateAt,
       });
