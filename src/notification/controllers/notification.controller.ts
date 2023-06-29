@@ -29,12 +29,12 @@ export class NotificationController {
     return this.notificationService.getNotifications(context, query);
   }
 
-  @Get()
+  @Get('count')
   async countNotifications(
     @ReqContext() context: RequestContext,
     @Query() query: BaseGetNotificationsQueryDto,
   ) {
-    return this.notificationService.getNotifications(context, query);
+    return this.notificationService.countNotifications(context, query);
   }
 
   @Get(':id')
