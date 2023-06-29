@@ -174,6 +174,7 @@ export class NotificationService extends AbstractService {
             title: dto.title,
             body: dto.shortDescription ?? dto.description,
           },
+          data: dto.data,
         });
       res['multicast'] = mid;
     }
@@ -185,6 +186,7 @@ export class NotificationService extends AbstractService {
             title: dto.title,
             body: dto.shortDescription ?? dto.description,
           },
+          data: dto.data,
         },
       );
       res['topic'] = mid;

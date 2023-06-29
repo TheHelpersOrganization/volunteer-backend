@@ -1,4 +1,10 @@
-import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateNotificationInputDto {
   @IsString()
@@ -13,6 +19,10 @@ export class CreateNotificationInputDto {
   @IsString()
   @MaxLength(1000)
   shortDescription?: string;
+
+  @IsOptional()
+  @IsObject()
+  data?: Record<string, string>;
 
   @IsOptional()
   @IsArray()
