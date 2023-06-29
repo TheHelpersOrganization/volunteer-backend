@@ -5,12 +5,14 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   BaseGetNotificationsQueryDto,
+  CreateNotificationInputDto,
   MarkNotificationsAsReadInputDto,
 } from '../dtos';
 import { NotificationService } from '../services';
@@ -21,6 +23,14 @@ export class NotificationController {
 
   @Get()
   async getNotifications(
+    @ReqContext() context: RequestContext,
+    @Query() query: BaseGetNotificationsQueryDto,
+  ) {
+    return this.notificationService.getNotifications(context, query);
+  }
+
+  @Get()
+  async countNotifications(
     @ReqContext() context: RequestContext,
     @Query() query: BaseGetNotificationsQueryDto,
   ) {
@@ -49,5 +59,13 @@ export class NotificationController {
     @Body() dto: MarkNotificationsAsReadInputDto,
   ) {
     return this.notificationService.deleteNotifications(context, dto);
+  }
+
+  @Post()
+  async sendNotification(
+    @ReqContext() context: RequestContext,
+    @Body() dto: CreateNotificationInputDto,
+  ) {
+    return this.notificationService.sendNotification(context, dto);
   }
 }

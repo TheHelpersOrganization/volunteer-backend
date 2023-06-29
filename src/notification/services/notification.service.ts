@@ -3,9 +3,11 @@ import { Prisma } from '@prisma/client';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
+import { FirebaseService } from 'src/firebase/firebase.service';
 import { PrismaService } from 'src/prisma';
 import {
   BaseGetNotificationsQueryDto,
+  CreateNotificationInputDto,
   DeleteNotificationsInputDto,
   GetNotificationSort,
   MarkNotificationsAsReadInputDto,
@@ -14,7 +16,11 @@ import { NotificationOutputDto } from '../dtos/notification.output.dto';
 
 @Injectable()
 export class NotificationService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly firebaseService: FirebaseService,
+  ) {
     super(logger);
   }
 
@@ -32,6 +38,20 @@ export class NotificationService extends AbstractService {
       orderBy: sort,
     });
     return this.outputArray(NotificationOutputDto, res);
+  }
+
+  async countNotifications(
+    context: RequestContext,
+    query: BaseGetNotificationsQueryDto,
+  ) {
+    this.logCaller(context, this.getNotifications);
+    const where = this.getNotificationWhere(context, query);
+    const count = await this.prisma.notification.count({
+      where: where,
+    });
+    return this.output(NotificationOutputDto, {
+      _count: count,
+    });
   }
 
   getNotificationWhere(
@@ -138,5 +158,18 @@ export class NotificationService extends AbstractService {
       },
     });
     return this.outputArray(NotificationOutputDto, notifications);
+  }
+
+  async sendNotification(
+    context: RequestContext,
+    dto: CreateNotificationInputDto,
+  ) {
+    this.logCaller(context, this.sendNotification);
+    this.firebaseService.firebaseMessaging.sendToTopic('global', {
+      notification: {
+        title: dto.title,
+        body: dto.shortDescription ?? dto.description,
+      },
+    });
   }
 }

@@ -28,4 +28,9 @@ export class NotificationOutputDto {
 
   @Expose()
   createdAt?: Date;
+
+  // Metadata fields
+
+  @Expose()
+  _count?: number;
 }
