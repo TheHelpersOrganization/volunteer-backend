@@ -17,6 +17,8 @@ export class AppPrismaClient extends PrismaClient {
         if (this.retries >= (this.config?.maxRetries ?? 5)) {
           throw err;
         }
+        // Wait for 2 seconds before retrying
+        await new Promise((r) => setTimeout(r, 2000));
         this.retries++;
         console.warn(`Connection failed. Retrying... Attempt ${this.retries}`);
       }

@@ -165,7 +165,7 @@ export class NotificationService extends AbstractService {
     dto: CreateNotificationInputDto,
   ) {
     this.logCaller(context, this.sendNotification);
-    this.firebaseService.firebaseMessaging.sendToTopic('global', {
+    return this.firebaseService.firebaseMessaging.sendToTopic('all', {
       notification: {
         title: dto.title,
         body: dto.shortDescription ?? dto.description,
