@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateNotificationInputDto {
   @IsString()
@@ -13,4 +13,13 @@ export class CreateNotificationInputDto {
   @IsString()
   @MaxLength(1000)
   shortDescription?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  registrationTokens?: string[];
+
+  @IsOptional()
+  @IsString()
+  topic?: string;
 }

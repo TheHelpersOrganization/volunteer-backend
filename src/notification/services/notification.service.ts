@@ -165,11 +165,30 @@ export class NotificationService extends AbstractService {
     dto: CreateNotificationInputDto,
   ) {
     this.logCaller(context, this.sendNotification);
-    return this.firebaseService.firebaseMessaging.sendToTopic('all', {
-      notification: {
-        title: dto.title,
-        body: dto.shortDescription ?? dto.description,
-      },
-    });
+    const res = {};
+    if (dto.registrationTokens) {
+      const mid =
+        await this.firebaseService.firebaseMessaging.sendEachForMulticast({
+          tokens: dto.registrationTokens,
+          notification: {
+            title: dto.title,
+            body: dto.shortDescription ?? dto.description,
+          },
+        });
+      res['multicast'] = mid;
+    }
+    if (dto.topic) {
+      const mid = await this.firebaseService.firebaseMessaging.sendToTopic(
+        dto.topic,
+        {
+          notification: {
+            title: dto.title,
+            body: dto.shortDescription ?? dto.description,
+          },
+        },
+      );
+      res['topic'] = mid;
+    }
+    return res;
   }
 }
