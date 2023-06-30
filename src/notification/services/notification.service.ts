@@ -198,7 +198,7 @@ export class NotificationService extends AbstractService {
       if (dto.activityId == null) {
         throw new InvalidInputException('activityId');
       }
-      if (dto.shiftId) {
+      if (dto.shiftId == null) {
         throw new InvalidInputException('shiftId');
       }
     } else if (
