@@ -72,12 +72,7 @@ const seed = async () => {
     '- Seeding activities...',
   );
 
-  await runWithTimer(
-    () => seedNotifications(prisma, accounts, activities, organizations),
-    '- Seeding notifications...',
-  );
-
-  await runWithTimer(
+  const { reports } = await runWithTimer(
     () =>
       seedReports(
         prisma,
@@ -88,6 +83,12 @@ const seed = async () => {
         activities,
       ),
     '- Seeding reports...',
+  );
+
+  await runWithTimer(
+    () =>
+      seedNotifications(prisma, accounts, activities, organizations, reports),
+    '- Seeding notifications...',
   );
 
   // Fix sequences

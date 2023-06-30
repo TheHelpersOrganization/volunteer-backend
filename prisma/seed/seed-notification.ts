@@ -5,6 +5,7 @@ import {
   Organization,
   Prisma,
   PrismaClient,
+  Report,
 } from '@prisma/client';
 import * as _ from 'lodash';
 import {
@@ -18,6 +19,7 @@ export const seedNotifications = async (
   accounts: Account[],
   activities: Activity[],
   organizations: Organization[],
+  reports: Report[],
 ) => {
   const notifications: Prisma.NotificationUncheckedCreateInput[] = [];
 
@@ -50,6 +52,9 @@ export const seedNotifications = async (
           break;
         case NotificationType.Organization:
           data['organizationId'] = _.sample(organizations)?.id;
+          break;
+        case NotificationType.Report:
+          data['reportId'] = _.sample(reports)?.id;
           break;
       }
       const createdAt = faker.date.past();

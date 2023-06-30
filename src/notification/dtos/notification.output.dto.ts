@@ -27,13 +27,19 @@ export class NotificationOutputDto {
   read: boolean;
 
   @Expose()
-  actionTitle?: string;
-
-  @Expose()
-  actionUrl?: string;
-
-  @Expose()
   createdAt?: Date;
+
+  @Expose()
+  activityId?: number;
+
+  @Expose()
+  shiftId?: number;
+
+  @Expose()
+  organizationId?: number;
+
+  @Expose()
+  reportId?: number;
 
   // Metadata fields
 

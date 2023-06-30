@@ -107,7 +107,10 @@ export class NotificationService extends AbstractService {
         accountId: context.account.id,
       },
     });
-    return this.output(NotificationOutputDto, res);
+    if (res == null) {
+      return null;
+    }
+    return this.mapToDto(res);
   }
 
   async markNotificationsAsRead(
@@ -208,21 +211,29 @@ export class NotificationService extends AbstractService {
     createdAt: Date;
     updatedAt: Date;
   }) {
-    let actionTitle: string | undefined;
-    let actionUrl: string | undefined;
+    let activityId: number | undefined = undefined;
+    let organizationId: number | undefined = undefined;
+    let reportId: number | undefined = undefined;
+    let shiftId: number | undefined = undefined;
     switch (raw.type) {
       case NotificationType.Activity:
-        actionTitle = 'Activity';
-        actionUrl = `/activities/${raw.data?.['activityId']}`;
+        activityId = raw.data?.['activityId'];
+        shiftId = raw.data?.['shiftId'];
         break;
       case NotificationType.Organization:
-        actionTitle = 'Organization';
-        actionUrl = `/organizations/${raw.data?.['organizationId']}`;
+        organizationId = raw.data?.['organizationId'];
+        break;
+      case NotificationType.Report:
+        reportId = raw.data?.['reportId'];
+        break;
     }
+
     return this.output(NotificationOutputDto, {
       ...raw,
-      actionTitle,
-      actionUrl,
+      activityId: activityId,
+      shiftId: shiftId,
+      organizationId: organizationId,
+      reportId: reportId,
     });
   }
 }
