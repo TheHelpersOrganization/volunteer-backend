@@ -15,6 +15,7 @@ import {
   GetNotificationByIdQueryDto,
   GetNotificationsQueryDto,
   MarkNotificationsAsReadInputDto,
+  TestCreateNotificationInputDto,
 } from '../dtos';
 import { NotificationService } from '../services';
 
@@ -69,5 +70,13 @@ export class NotificationController {
     @Body() dto: CreateNotificationInputDto,
   ) {
     return this.notificationService.sendNotification(context, dto);
+  }
+
+  @Post('test/send-notification')
+  async testSendNotification(
+    @ReqContext() context: RequestContext,
+    @Body() dto: TestCreateNotificationInputDto,
+  ) {
+    return this.notificationService.testSendNotification(context, dto);
   }
 }

@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { InvalidInputException } from 'src/common/exceptions';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { PrismaService } from 'src/prisma';
+import { NotificationType, accountNotificationPrefix } from '../constants';
 import {
   CreateNotificationInputDto,
   DeleteNotificationsInputDto,
@@ -13,6 +15,7 @@ import {
   GetNotificationSort,
   GetNotificationsQueryDto,
   MarkNotificationsAsReadInputDto,
+  TestCreateNotificationInputDto,
 } from '../dtos';
 import { NotificationOutputDto } from '../dtos/notification.output.dto';
 
@@ -189,6 +192,65 @@ export class NotificationService extends AbstractService {
     dto: CreateNotificationInputDto,
   ) {
     this.logCaller(context, this.sendNotification);
+    if (dto.type === NotificationType.Activity && dto.activityId == null) {
+      throw new InvalidInputException('activityId');
+    } else if (dto.type === NotificationType.Shift) {
+      if (dto.activityId == null) {
+        throw new InvalidInputException('activityId');
+      }
+      if (dto.shiftId) {
+        throw new InvalidInputException('shiftId');
+      }
+    } else if (
+      dto.type == NotificationType.Organization &&
+      dto.organizationId == null
+    ) {
+      throw new InvalidInputException('organizationId');
+    } else if (dto.type == NotificationType.Report && dto.reportId == null) {
+      throw new InvalidInputException('reportId');
+    }
+    const notification = await this.prisma.notification.create({
+      data: {
+        accountId: context.account.id,
+        title: dto.title,
+        description: dto.description,
+        shortDescription: dto.shortDescription,
+        type: dto.type,
+        activityId: dto.activityId,
+        shiftId: dto.shiftId,
+        organizationId: dto.organizationId,
+        reportId: dto.reportId,
+      },
+    });
+    const output = this.mapToDto(notification);
+    const topic = `${accountNotificationPrefix}-${context.account.id}`;
+    this.firebaseService.firebaseMessaging
+      .sendToTopic(topic, {
+        notification: {
+          title: dto.title,
+          body: dto.shortDescription ?? dto.description,
+        },
+        data: {
+          notification: JSON.stringify(output),
+        },
+      })
+      .then((mts) => {
+        this.logger.log(
+          context,
+          `Sent notification to topic ${topic}: ${JSON.stringify(mts)}`,
+        );
+      })
+      .catch((err) => {
+        this.logger.error(context, err);
+      });
+    return output;
+  }
+
+  async testSendNotification(
+    context: RequestContext,
+    dto: TestCreateNotificationInputDto,
+  ) {
+    this.logCaller(context, this.testSendNotification);
     const res = {};
     if (dto.registrationTokens) {
       const mid =
