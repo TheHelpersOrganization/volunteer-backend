@@ -157,6 +157,7 @@ model Organization {
   organizationActivities Activity[]
   organizationSkills     OrganizationSkill[]
   reportedOrganization   ReportOrganization[]   @relation(name: "reportedOrganization")
+  Notification           Notification[]
 }
 
 model Skill {
@@ -192,6 +193,7 @@ model Activity {
   activitySkills    ActivitySkill[]
   activityContacts  ActivityContact[]
   reportedActivity  ReportActivity[]  @relation(name: "reportedActivity")
+  notification      Notification[]
 }
 
 model Shift {
@@ -218,6 +220,7 @@ model Shift {
   shiftManagers         ShiftManager[]
   shiftMetadata         ShiftMetadata?
   shiftSkillValue       ShiftSkillValue[]
+  notification          Notification[]
 }
 
 model ShiftMetadata {
@@ -230,18 +233,25 @@ model ShiftMetadata {
 }
 
 model Notification {
-  id               Int      @id @default(autoincrement())
+  id               Int           @id @default(autoincrement())
   accountId        Int
-  account          Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account          Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   type             String
   from             String?
   title            String
   description      String
   shortDescription String?
-  read             Boolean  @default(false)
-  data             Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @default(now()) @updatedAt
+  read             Boolean       @default(false)
+  activityId       Int?
+  activity         Activity?     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  shiftId          Int?
+  shift            Shift?        @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  organizationId   Int?
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reportId         Int?
+  report           Report?       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
 }
 
 model Report {
@@ -259,6 +269,7 @@ model Report {
   reportAccount      ReportAccount?
   reportOrganization ReportOrganization?
   reportActivity     ReportActivity?
+  notification       Notification[]
 }
 
 model ReportAccount {

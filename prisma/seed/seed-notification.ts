@@ -6,6 +6,7 @@ import {
   Prisma,
   PrismaClient,
   Report,
+  Shift,
 } from '@prisma/client';
 import * as _ from 'lodash';
 import {
@@ -18,6 +19,7 @@ export const seedNotifications = async (
   prisma: PrismaClient,
   accounts: Account[],
   activities: Activity[],
+  shifts: Shift[],
   organizations: Organization[],
   reports: Report[],
 ) => {
@@ -38,23 +40,32 @@ export const seedNotifications = async (
       accountId: account.id,
       read: false,
       type: NotificationType.System,
-      data: {},
+
       createdAt: createdAt,
       updatedAt: updateAt,
     });
 
     for (let i = 0; i < faker.number.int({ min: 10, max: 30 }); i++) {
       const type = requireNonNullish(_.sample(notificationTypes));
-      const data = {};
+      let activityId: number | undefined = undefined;
+      let shiftId: number | undefined = undefined;
+      let organizationId: number | undefined = undefined;
+      let reportId: number | undefined = undefined;
       switch (type) {
         case NotificationType.Activity:
-          data['activityId'] = _.sample(activities)?.id;
+          activityId = _.sample(activities)?.id;
+          break;
+        case NotificationType.Shift:
+          activityId = _.sample(activities)?.id;
+          shiftId = _.sample(
+            shifts.filter((s) => s.activityId === activityId),
+          )?.id;
           break;
         case NotificationType.Organization:
-          data['organizationId'] = _.sample(organizations)?.id;
+          organizationId = _.sample(organizations)?.id;
           break;
         case NotificationType.Report:
-          data['reportId'] = _.sample(reports)?.id;
+          reportId = _.sample(reports)?.id;
           break;
       }
       const createdAt = faker.date.past();
@@ -68,7 +79,10 @@ export const seedNotifications = async (
         accountId: account.id,
         read: faker.datatype.boolean(),
         type: type,
-        data: data,
+        activityId: activityId,
+        shiftId: shiftId,
+        organizationId: organizationId,
+        reportId: reportId,
         createdAt: createdAt,
         updatedAt: updateAt,
       });

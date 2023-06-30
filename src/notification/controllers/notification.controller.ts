@@ -11,8 +11,9 @@ import {
 } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
-  BaseGetNotificationsQueryDto,
   CreateNotificationInputDto,
+  GetNotificationByIdQueryDto,
+  GetNotificationsQueryDto,
   MarkNotificationsAsReadInputDto,
 } from '../dtos';
 import { NotificationService } from '../services';
@@ -24,7 +25,7 @@ export class NotificationController {
   @Get()
   async getNotifications(
     @ReqContext() context: RequestContext,
-    @Query() query: BaseGetNotificationsQueryDto,
+    @Query() query: GetNotificationsQueryDto,
   ) {
     return this.notificationService.getNotifications(context, query);
   }
@@ -32,7 +33,7 @@ export class NotificationController {
   @Get('count')
   async countNotifications(
     @ReqContext() context: RequestContext,
-    @Query() query: BaseGetNotificationsQueryDto,
+    @Query() query: GetNotificationsQueryDto,
   ) {
     return this.notificationService.countNotifications(context, query);
   }
@@ -41,8 +42,9 @@ export class NotificationController {
   async getNotificationById(
     @ReqContext() context: RequestContext,
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: GetNotificationByIdQueryDto,
   ) {
-    return this.notificationService.getNotificationById(context, id);
+    return this.notificationService.getNotificationById(context, id, query);
   }
 
   @Put('mark-as-read')

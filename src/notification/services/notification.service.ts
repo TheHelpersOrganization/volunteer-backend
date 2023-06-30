@@ -5,12 +5,13 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { PrismaService } from 'src/prisma';
-import { NotificationType } from '../constants';
 import {
-  BaseGetNotificationsQueryDto,
   CreateNotificationInputDto,
   DeleteNotificationsInputDto,
+  GetNotificationByIdQueryDto,
+  GetNotificationInclude,
   GetNotificationSort,
+  GetNotificationsQueryDto,
   MarkNotificationsAsReadInputDto,
 } from '../dtos';
 import { NotificationOutputDto } from '../dtos/notification.output.dto';
@@ -27,7 +28,7 @@ export class NotificationService extends AbstractService {
 
   async getNotifications(
     context: RequestContext,
-    query: BaseGetNotificationsQueryDto,
+    query: GetNotificationsQueryDto,
   ) {
     this.logCaller(context, this.getNotifications);
     const where = this.getNotificationWhere(context, query);
@@ -37,13 +38,14 @@ export class NotificationService extends AbstractService {
       take: query.limit,
       skip: query.offset,
       orderBy: sort,
+      include: this.getNotificationInclude(query),
     });
     return res.map((n) => this.mapToDto(n));
   }
 
   async countNotifications(
     context: RequestContext,
-    query: BaseGetNotificationsQueryDto,
+    query: GetNotificationsQueryDto,
   ) {
     this.logCaller(context, this.getNotifications);
     const where = this.getNotificationWhere(context, query);
@@ -57,7 +59,7 @@ export class NotificationService extends AbstractService {
 
   getNotificationWhere(
     context: RequestContext,
-    query: BaseGetNotificationsQueryDto,
+    query: GetNotificationsQueryDto,
   ) {
     const where: Prisma.NotificationWhereInput = {
       accountId: context.account.id,
@@ -84,7 +86,20 @@ export class NotificationService extends AbstractService {
     return where;
   }
 
-  getNotificationSort(query: BaseGetNotificationsQueryDto) {
+  getNotificationInclude(query?: GetNotificationByIdQueryDto) {
+    const include: Prisma.NotificationInclude | undefined =
+      query?.include == GetNotificationInclude.Data
+        ? {
+            activity: true,
+            shift: true,
+            organization: true,
+            report: true,
+          }
+        : undefined;
+    return include;
+  }
+
+  getNotificationSort(query: GetNotificationsQueryDto) {
     const sort: Prisma.NotificationOrderByWithAggregationInput = {};
     if (query.sort) {
       if (query.sort.includes(GetNotificationSort.CreatedAtAsc)) {
@@ -99,13 +114,18 @@ export class NotificationService extends AbstractService {
     return sort;
   }
 
-  async getNotificationById(context: RequestContext, id: number) {
+  async getNotificationById(
+    context: RequestContext,
+    id: number,
+    query: GetNotificationByIdQueryDto,
+  ) {
     this.logCaller(context, this.getNotifications);
     const res = await this.prisma.notification.findUnique({
       where: {
         id: id,
         accountId: context.account.id,
       },
+      include: this.getNotificationInclude(query),
     });
     if (res == null) {
       return null;
@@ -198,42 +218,7 @@ export class NotificationService extends AbstractService {
     return res;
   }
 
-  mapToDto(raw: {
-    id: number;
-    accountId: number;
-    type: string;
-    from: string | null;
-    title: string;
-    description: string;
-    shortDescription: string | null;
-    read: boolean;
-    data: Prisma.JsonValue;
-    createdAt: Date;
-    updatedAt: Date;
-  }) {
-    let activityId: number | undefined = undefined;
-    let organizationId: number | undefined = undefined;
-    let reportId: number | undefined = undefined;
-    let shiftId: number | undefined = undefined;
-    switch (raw.type) {
-      case NotificationType.Activity:
-        activityId = raw.data?.['activityId'];
-        shiftId = raw.data?.['shiftId'];
-        break;
-      case NotificationType.Organization:
-        organizationId = raw.data?.['organizationId'];
-        break;
-      case NotificationType.Report:
-        reportId = raw.data?.['reportId'];
-        break;
-    }
-
-    return this.output(NotificationOutputDto, {
-      ...raw,
-      activityId: activityId,
-      shiftId: shiftId,
-      organizationId: organizationId,
-      reportId: reportId,
-    });
+  mapToDto(raw: any) {
+    return this.output(NotificationOutputDto, raw);
   }
 }

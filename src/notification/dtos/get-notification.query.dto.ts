@@ -19,7 +19,17 @@ export enum GetNotificationSort {
   CreatedAtDesc = '-createdAt',
 }
 
-export class BaseGetNotificationsQueryDto extends PaginationQueryDto {
+export enum GetNotificationInclude {
+  Data = 'data',
+}
+
+export class GetNotificationByIdQueryDto extends PaginationQueryDto {
+  @IsOptional()
+  @IsEnum(GetNotificationInclude)
+  include?: GetNotificationInclude;
+}
+
+export class GetNotificationsQueryDto extends GetNotificationByIdQueryDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
@@ -53,9 +63,7 @@ export class BaseGetNotificationsQueryDto extends PaginationQueryDto {
   @ArrayMaxSize(Object.values(GetNotificationSort).length / 2)
   @Transform(({ value }) => value.split(','))
   sort?: GetNotificationSort[];
-}
 
-export class GetNotificationsQueryDto extends BaseGetNotificationsQueryDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)

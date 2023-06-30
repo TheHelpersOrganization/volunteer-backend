@@ -59,7 +59,7 @@ const seed = async () => {
     '- Seeding organizations...',
   );
 
-  const { activities } = await runWithTimer(
+  const { activities, shifts } = await runWithTimer(
     () =>
       seedActivities(
         prisma,
@@ -87,7 +87,14 @@ const seed = async () => {
 
   await runWithTimer(
     () =>
-      seedNotifications(prisma, accounts, activities, organizations, reports),
+      seedNotifications(
+        prisma,
+        accounts,
+        activities,
+        shifts,
+        organizations,
+        reports,
+      ),
     '- Seeding notifications...',
   );
 
