@@ -24,7 +24,8 @@ export class ShiftTaskService extends AbstractService {
   // Perform automatic status update for shifts
   // Need to use cursor to get data slowly
   // Need to use cron job to run this task every 3 minutes
-  @Interval(2 * 60 * 60 * 1000)
+  //@Interval(2 * 60 * 60 * 1000)
+  @Interval(3 * 60 * 1000)
   async updateShiftVolunteerStatus() {
     this.logCaller(undefined, this.updateShiftVolunteerStatus);
     // Guard to prevent multiple runs
