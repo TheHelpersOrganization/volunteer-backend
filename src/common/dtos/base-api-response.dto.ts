@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Type } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 
 export class BaseApiResponse<T> {
   public data: T; // Swagger Decorator is added in the extended class below, since that will override this one.
@@ -31,22 +32,29 @@ export function SwaggerBaseApiResponse<
   return ExtendedBaseApiResponse;
 }
 
-export class BaseApiErrorObject {
+export class ErrorObject {
+  @Expose()
   @ApiProperty({ type: Number })
   public statusCode: number;
 
+  @Expose()
   @ApiProperty({ type: String })
   public message: string;
 
+  @Expose()
   @ApiPropertyOptional({ type: String })
   public localizedMessage: string;
 
+  @Expose()
   @ApiProperty({ type: String })
   public errorName: string;
 
+  @Expose()
   @ApiProperty({ type: Object })
   public details: unknown;
+}
 
+export class BaseApiErrorObject extends ErrorObject {
   @ApiProperty({ type: String })
   public path: string;
 

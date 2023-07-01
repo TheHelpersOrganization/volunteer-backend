@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { ErrorObject } from 'src/common/dtos';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import { ShiftOutputDto } from 'src/shift/dtos';
 import { ShiftVolunteerStatus } from '../constants';
@@ -67,4 +68,13 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   @Type(() => ShiftOutputDto)
   shift?: ShiftOutputDto;
+}
+
+export class ShiftVolunteerErrorOutputDto {
+  @Expose()
+  id?: number;
+
+  @Expose()
+  @Type(() => ErrorObject)
+  error: ErrorObject;
 }

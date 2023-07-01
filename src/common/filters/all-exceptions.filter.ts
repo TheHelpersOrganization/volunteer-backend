@@ -37,72 +37,17 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     const requestId = req.headers[REQUEST_ID_TOKEN_HEADER];
     const requestContext = createRequestContext(req);
 
-    let stack: any;
-    let statusCode: HttpStatus | null = null;
-    let errorName: string | null = null;
-    let errorCode: string | null = null;
-    let message: string | null = null;
-    let details: string | Record<string, any> | null = null;
-    // TODO : Based on language value in header, return a localized message.
-    const acceptedLanguage = 'ja';
-    let localizedMessage: string | undefined = undefined;
-
-    // TODO : Refactor the below cases into a switch case and tidy up error response creation.
-    if (exception instanceof BaseApiException) {
-      statusCode = exception.getStatus();
-      errorName = exception.constructor.name;
-      errorCode = exception.errorCode;
-      message = exception.message;
-      localizedMessage = exception.localizedMessage?.[acceptedLanguage];
-      details = exception.details || exception.getResponse();
-    } else if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      errorName = exception.constructor.name;
-      message = exception.message;
-      details = exception.getResponse();
-      stack = exception.stack;
-    } else if (exception instanceof PrismaClientKnownRequestError) {
-      errorName = 'DatabaseException';
-      errorCode = 'database-exception';
-      if (exception.code.startsWith('P1')) {
-        statusCode = 500;
-        message = 'Connection error';
-      } else if (exception.code === 'P2015' || exception.code === 'P2025') {
-        statusCode = 404;
-        message = 'Record not found';
-      } else if (exception.code.startsWith('P2')) {
-        statusCode = 400;
-        message = 'Input constraint/validation failed';
-      } else {
-        statusCode = 500;
-        message = 'Unknown error';
-      }
-      stack = exception.stack;
-    } else if (exception instanceof PrismaClientValidationError) {
-      errorName = 'DatabaseException';
-      errorCode = 'database-exception';
-      statusCode = 400;
-      message = 'Input constraint/validation failed';
-      stack = exception.stack;
-    } else if (exception instanceof Error) {
-      errorName = exception.constructor.name;
-      message = exception.message;
-      stack = exception.stack;
-    }
-
-    // Set to internal server error in case it did not match above categories.
-    statusCode = statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
-    errorName = errorName || 'InternalException';
-    message = message || 'Internal server error';
-
     // NOTE: For reference, please check https://cloud.google.com/apis/design/errors
+    const errorObject = toErrorObject(exception, {
+      hideInternalDetailError: false,
+    });
     const error = {
-      statusCode,
-      message,
-      localizedMessage,
-      errorName,
-      errorCode,
-      details,
+      statusCode: errorObject.statusCode,
+      message: errorObject.message,
+      localizedMessage: errorObject.localizedMessage,
+      errorName: errorObject.errorName,
+      errorCode: errorObject.errorCode,
+      details: errorObject.details,
       // Additional meta added by us.
       path,
       requestId,
@@ -110,16 +55,96 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     };
     this.logger.warn(requestContext, error.message, {
       error,
-      stack,
+      stack: errorObject.stack,
     });
 
     // Suppress original internal server error details in prod mode
     const isProMood =
       this.config.get<string>('app.env') !== Environment.Development;
-    if (isProMood && statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (isProMood && error.statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
       error.message = 'Internal server error';
     }
 
-    res.status(statusCode).json({ error });
+    res.status(error.statusCode).json({ error });
   }
 }
+
+export const toErrorObject = (
+  exception: any,
+  options?: { hideInternalDetailError?: boolean },
+) => {
+  let stack: any;
+  let statusCode: HttpStatus | null = null;
+  let errorName: string | null = null;
+  let errorCode: string | null = null;
+  let message: string | null = null;
+  let details: string | Record<string, any> | null = null;
+  // TODO : Based on language value in header, return a localized message.
+  const localizedMessage = 'en';
+
+  // TODO : Refactor the below cases into a switch case and tidy up error response creation.
+  if (exception instanceof BaseApiException) {
+    statusCode = exception.getStatus();
+    errorName = exception.constructor.name;
+    errorCode = exception.errorCode;
+    message = exception.message;
+    details = exception.details || exception.getResponse();
+  } else if (exception instanceof HttpException) {
+    statusCode = exception.getStatus();
+    errorName = exception.constructor.name;
+    message = exception.message;
+    details = exception.getResponse();
+    stack = exception.stack;
+  } else if (exception instanceof PrismaClientKnownRequestError) {
+    errorName = 'DatabaseException';
+    errorCode = 'database-exception';
+    if (exception.code.startsWith('P1')) {
+      statusCode = 500;
+      message = 'Connection error';
+    } else if (exception.code === 'P2015' || exception.code === 'P2025') {
+      statusCode = 404;
+      message = 'Record not found';
+    } else if (exception.code.startsWith('P2')) {
+      statusCode = 400;
+      message = 'Input constraint/validation failed';
+    } else {
+      statusCode = 500;
+      message = 'Unknown error';
+    }
+    stack = exception.stack;
+  } else if (exception instanceof PrismaClientValidationError) {
+    errorName = 'DatabaseException';
+    errorCode = 'database-exception';
+    statusCode = 400;
+    message = 'Input constraint/validation failed';
+    stack = exception.stack;
+  } else if (exception instanceof Error) {
+    errorName = exception.constructor.name;
+    message = exception.message;
+    stack = exception.stack;
+  }
+
+  // Set to internal server error in case it did not match above categories.
+  statusCode = statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
+  errorName = errorName || 'InternalException';
+  message = message || 'Internal server error';
+
+  // NOTE: For reference, please check https://cloud.google.com/apis/design/errors
+  const error = {
+    statusCode,
+    message,
+    localizedMessage,
+    errorName,
+    errorCode,
+    details,
+    stack,
+  };
+
+  // Suppress original internal server error details in prod mode
+  const isProMood = options?.hideInternalDetailError !== false;
+  if (isProMood && statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+    error.message = 'Internal server error';
+  }
+
+  return error;
+};

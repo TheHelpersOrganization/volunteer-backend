@@ -2,6 +2,9 @@ import { Body, Controller, Param, Post, Put } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { ShiftVolunteerStatus } from '../constants';
 import {
+  ApproveManyShiftVolunteer,
+  RejectManyShiftVolunteer,
+  RemoveManyShiftVolunteer,
   ReviewShiftVolunteerInputDto,
   ShiftVolunteerOutputDto,
   VerifyCheckInInputDto,
@@ -37,20 +40,42 @@ export class IdentifiedShiftVolunteerController {
     return this.shiftVolunteerService.leave(context, shiftId);
   }
 
+  @Put('approve')
+  async approveMany(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+    @Body() dto: ApproveManyShiftVolunteer,
+  ) {
+    return this.shiftVolunteerService.approveMany(context, shiftId, dto);
+  }
+
+  @Put('reject')
+  async rejectMany(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+    @Body() dto: RejectManyShiftVolunteer,
+  ) {
+    return this.shiftVolunteerService.approveMany(context, shiftId, dto);
+  }
+
+  @Put('remove')
+  async removeMany(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId') shiftId: number,
+    @Body() dto: RemoveManyShiftVolunteer,
+  ) {
+    return this.shiftVolunteerService.removeMany(context, shiftId, dto);
+  }
+
   @Put(':id/approve')
   async approve(
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
     @Param('id') id: number,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.updateRegistrationStatus(
-      context,
-      shiftId,
-      id,
-      {
-        status: ShiftVolunteerStatus.Approved,
-      },
-    );
+    return this.shiftVolunteerService.approveOrReject(context, shiftId, id, {
+      status: ShiftVolunteerStatus.Approved,
+    });
   }
 
   @Put(':id/reject')
@@ -59,14 +84,9 @@ export class IdentifiedShiftVolunteerController {
     @Param('shiftId') shiftId: number,
     @Param('id') id: number,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.updateRegistrationStatus(
-      context,
-      shiftId,
-      id,
-      {
-        status: ShiftVolunteerStatus.Rejected,
-      },
-    );
+    return this.shiftVolunteerService.approveOrReject(context, shiftId, id, {
+      status: ShiftVolunteerStatus.Rejected,
+    });
   }
 
   @Put(':id/remove')

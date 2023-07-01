@@ -78,7 +78,7 @@ export class ModShiftVolunteerController {
     @Param('id') id: number,
     @Body() dto: UpdateShiftVolunteerStatus,
   ): Promise<ShiftVolunteerOutputDto> {
-    return this.shiftVolunteerService.updateRegistrationStatus(
+    return this.shiftVolunteerService.approveOrReject(
       context,
       shiftId,
       id,

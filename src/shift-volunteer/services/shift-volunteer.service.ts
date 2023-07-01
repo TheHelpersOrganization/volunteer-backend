@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Shift, VolunteerShift } from '@prisma/client';
 import * as dayjs from 'dayjs';
+import { toErrorObject } from 'src/common/filters';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -14,6 +15,7 @@ import {
   ShiftCheckInTimeLimitExceededException,
   ShiftCheckOutTimeLimitExceededException,
   ShiftHasEndedException,
+  ShiftHasNotYetEndedException,
   ShiftHasNotYetStartedException,
   ShiftHasStartedException,
   ShiftIsFullException,
@@ -21,11 +23,15 @@ import {
 } from 'src/shift/exceptions';
 import { ShiftVolunteerStatus } from '../constants';
 import {
+  ApproveManyShiftVolunteer,
   CreateShiftVolunteerInputDto,
   GetShiftVolunteerQueryDto,
+  RejectManyShiftVolunteer,
+  RemoveManyShiftVolunteer,
   ReviewShiftVolunteerInputDto,
   ShiftVolunteerInclude,
   ShiftVolunteerOutputDto,
+  UpdateManyShiftVolunteerStatusOutputDto,
   UpdateShiftVolunteerStatus,
   VerifyCheckInInputDto,
   VerifyVolunteerCheckInByIdInputDto,
@@ -164,6 +170,10 @@ export class ShiftVolunteerService extends AbstractService {
 
     if (query.activityId) {
       filter.shift = { activityId: query.activityId };
+    }
+
+    if (query.active) {
+      filter.active = query.active;
     }
 
     if (query.mine) {
@@ -493,6 +503,9 @@ export class ShiftVolunteerService extends AbstractService {
     if (shift == null) {
       throw new ShiftNotFoundException();
     }
+    if (shift.status !== ShiftStatus.Completed) {
+      throw new ShiftHasNotYetEndedException();
+    }
 
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
@@ -519,22 +532,20 @@ export class ShiftVolunteerService extends AbstractService {
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
-  async updateRegistrationStatus(
+  async approveOrReject(
     context: RequestContext,
     shiftId: number,
     id: number,
     dto: UpdateShiftVolunteerStatus,
   ): Promise<ShiftVolunteerOutputDto> {
-    this.logCaller(context, this.updateRegistrationStatus);
+    this.logCaller(context, this.approveOrReject);
 
-    const shift = await this.prisma.shift.findUnique({
+    const s = await this.prisma.shift.findUnique({
       where: {
         id: shiftId,
       },
     });
-    if (shift == null) {
-      throw new ShiftNotFoundException();
-    }
+    const shift = this.validateShiftBeforeApproveOrRejectOrRemove(s);
 
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
@@ -547,9 +558,16 @@ export class ShiftVolunteerService extends AbstractService {
       throw new InvalidStatusException();
     }
     if (
+      dto.status === ShiftVolunteerStatus.Approved &&
       shiftVolunteer.status != ShiftVolunteerStatus.Pending &&
       shiftVolunteer.status != ShiftVolunteerStatus.Rejected &&
       shiftVolunteer.status != ShiftVolunteerStatus.Removed
+    ) {
+      throw new InvalidStatusException();
+    }
+    if (
+      dto.status === ShiftVolunteerStatus.Rejected &&
+      shiftVolunteer.status != ShiftVolunteerStatus.Pending
     ) {
       throw new InvalidStatusException();
     }
@@ -598,6 +616,76 @@ export class ShiftVolunteerService extends AbstractService {
     return this.output(ShiftVolunteerOutputDto, res);
   }
 
+  async approveMany(
+    context: RequestContext,
+    shiftId: number,
+    dto: ApproveManyShiftVolunteer,
+  ) {
+    this.logCaller(context, this.approveMany);
+
+    const s = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    this.validateShiftBeforeApproveOrRejectOrRemove(s);
+
+    const res: UpdateManyShiftVolunteerStatusOutputDto = {
+      success: [],
+      error: [],
+    };
+
+    for (const id of dto.volunteerIds) {
+      try {
+        const volunteer = await this.approveOrReject(context, shiftId, id, {
+          status: ShiftVolunteerStatus.Approved,
+        });
+        res.success.push(volunteer);
+      } catch (ex) {
+        res.error.push({
+          id: id,
+          error: toErrorObject(ex),
+        });
+      }
+    }
+
+    return this.output(UpdateManyShiftVolunteerStatusOutputDto, res);
+  }
+
+  async rejectMany(
+    context: RequestContext,
+    shiftId: number,
+    dto: RejectManyShiftVolunteer,
+  ) {
+    this.logCaller(context, this.remove);
+
+    const s = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    this.validateShiftBeforeApproveOrRejectOrRemove(s);
+
+    const res: UpdateManyShiftVolunteerStatusOutputDto = {
+      success: [],
+      error: [],
+    };
+
+    for (const id of dto.volunteerIds) {
+      try {
+        const volunteer = await this.approveOrReject(context, shiftId, id, {
+          status: ShiftVolunteerStatus.Rejected,
+        });
+        res.success.push(volunteer);
+      } catch (ex) {
+        res.error.push({
+          id: id,
+          error: toErrorObject(ex),
+        });
+      }
+    }
+  }
+
   async remove(
     context: RequestContext,
     shiftId: number,
@@ -605,14 +693,12 @@ export class ShiftVolunteerService extends AbstractService {
   ): Promise<ShiftVolunteerOutputDto> {
     this.logCaller(context, this.remove);
 
-    const shift = await this.prisma.shift.findUnique({
+    const s = await this.prisma.shift.findUnique({
       where: {
         id: shiftId,
       },
     });
-    if (shift == null) {
-      throw new ShiftNotFoundException();
-    }
+    const shift = this.validateShiftBeforeApproveOrRejectOrRemove(s);
 
     const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
       where: {
@@ -664,6 +750,50 @@ export class ShiftVolunteerService extends AbstractService {
     });
 
     return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async removeMany(
+    context: RequestContext,
+    shiftId: number,
+    dto: RemoveManyShiftVolunteer,
+  ) {
+    this.logCaller(context, this.removeMany);
+
+    const s = await this.prisma.shift.findUnique({
+      where: {
+        id: shiftId,
+      },
+    });
+    this.validateShiftBeforeApproveOrRejectOrRemove(s);
+
+    const res: UpdateManyShiftVolunteerStatusOutputDto = {
+      success: [],
+      error: [],
+    };
+
+    for (const id of dto.volunteerIds) {
+      try {
+        const volunteer = await this.remove(context, shiftId, id);
+        res.success.push(volunteer);
+      } catch (ex) {
+        res.error.push({
+          id: id,
+          error: toErrorObject(ex),
+        });
+      }
+    }
+
+    return this.output(UpdateManyShiftVolunteerStatusOutputDto, res);
+  }
+
+  validateShiftBeforeApproveOrRejectOrRemove(shift: Shift | null): Shift {
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    if (shift.status === ShiftStatus.Completed) {
+      throw new ShiftHasEndedException();
+    }
+    return shift;
   }
 
   async checkIn(

@@ -36,6 +36,11 @@ export class GetShiftVolunteerQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsBoolean()
   @Transform(stringToBooleanTransform)
+  active?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
   mine?: boolean;
 
   @IsOptional()
