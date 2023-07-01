@@ -546,7 +546,11 @@ export class ShiftVolunteerService extends AbstractService {
     if (shiftVolunteer == null) {
       throw new InvalidStatusException();
     }
-    if (shiftVolunteer.status != ShiftVolunteerStatus.Pending) {
+    if (
+      shiftVolunteer.status != ShiftVolunteerStatus.Pending &&
+      shiftVolunteer.status != ShiftVolunteerStatus.Rejected &&
+      shiftVolunteer.status != ShiftVolunteerStatus.Removed
+    ) {
       throw new InvalidStatusException();
     }
 

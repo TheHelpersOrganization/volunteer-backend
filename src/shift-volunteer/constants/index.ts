@@ -6,3 +6,5 @@ export enum ShiftVolunteerStatus {
   Removed = 'removed',
   Leaved = 'leaved',
 }
+
+export const shiftVolunteerStatuses = Object.values(ShiftVolunteerStatus);

@@ -36,6 +36,14 @@ export class ModShiftVolunteerController {
     return this.modShiftVolunteerService.getShiftVolunteers(context, query);
   }
 
+  @Get('count/status')
+  async countShiftVolunteersStatus(
+    @ReqContext() context: RequestContext,
+    @Query() query: GetShiftVolunteerQueryDto,
+  ) {
+    return this.modShiftVolunteerService.countStatus(context, query);
+  }
+
   @Get(':id')
   async getShiftVolunteerById(
     @ReqContext() context: RequestContext,
