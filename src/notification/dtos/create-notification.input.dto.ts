@@ -43,6 +43,13 @@ export class CreateNotificationInputDto {
   reportId?: number;
 }
 
+export class CreateNotificationsInputDto extends CreateNotificationInputDto {
+  @IsOptional()
+  @IsInt({ each: true })
+  @IsArray()
+  accountIds: number[];
+}
+
 export class TestCreateNotificationInputDto {
   @IsString()
   @MaxLength(256)

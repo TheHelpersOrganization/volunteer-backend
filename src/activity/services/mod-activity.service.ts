@@ -3,6 +3,13 @@ import * as _ from 'lodash';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
+import { NotificationType } from 'src/notification/constants';
+import { NotificationService } from 'src/notification/services';
+import {
+  OrganizationMemberStatus,
+  OrganizationStatus,
+} from 'src/organization/constants';
+import { OrganizationNotFoundException } from 'src/organization/exceptions';
 import { PrismaService } from 'src/prisma';
 import {
   ActivityOutputDto,
@@ -20,7 +27,11 @@ import {
 
 @Injectable()
 export class ModActivityService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {
     super(logger);
   }
 
@@ -77,6 +88,26 @@ export class ModActivityService extends AbstractService {
   ): Promise<ActivityOutputDto> {
     this.logCaller(context, this.createActivity);
 
+    // TODO: check if user owns organization
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+        status: OrganizationStatus.Verified,
+        isDisabled: false,
+      },
+      include: {
+        members: {
+          where: {
+            status: OrganizationMemberStatus.Approved,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      throw new OrganizationNotFoundException();
+    }
+
     const res = await this.prisma.activity.create({
       data: {
         name: dto.name,
@@ -95,6 +126,16 @@ export class ModActivityService extends AbstractService {
         activityManagers: true,
       },
     });
+
+    this.notificationService.sendNotifications(context, {
+      type: NotificationType.Activity,
+      title: 'New Activity',
+      shortDescription: `New activity ${res.name} has been created for ${organization.name}.`,
+      description: `New activity ${res.name} has been created for ${organization.name}.`,
+      accountIds: organization.members.map((m) => m.accountId),
+      activityId: res.id,
+    });
+
     return this.mapToDto(res);
   }
 

@@ -43,4 +43,7 @@ export class OrganizationOutputDto {
   @Expose()
   @Type(() => MemberOutputDto)
   myMembers: MemberOutputDto[];
+
+  @Expose()
+  hasJoined: boolean;
 }

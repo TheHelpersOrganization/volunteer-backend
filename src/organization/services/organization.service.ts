@@ -414,6 +414,14 @@ export class OrganizationService extends AbstractService {
         accountId == null
           ? undefined
           : raw.members?.filter((m) => m.accountId === accountId),
+      hasJoined:
+        accountId == null
+          ? undefined
+          : raw.members?.find(
+              (m) =>
+                m.accountId === accountId &&
+                m.status === OrganizationMemberStatus.Approved,
+            ) != null,
     };
     return this.output(OrganizationOutputDto, res);
   }
