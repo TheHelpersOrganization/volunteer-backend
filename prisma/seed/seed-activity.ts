@@ -141,6 +141,7 @@ export const seedActivities = async (
   const shiftSkills: ShiftSkill[] = [];
   const shiftVolunteers: VolunteerShift[] = [];
 
+  let hasApprovedShift = false;
   activities.forEach((activity) => {
     const numberOfShifts = fakerEn.helpers.weightedArrayElement(
       weightedNumberOfShifts,
@@ -148,9 +149,12 @@ export const seedActivities = async (
     let correctedActivityStatus: ActivityStatus | undefined = undefined;
     for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
-      const shiftStatus = requireNonNullish(
-        _.sample(Object.values(ShiftStatus)),
-      );
+      const shiftStatus =
+        i == 0
+          ? ShiftStatus.Ongoing
+          : requireNonNullish(
+              _.sample([ShiftStatus.Pending, ShiftStatus.Completed]),
+            );
       const refTime = new Date();
       let shiftStartTime: Date;
       let shiftEndTime: Date;
@@ -170,6 +174,7 @@ export const seedActivities = async (
           .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
           .toDate();
       } else if (shiftStatus === ShiftStatus.Ongoing) {
+        hasApprovedShift = true;
         shiftStartTime = fakerEn.date.past({
           years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
           refDate: refTime,

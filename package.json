@@ -67,6 +67,7 @@
     "@nestjs/schedule": "^2.2.2",
     "@nestjs/swagger": "^6.3.0",
     "@prisma/client": "^4.16.1",
+    "@tensorflow/tfjs-node": "^4.8.0",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",

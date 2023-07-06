@@ -58,4 +58,9 @@ export class ActivityController {
   ): Promise<ActivityOutputDto> {
     return this.activityService.deleteActivity(context, id);
   }
+
+  @Get('suggest')
+  async suggestActivities(@ReqContext() context: RequestContext) {
+    return this.activityService.suggestActivities(context);
+  }
 }
