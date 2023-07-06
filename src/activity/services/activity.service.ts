@@ -341,6 +341,10 @@ export class ActivityService extends AbstractService {
     }
   }
 
+  async suggestActivities(context: RequestContext) {
+    this.logCaller(context, this.suggestActivities);
+  }
+
   private mapToDto(activity: RawActivity): ActivityOutputDto {
     return this.output(ActivityOutputDto, {
       id: activity.id,

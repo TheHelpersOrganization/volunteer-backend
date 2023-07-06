@@ -9,6 +9,7 @@ import { PrismaService } from 'src/prisma';
 import { NotificationType, accountNotificationPrefix } from '../constants';
 import {
   CreateNotificationInputDto,
+  CreateNotificationsInputDto,
   DeleteNotificationsInputDto,
   GetNotificationByIdQueryDto,
   GetNotificationInclude,
@@ -244,6 +245,62 @@ export class NotificationService extends AbstractService {
         this.logger.error(context, err);
       });
     return output;
+  }
+
+  async sendNotifications(
+    context: RequestContext,
+    dto: CreateNotificationsInputDto,
+  ) {
+    this.logCaller(context, this.sendNotification);
+    if (dto.type === NotificationType.Activity && dto.activityId == null) {
+      throw new InvalidInputException('activityId');
+    } else if (dto.type === NotificationType.Shift) {
+      if (dto.activityId == null) {
+        throw new InvalidInputException('activityId');
+      }
+      if (dto.shiftId == null) {
+        throw new InvalidInputException('shiftId');
+      }
+    } else if (
+      dto.type == NotificationType.Organization &&
+      dto.organizationId == null
+    ) {
+      throw new InvalidInputException('organizationId');
+    } else if (dto.type == NotificationType.Report && dto.reportId == null) {
+      throw new InvalidInputException('reportId');
+    }
+    const inputs = dto.accountIds.map((accountId) => ({
+      accountId: accountId,
+      title: dto.title,
+      description: dto.description,
+      shortDescription: dto.shortDescription,
+      type: dto.type,
+      activityId: dto.activityId,
+      shiftId: dto.shiftId,
+      organizationId: dto.organizationId,
+      reportId: dto.reportId,
+    }));
+    await this.prisma.notification.createMany({
+      data: inputs,
+    });
+    const outputs = inputs.map((n) => this.mapToDto(n));
+    for (const output of outputs) {
+      const topic = `${accountNotificationPrefix}-${output.accountId}`;
+      this.firebaseService.firebaseMessaging
+        .sendToTopic(topic, {
+          notification: {
+            title: dto.title,
+            body: dto.shortDescription ?? dto.description,
+          },
+          data: {
+            notification: JSON.stringify(output),
+          },
+        })
+        .catch((err) => {
+          this.logger.error(context, err);
+        });
+    }
+    return outputs;
   }
 
   async testSendNotification(

@@ -10,6 +10,7 @@
     "noImplicitReturns": true,
     "strictFunctionTypes": true,
     "noImplicitOverride": true,
+    "skipLibCheck": true,
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
