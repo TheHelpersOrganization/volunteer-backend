@@ -3,6 +3,7 @@ import { faker as fakerVi } from '@faker-js/faker/locale/vi';
 import { AppPrismaClient } from 'src/prisma';
 import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
+import { seedChats } from './seed-chat';
 import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
@@ -98,6 +99,8 @@ const seed = async () => {
     '- Seeding notifications...',
   );
 
+  await runWithTimer(() => seedChats(prisma, accounts), '- Seeding chats...');
+
   // Fix sequences
   await runWithTimer(async () => {
     await prisma.$executeRaw`SELECT setval('"Account_id_seq"', (SELECT MAX(id) from "Account"));`;
@@ -116,6 +119,9 @@ const seed = async () => {
     await prisma.$executeRaw`SELECT setval('"Notification_id_seq"', (SELECT MAX(id) from "Notification"));`;
     await prisma.$executeRaw`SELECT setval('"Report_id_seq"', (SELECT MAX(id) from "Report"));`;
     await prisma.$executeRaw`SELECT setval('"ReportMessage_id_seq"', (SELECT MAX(id) from "ReportMessage"));`;
+    await prisma.$executeRaw`SELECT setval('"Chat_id_seq"', (SELECT MAX(id) from "Chat"));`;
+    await prisma.$executeRaw`SELECT setval('"ChatParticipant_id_seq"', (SELECT MAX(id) from "ChatParticipant"));`;
+    await prisma.$executeRaw`SELECT setval('"ChatMessage_id_seq"', (SELECT MAX(id) from "ChatMessage"));`;
   }, 'Fixing sequences...');
 };
 

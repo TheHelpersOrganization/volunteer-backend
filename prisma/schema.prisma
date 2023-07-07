@@ -41,6 +41,9 @@ model Account {
   reviewReport                     Report[]              @relation(name: "reportReviewer")
   reportedAccount                  ReportAccount[]       @relation(name: "reportedAccount")
   reportMessage                    ReportMessage[]       @relation(name: "reportMessageSender")
+  Chat                             Chat[]                @relation(name: "createdByAccount")
+  ChatParticipant                  ChatParticipant[]
+  BlockedChat                      Chat[]                @relation(name: "blockedByAccount")
 }
 
 model Role {
@@ -252,6 +255,43 @@ model Notification {
   report           Report?       @relation(fields: [reportId], references: [id], onDelete: Cascade)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @default(now()) @updatedAt
+}
+
+model Chat {
+  id               Int               @id @default(autoincrement())
+  isBlocked        Boolean           @default(false)
+  blockedBy        Int?
+  blockedByAccount Account?          @relation(name: "blockedByAccount", fields: [blockedBy], references: [id], onDelete: Cascade)
+  blockedAt        DateTime?
+  isGroup          Boolean           @default(false)
+  createdBy        Int
+  createdByAccount Account           @relation(name: "createdByAccount", fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
+  ChatMessage      ChatMessage[]
+  ChatParticipant  ChatParticipant[]
+}
+
+model ChatParticipant {
+  id          Int           @id @default(autoincrement())
+  chatId      Int
+  Chat        Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  accountId   Int
+  Account     Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  ChatMessage ChatMessage[]
+}
+
+model ChatMessage {
+  id        Int             @id @default(autoincrement())
+  chatId    Int
+  Chat      Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    Int
+  Sender    ChatParticipant @relation(fields: [sender], references: [id], onDelete: Cascade)
+  message   String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @default(now()) @updatedAt
 }
 
 model Report {

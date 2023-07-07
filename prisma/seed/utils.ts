@@ -20,6 +20,9 @@ let roleId = 1;
 let notificationId = 1;
 let reportId = 1;
 let reportMessageId = 1;
+let chatId = 1;
+let chatParticipantId = 1;
+let chatMessageId = 1;
 
 export const getNextAccountId = () => accountId++;
 export const getNextOrganizationId = () => organizationId++;
@@ -37,6 +40,9 @@ export const getNextRoleId = () => roleId++;
 export const getNextNotificationId = () => notificationId++;
 export const getNextReportId = () => reportId++;
 export const getNextReportMessageId = () => reportMessageId++;
+export const getNextChatId = () => chatId++;
+export const getNextChatParticipantId = () => chatParticipantId++;
+export const getNextChatMessageId = () => chatMessageId++;
 
 export const requireNonNullish = <T>(
   value: T | null | undefined,

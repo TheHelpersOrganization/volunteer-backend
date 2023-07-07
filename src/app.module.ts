@@ -12,6 +12,7 @@ import { ActivityModule } from './activity/activity.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { ChatModule } from './chat/chat.module';
 import { CommonModule } from './common/common.module';
 import { AllExceptionsFilter } from './common/filters';
 import { LoggingInterceptor, ResponseInterceptor } from './common/interceptors';
@@ -49,6 +50,7 @@ import { SkillModule } from './skill/skill.module';
     ActivityModule,
     NotificationModule,
     ReportModule,
+    ChatModule,
   ],
   providers: [
     {

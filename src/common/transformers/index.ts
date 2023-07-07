@@ -76,3 +76,7 @@ export const stringToBooleanTransform = (params: TransformFnParams) => {
   }
   return params;
 };
+
+export const stringToIntTransform = (params: TransformFnParams) => {
+  return parseInt(params.value);
+};

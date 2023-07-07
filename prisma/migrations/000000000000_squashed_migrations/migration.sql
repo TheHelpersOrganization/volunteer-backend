@@ -196,6 +196,43 @@ CREATE TABLE "Notification" (
 );
 
 -- CreateTable
+CREATE TABLE "Chat" (
+    "id" SERIAL NOT NULL,
+    "isBlocked" BOOLEAN NOT NULL DEFAULT false,
+    "blockedBy" INTEGER,
+    "blockedAt" TIMESTAMP(3),
+    "isGroup" BOOLEAN NOT NULL DEFAULT false,
+    "createdBy" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Chat_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChatParticipant" (
+    "id" SERIAL NOT NULL,
+    "chatId" INTEGER NOT NULL,
+    "accountId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChatParticipant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChatMessage" (
+    "id" SERIAL NOT NULL,
+    "chatId" INTEGER NOT NULL,
+    "sender" INTEGER NOT NULL,
+    "message" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Report" (
     "id" SERIAL NOT NULL,
     "reporterId" INTEGER NOT NULL,
@@ -594,6 +631,24 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_organizationId_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "Report"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_blockedBy_fkey" FOREIGN KEY ("blockedBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatParticipant" ADD CONSTRAINT "ChatParticipant_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatParticipant" ADD CONSTRAINT "ChatParticipant_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_sender_fkey" FOREIGN KEY ("sender") REFERENCES "ChatParticipant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Report" ADD CONSTRAINT "Report_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
