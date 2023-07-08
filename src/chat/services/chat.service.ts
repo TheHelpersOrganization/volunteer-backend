@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import {
+  ChatMessagesQueryDto,
   ChatQueryDto,
   ChatQueryInclude,
   ChatQuerySort,
@@ -36,7 +37,10 @@ export class ChatService extends AbstractService {
 
     const chats = await this.prisma.chat.findMany({
       where: this.getChatWhere(query, context.account.id),
-      include: this.getChatInclude(query.include),
+      include: this.getChatInclude(query.include, {
+        messageLimit: query.messageLimit,
+        messageOffset: query.messageOffset,
+      }),
       orderBy: this.getChatOrderBy(query.sort),
       take: query.limit,
       skip: query.offset,
@@ -57,7 +61,10 @@ export class ChatService extends AbstractService {
           },
         },
       },
-      include: this.getChatInclude(query.include),
+      include: this.getChatInclude(query.include, {
+        messageLimit: query.messageLimit,
+        messageOffset: query.messageOffset,
+      }),
     });
 
     if (!chat) {
@@ -117,7 +124,10 @@ export class ChatService extends AbstractService {
     return where;
   }
 
-  getChatInclude(includes?: ChatQueryInclude[]) {
+  getChatInclude(
+    includes?: ChatQueryInclude[],
+    extra?: { messageLimit?: number; messageOffset?: number },
+  ) {
     const include: Prisma.ChatInclude = {
       ChatParticipant: true,
     };
@@ -127,6 +137,8 @@ export class ChatService extends AbstractService {
         orderBy: {
           createdAt: 'desc',
         },
+        take: extra?.messageLimit,
+        skip: extra?.messageOffset,
       };
     }
 
@@ -157,6 +169,28 @@ export class ChatService extends AbstractService {
         break;
     }
     return orderBy;
+  }
+
+  async getChatMessages(
+    context: RequestContext,
+    id: number,
+    query: ChatMessagesQueryDto,
+  ) {
+    this.logCaller(context, this.getChatMessages);
+
+    await this.getChatOrThrow(context, id);
+    const messages = await this.prisma.chatMessage.findMany({
+      where: {
+        chatId: id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: query.limit,
+      skip: query.offset,
+    });
+
+    return this.outputArray(ChatMessageOutputDto, messages);
   }
 
   async sendChatMessage(context: RequestContext, dto: CreateMessageInputDto) {

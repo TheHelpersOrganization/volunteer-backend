@@ -5,9 +5,12 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBooleanTransform } from 'src/common/transformers';
@@ -33,6 +36,19 @@ export class ChatQueryDto extends PaginationQueryDto {
   @IsEnum(ChatQueryInclude, { each: true })
   @Transform(({ value }) => value.split(','))
   include?: ChatQueryInclude[];
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
+  messageLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
+  messageOffset?: number;
 }
 
 export class ChatsQueryDto extends ChatQueryDto {
@@ -65,3 +81,5 @@ export class ChatsQueryDto extends ChatQueryDto {
   @IsEnum(ChatQuerySort)
   sort?: ChatQuerySort;
 }
+
+export class ChatMessagesQueryDto extends PaginationQueryDto {}

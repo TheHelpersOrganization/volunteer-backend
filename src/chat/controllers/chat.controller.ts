@@ -8,7 +8,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
-import { ChatQueryDto, ChatsQueryDto, CreateMessageInputDto } from '../dtos';
+import {
+  ChatMessagesQueryDto,
+  ChatQueryDto,
+  ChatsQueryDto,
+  CreateMessageInputDto,
+} from '../dtos';
 import { ChatService } from '../services';
 
 @Controller('chats')
@@ -30,6 +35,15 @@ export class ChatController {
     @Query() query: ChatQueryDto,
   ) {
     return this.chatService.getChatById(context, id, query);
+  }
+
+  @Get(':id/messages')
+  async getChatMessages(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: ChatMessagesQueryDto,
+  ) {
+    return this.chatService.getChatMessages(context, id, query);
   }
 
   @Post('send')
