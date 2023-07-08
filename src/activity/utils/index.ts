@@ -257,7 +257,6 @@ export const extendActivity = (
     }
     return res;
   });
-  console.log('isShiftManager', isShiftManager);
   return {
     ...activity,
     maxParticipants,

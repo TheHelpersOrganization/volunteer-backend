@@ -18,7 +18,7 @@ import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
   ChatIsBlockedException,
   ChatIsNotBlockedException,
-  NoChatFoundException,
+  ChatNotFoundException,
 } from '../exceptions';
 
 @Injectable()
@@ -159,14 +159,10 @@ export class ChatService extends AbstractService {
     return orderBy;
   }
 
-  async sendChatMessage(
-    context: RequestContext,
-    id: number,
-    dto: CreateMessageInputDto,
-  ) {
+  async sendChatMessage(context: RequestContext, dto: CreateMessageInputDto) {
     this.logCaller(context, this.sendChatMessage);
 
-    const chat = await this.getChatOrThrow(context, id);
+    const chat = await this.getChatOrThrow(context, dto.chatId);
 
     if (chat.isBlocked) {
       throw new ChatIsBlockedException();
@@ -174,11 +170,11 @@ export class ChatService extends AbstractService {
 
     const message = await this.prisma.$transaction(async (tx) => {
       const message = await tx.chatMessage.create({
-        data: { ...dto, chatId: id, sender: context.account.id },
+        data: { ...dto, chatId: dto.chatId, sender: context.account.id },
       });
       await tx.chat.update({
         where: {
-          id: id,
+          id: dto.chatId,
         },
         data: {
           updatedAt: new Date(),
@@ -253,14 +249,13 @@ export class ChatService extends AbstractService {
     });
 
     if (!chat) {
-      throw new NoChatFoundException();
+      throw new ChatNotFoundException();
     }
 
     return chat;
   }
 
   async mapToDto(context: RequestContext, raw: any) {
-    console.log(raw);
     const participantIds = raw.ChatParticipant?.map((p) => p.accountId);
     const participants =
       participantIds == null

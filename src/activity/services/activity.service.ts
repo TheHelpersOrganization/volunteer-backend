@@ -343,6 +343,29 @@ export class ActivityService extends AbstractService {
 
   async suggestActivities(context: RequestContext) {
     this.logCaller(context, this.suggestActivities);
+
+    /* Activity suggestion algorithm
+    1. Get all activities with status pending and user has not signed up for
+    2. Get activities that is near the user
+    3. Get activities that is in the user's skill set
+    4. Get activities that is in the user's interest
+    5. Get activities that is in the user's preferred time
+    */
+
+    const activities = await this.prisma.activity.findMany({
+      where: {
+        status: ActivityStatus.Pending,
+        shifts: {
+          some: {
+            shiftVolunteers: {
+              none: {
+                accountId: context.account.id,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   private mapToDto(activity: RawActivity): ActivityOutputDto {

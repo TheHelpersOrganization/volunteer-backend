@@ -1,12 +1,19 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 import { RequestContext } from './request-context.dto';
-import { createRequestContext } from './util';
+import { createRequestContext, createRequestContextFromWs } from './util';
 
 export const ReqContext = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): RequestContext => {
-    const request = ctx.switchToHttp().getRequest();
-
-    return createRequestContext(request);
+    switch (ctx.getType()) {
+      case 'http':
+        const request = ctx.switchToHttp().getRequest();
+        return createRequestContext(request);
+      case 'ws':
+        const client = ctx.switchToWs().getClient();
+        return createRequestContextFromWs(client);
+      default:
+        throw new Error('Unsupported context type');
+    }
   },
 );

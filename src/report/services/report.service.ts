@@ -54,7 +54,6 @@ export class ReportService extends AbstractService {
       orderBy: sort,
       include: this.getReportInclude(query.include),
     });
-    console.log(reports[0]);
 
     if (query.include?.includes(GetReportQueryInclude.Reporter)) {
       const reporterProfiles = await this.profileService.getProfiles(context, {
@@ -530,7 +529,6 @@ export class ReportService extends AbstractService {
   }
 
   async mapReportToDto(context: RequestContext, raw: any) {
-    console.log(raw);
     if (raw.type === ReportType.Account) {
       raw.reportedAccount = await this.profileService.getProfile(
         context,

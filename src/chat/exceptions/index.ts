@@ -1,6 +1,6 @@
 import { BaseApiException } from 'src/common/exceptions';
 
-export class NoChatFoundException extends BaseApiException {
+export class ChatNotFoundException extends BaseApiException {
   constructor() {
     super('No chat found', undefined, 404);
   }

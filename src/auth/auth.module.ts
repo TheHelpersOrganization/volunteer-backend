@@ -13,6 +13,7 @@ import { STRATEGY_JWT_AUTH } from './constants/strategy.constant';
 import { AuthController } from './controllers/auth.controller';
 import { AccountAccessTokenClaims } from './dtos';
 import { AuthService } from './services/auth.service';
+import { WsJwtStrategy } from './strategies/jwt-auth-ws.strategy';
 import { JwtAuthStrategy } from './strategies/jwt-auth.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -37,7 +38,13 @@ import { LocalStrategy } from './strategies/local.strategy';
     EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtAuthStrategy, JwtRefreshStrategy],
-  exports: [AuthService, CaslModule],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtAuthStrategy,
+    JwtRefreshStrategy,
+    WsJwtStrategy,
+  ],
+  exports: [AuthService, CaslModule, JwtModule],
 })
 export class AuthModule {}

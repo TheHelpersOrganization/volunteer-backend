@@ -32,13 +32,12 @@ export class ChatController {
     return this.chatService.getChatById(context, id, query);
   }
 
-  @Post(':id/send')
+  @Post('send')
   async sendChatMessage(
     @ReqContext() context: RequestContext,
-    @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateMessageInputDto,
   ) {
-    return this.chatService.sendChatMessage(context, id, dto);
+    return this.chatService.sendChatMessage(context, dto);
   }
 
   @Post(':id/block')
