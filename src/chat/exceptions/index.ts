@@ -17,3 +17,9 @@ export class ChatIsNotBlockedException extends BaseApiException {
     super('Chat is not blocked');
   }
 }
+
+export class HaveNotJoinedChatException extends BaseApiException {
+  constructor() {
+    super('You have not joined this chat');
+  }
+}

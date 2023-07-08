@@ -86,7 +86,13 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     } else {
       const ctx = host.switchToWs();
       const client = ctx.getClient() as Socket;
-      client.send({ error });
+      client.emit('error', { error: error });
+
+      // ACK response
+      const callback = host.getArgByIndex(2);
+      if (callback && typeof callback === 'function') {
+        callback({ error: error });
+      }
     }
   }
 }

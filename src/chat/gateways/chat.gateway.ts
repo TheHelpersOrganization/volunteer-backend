@@ -1,5 +1,6 @@
 import {
   ParseIntPipe,
+  UnauthorizedException,
   UseFilters,
   UseGuards,
   UseInterceptors,
@@ -16,17 +17,25 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { TokenExpiredError } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
+import { LoginSessionExpiredException } from 'src/auth/exceptions';
 import { WsAuthGuard } from 'src/auth/guards/jwt-auth-ws.guard';
-import { AllExceptionsFilter } from 'src/common/filters';
-import { LoggingInterceptor } from 'src/common/interceptors';
+import { AllExceptionsFilter, toErrorObject } from 'src/common/filters';
+import {
+  LoggingInterceptor,
+  ResponseInterceptor,
+} from 'src/common/interceptors';
 import { RequestIdInterceptor } from 'src/common/interceptors/request-id.interceptor';
 import { AppLogger } from 'src/common/logger';
 import { VALIDATION_PIPE_OPTIONS } from 'src/common/pipes';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { CreateMessageInputDto } from '../dtos';
-import { ChatNotFoundException } from '../exceptions';
+import {
+  ChatNotFoundException,
+  HaveNotJoinedChatException,
+} from '../exceptions';
 import { ChatService } from '../services';
 
 @WebSocketGateway(undefined, {
@@ -35,7 +44,7 @@ import { ChatService } from '../services';
     origin: '*',
   },
 })
-@UseInterceptors(RequestIdInterceptor, LoggingInterceptor)
+@UseInterceptors(RequestIdInterceptor, LoggingInterceptor, ResponseInterceptor)
 @UseFilters(AllExceptionsFilter)
 @UseGuards(WsAuthGuard)
 @UsePipes(new ValidationPipe(VALIDATION_PIPE_OPTIONS))
@@ -57,6 +66,12 @@ export class ChatGateway
   async handleConnection(client: Socket) {
     const token = client.handshake.headers.authorization?.split(' ')?.[1];
     if (!token) {
+      client.emit(
+        'error',
+        toErrorObject(new UnauthorizedException('No auth token'), {
+          hideInternalDetailError: false,
+        }),
+      );
       client.disconnect(true);
       return;
     }
@@ -64,6 +79,18 @@ export class ChatGateway
       this.jwtService.verify(token);
       this.logger.log(null, `Client connected: ${client.id}`);
     } catch (err) {
+      if (
+        err instanceof TokenExpiredError ||
+        err.name === 'TokenExpiredError'
+      ) {
+        client.emit('error', {
+          ...toErrorObject(new LoginSessionExpiredException(), {
+            hideInternalDetailError: false,
+          }),
+        });
+      } else {
+        client.emit('error', toErrorObject(err));
+      }
       client.disconnect(true);
     }
   }
@@ -94,7 +121,7 @@ export class ChatGateway
     @MessageBody(ParseIntPipe) chatId: number,
   ) {
     if (!client.rooms.has(`chat-${chatId}`)) {
-      return;
+      throw new HaveNotJoinedChatException();
     }
     await client.leave(`chat-${chatId}`);
     this.logger.log(context, `Client ${client.id} left chat ${chatId}`);
@@ -106,7 +133,32 @@ export class ChatGateway
     @MessageBody() data: CreateMessageInputDto,
   ) {
     this.logCaller(context, this.sendMessage);
-    await this.chatService.sendChatMessage(context, data);
-    this.server.sockets.to(`chat-${data.chatId}`).emit('receive-message', data);
+    const message = await this.chatService.sendChatMessage(context, data);
+    this.server.sockets
+      .to(`chat-${data.chatId}`)
+      .emit('receive-message', message);
+    return message;
+  }
+
+  @SubscribeMessage('block-chat')
+  async blockChat(
+    @ReqContext() context: RequestContext,
+    @MessageBody(ParseIntPipe) data: number,
+  ) {
+    this.logCaller(context, this.sendMessage);
+    const chat = await this.chatService.blockChat(context, data);
+    this.server.sockets.to(`chat-${chat.id}`).emit('chat-blocked', chat);
+    return chat;
+  }
+
+  @SubscribeMessage('unblock-chat')
+  async unblockChat(
+    @ReqContext() context: RequestContext,
+    @MessageBody(ParseIntPipe) data: number,
+  ) {
+    this.logCaller(context, this.sendMessage);
+    const chat = await this.chatService.unblockChat(context, data);
+    this.server.sockets.to(`chat-${chat.id}`).emit('chat-unblocked', chat);
+    return chat;
   }
 }
