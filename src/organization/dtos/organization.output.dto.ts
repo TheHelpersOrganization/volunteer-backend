@@ -2,11 +2,15 @@ import { Expose, Type } from 'class-transformer';
 
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
+import { OrganizationStatus } from '../constants';
 import { MemberOutputDto } from './member.output.dto';
 
 export class OrganizationOutputDto {
   @Expose()
   id: number;
+
+  @Expose()
+  status: OrganizationStatus;
 
   @Expose()
   name: string;
