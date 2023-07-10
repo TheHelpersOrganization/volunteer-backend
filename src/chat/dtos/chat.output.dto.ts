@@ -32,6 +32,9 @@ export class ChatOutputDto {
   blockedBy: number;
 
   @Expose()
+  isGroup: boolean;
+
+  @Expose()
   @Type(() => ChatMessageOutputDto)
   messages: ChatMessageOutputDto[];
 
