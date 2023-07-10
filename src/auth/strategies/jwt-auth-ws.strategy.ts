@@ -16,7 +16,13 @@ export class WsJwtStrategy extends PassportStrategy(
     @Inject(authConfig.KEY) authConfigApi: ConfigType<typeof authConfig>,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: (handshake: any): string | null => {
+        let token = handshake.auth.token;
+        if (token == null) {
+          token = ExtractJwt.fromAuthHeaderAsBearerToken()(handshake);
+        }
+        return token;
+      },
       secretOrKey: authConfigApi.secret,
     });
   }

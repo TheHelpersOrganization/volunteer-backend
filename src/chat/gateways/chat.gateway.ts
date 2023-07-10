@@ -65,7 +65,12 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     console.log(client.handshake);
-    const token = client.handshake.headers.authorization?.split(' ')?.[1];
+    // Check the handshake auth for the auth token
+    let token = client.handshake.auth.token;
+    // If the token is not in the handshake auth, check the headers
+    if (token == null) {
+      token = client.handshake.headers.authorization?.split(' ')?.[1];
+    }
     if (!token) {
       client.emit(
         'error',
