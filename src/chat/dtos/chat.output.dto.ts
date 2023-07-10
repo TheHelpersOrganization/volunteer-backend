@@ -3,6 +3,9 @@ import { ProfileOutputDto } from 'src/profile/dtos';
 
 export class ChatMessageOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   chatId: number;
 
   @Expose()

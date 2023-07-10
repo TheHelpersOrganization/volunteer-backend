@@ -22,6 +22,7 @@ import { AppLoggerModule } from './logger/logger.module';
   exports: [
     AppLoggerModule,
     ConfigModule,
+    EventEmitterModule,
     PrismaModule,
     ScheduleModule,
     FirebaseModule,

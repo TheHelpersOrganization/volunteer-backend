@@ -7,6 +7,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
@@ -32,6 +33,11 @@ import { VALIDATION_PIPE_OPTIONS } from 'src/common/pipes';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { CreateMessageInputDto } from '../dtos';
+import {
+  ChatBlockedEvent,
+  ChatMessageSentEvent,
+  ChatUnblockedEvent,
+} from '../events';
 import {
   ChatNotFoundException,
   HaveNotJoinedChatException,
@@ -64,7 +70,6 @@ export class ChatGateway
   }
 
   async handleConnection(client: Socket) {
-    console.log(client.handshake);
     // Check the handshake auth for the auth token
     let token = client.handshake.auth.token;
     // If the token is not in the handshake auth, check the headers
@@ -140,9 +145,9 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const message = await this.chatService.sendChatMessage(context, data);
-    this.server.sockets
-      .to(`chat-${data.chatId}`)
-      .emit('receive-message', message);
+    // this.server.sockets
+    //   .to(`chat-${data.chatId}`)
+    //   .emit('receive-message', message);
     return message;
   }
 
@@ -153,7 +158,7 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.blockChat(context, data);
-    this.server.sockets.to(`chat-${chat.id}`).emit('chat-blocked', chat);
+    //this.server.sockets.to(`chat-${chat.id}`).emit('chat-blocked', chat);
     return chat;
   }
 
@@ -164,7 +169,31 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.unblockChat(context, data);
-    this.server.sockets.to(`chat-${chat.id}`).emit('chat-unblocked', chat);
+    //this.server.sockets.to(`chat-${chat.id}`).emit('chat-unblocked', chat);
     return chat;
+  }
+
+  @OnEvent(ChatMessageSentEvent.eventName)
+  async onReceiveMessage(event: ChatMessageSentEvent) {
+    this.logCaller(event.context, this.onReceiveMessage);
+    this.server.sockets
+      .to(`chat-${event.message.chatId}`)
+      .emit('receive-message', event.message);
+  }
+
+  @OnEvent(ChatBlockedEvent.eventName)
+  async onChatBlocked(event: ChatBlockedEvent) {
+    this.logCaller(event.context, this.onChatBlocked);
+    this.server.sockets
+      .to(`chat-${event.chat.id}`)
+      .emit('chat-blocked', event.chat);
+  }
+
+  @OnEvent(ChatUnblockedEvent.eventName)
+  async onChatUnblocked(event: ChatBlockedEvent) {
+    this.logCaller(event.context, this.onChatUnblocked);
+    this.server.sockets
+      .to(`chat-${event.chat.id}`)
+      .emit('chat-unblocked', event.chat);
   }
 }

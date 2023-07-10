@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import { requireNonNullish } from 'prisma/seed/utils';
 import { AppLogger } from 'src/common/logger';
@@ -17,6 +18,11 @@ import {
 } from '../dtos';
 import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
+  ChatBlockedEvent,
+  ChatMessageSentEvent,
+  ChatUnblockedEvent,
+} from '../events';
+import {
   ChatIsBlockedException,
   ChatIsNotBlockedException,
   ChatNotFoundException,
@@ -28,6 +34,7 @@ export class ChatService extends AbstractService {
     logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super(logger);
   }
@@ -217,6 +224,11 @@ export class ChatService extends AbstractService {
       return message;
     });
 
+    this.eventEmitter.emit(
+      ChatMessageSentEvent.eventName,
+      new ChatMessageSentEvent(context, message),
+    );
+
     return this.output(ChatMessageOutputDto, message);
   }
 
@@ -241,7 +253,14 @@ export class ChatService extends AbstractService {
       include: this.getChatInclude(),
     });
 
-    return this.mapToDto(context, res);
+    const output = await this.mapToDto(context, res);
+
+    this.eventEmitter.emit(
+      ChatBlockedEvent.eventName,
+      new ChatBlockedEvent(context, output),
+    );
+
+    return output;
   }
 
   async unblockChat(context: RequestContext, id: number) {
@@ -265,7 +284,14 @@ export class ChatService extends AbstractService {
       include: this.getChatInclude(),
     });
 
-    return this.mapToDto(context, res);
+    const output = await this.mapToDto(context, res);
+
+    this.eventEmitter.emit(
+      ChatUnblockedEvent.eventName,
+      new ChatUnblockedEvent(context, output),
+    );
+
+    return output;
   }
 
   async getChatOrThrow(context: RequestContext, id: number) {
