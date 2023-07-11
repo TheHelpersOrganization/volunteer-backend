@@ -4,6 +4,7 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 
+import { Prisma } from '@prisma/client';
 import {
   CreateSkillInputDto,
   SkillOutputDto,
@@ -33,16 +34,32 @@ export class SkillService extends AbstractService {
     query: SkillQueryDto,
   ): Promise<SkillOutputDto> {
     this.logCaller(context, this.getAll);
+    const where = this.getSkillWhere(query);
     const res = await this.prisma.skill.findMany({
-      where: {
-        id: {
-          in: query.ids,
-        },
-      },
+      where: where,
       take: query.limit,
       skip: query.offset,
     });
     return this.output(SkillOutputDto, res);
+  }
+
+  getSkillWhere(query: SkillQueryDto) {
+    const where: Prisma.SkillWhereInput = {};
+    if (query.ids) {
+      where.id = {
+        in: query.ids,
+      };
+    }
+    if (query.name) {
+      where.name = {
+        contains: query.name,
+        mode: 'insensitive',
+      };
+    }
+    if (Object.keys(where).length === 0) {
+      return undefined;
+    }
+    return where;
   }
 
   async getById(context: RequestContext, id: number): Promise<SkillOutputDto> {
