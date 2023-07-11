@@ -1,5 +1,9 @@
 import { AbstractEvent } from 'src/common/events';
-import { ChatMessageOutputDto, ChatOutputDto } from '../dtos';
+import {
+  ChatMessageOutputDto,
+  ChatOutputDto,
+  ChatParticipantOutputDto,
+} from '../dtos';
 
 export class ChatMessageSentEvent extends AbstractEvent {
   static readonly eventName = 'chat.message.sent';
@@ -31,5 +35,22 @@ export class ChatUnblockedEvent extends AbstractEvent {
   constructor(context, chat: ChatOutputDto) {
     super(context);
     this.chat = chat;
+  }
+}
+
+export class ChatReadEvent extends AbstractEvent {
+  static readonly eventName = 'chat.read';
+
+  readonly chat: ChatOutputDto;
+  readonly chatParticipant: ChatParticipantOutputDto;
+
+  constructor(
+    context,
+    chat: ChatOutputDto,
+    chatParticipant: ChatParticipantOutputDto,
+  ) {
+    super(context);
+    this.chat = chat;
+    this.chatParticipant = chatParticipant;
   }
 }

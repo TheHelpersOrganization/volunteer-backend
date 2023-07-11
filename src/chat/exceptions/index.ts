@@ -23,3 +23,9 @@ export class HaveNotJoinedChatException extends BaseApiException {
     super('You have not joined this chat');
   }
 }
+
+export class ChatParticipantNotFoundException extends BaseApiException {
+  constructor() {
+    super('Chat participant not found', undefined, 404);
+  }
+}

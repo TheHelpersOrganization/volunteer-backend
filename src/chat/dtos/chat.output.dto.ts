@@ -18,6 +18,11 @@ export class ChatMessageOutputDto {
   createdAt: Date;
 }
 
+export class ChatParticipantOutputDto extends ProfileOutputDto {
+  @Expose()
+  read: boolean;
+}
+
 export class ChatOutputDto {
   @Expose()
   id: number;
@@ -42,8 +47,8 @@ export class ChatOutputDto {
   participantIds: number[];
 
   @Expose()
-  @Type(() => ProfileOutputDto)
-  participants: ProfileOutputDto[];
+  @Type(() => ChatParticipantOutputDto)
+  participants: ChatParticipantOutputDto[];
 
   @Expose()
   createdAt: Date;

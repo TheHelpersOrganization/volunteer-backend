@@ -39,6 +39,7 @@ export const seedChats = async (prisma: PrismaClient, accounts: Account[]) => {
 
       chats.push({
         id: id,
+        name: faker.datatype.boolean() ? faker.lorem.words() : null,
         isBlocked: isBlocked,
         blockedBy: blockedBy,
         blockedAt: isBlocked ? new Date() : null,
@@ -52,6 +53,7 @@ export const seedChats = async (prisma: PrismaClient, accounts: Account[]) => {
         {
           id: getNextChatParticipantId(),
           chatId: id,
+          read: faker.datatype.boolean(),
           accountId: account.id,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -59,6 +61,7 @@ export const seedChats = async (prisma: PrismaClient, accounts: Account[]) => {
         {
           id: getNextChatParticipantId(),
           chatId: id,
+          read: faker.datatype.boolean(),
           accountId: candidate.id,
           createdAt: new Date(),
           updatedAt: new Date(),

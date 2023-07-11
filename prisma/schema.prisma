@@ -259,6 +259,7 @@ model Notification {
 
 model Chat {
   id               Int               @id @default(autoincrement())
+  name             String?
   isBlocked        Boolean           @default(false)
   blockedBy        Int?
   blockedByAccount Account?          @relation(name: "blockedByAccount", fields: [blockedBy], references: [id], onDelete: Cascade)
@@ -278,6 +279,7 @@ model ChatParticipant {
   Chat        Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
   accountId   Int
   Account     Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  read        Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
   ChatMessage ChatMessage[]

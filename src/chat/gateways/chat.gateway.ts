@@ -36,6 +36,7 @@ import { CreateMessageInputDto } from '../dtos';
 import {
   ChatBlockedEvent,
   ChatMessageSentEvent,
+  ChatReadEvent,
   ChatUnblockedEvent,
 } from '../events';
 import {
@@ -173,6 +174,16 @@ export class ChatGateway
     return chat;
   }
 
+  @SubscribeMessage('read-chat')
+  async readChat(
+    @ReqContext() context: RequestContext,
+    @MessageBody(ParseIntPipe) data: number,
+  ) {
+    this.logCaller(context, this.sendMessage);
+    const chat = await this.chatService.readChat(context, data);
+    return chat;
+  }
+
   @OnEvent(ChatMessageSentEvent.eventName)
   async onReceiveMessage(event: ChatMessageSentEvent) {
     this.logCaller(event.context, this.onReceiveMessage);
@@ -195,5 +206,13 @@ export class ChatGateway
     this.server.sockets
       .to(`chat-${event.chat.id}`)
       .emit('chat-unblocked', event.chat);
+  }
+
+  @OnEvent(ChatReadEvent.eventName)
+  async onChatRead(event: ChatReadEvent) {
+    this.logCaller(event.context, this.onChatRead);
+    this.server.sockets
+      .to(`chat-${event.chat.id}`)
+      .emit('chat-read', event.chatParticipant);
   }
 }

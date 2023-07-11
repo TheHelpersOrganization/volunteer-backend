@@ -69,4 +69,12 @@ export class ChatController {
   ) {
     return this.chatService.unblockChat(context, id);
   }
+
+  @Post(':id/read')
+  async readChat(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.chatService.readChat(context, id);
+  }
 }

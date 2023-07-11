@@ -20,12 +20,14 @@ import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
   ChatBlockedEvent,
   ChatMessageSentEvent,
+  ChatReadEvent,
   ChatUnblockedEvent,
 } from '../events';
 import {
   ChatIsBlockedException,
   ChatIsNotBlockedException,
   ChatNotFoundException,
+  ChatParticipantNotFoundException,
 } from '../exceptions';
 
 @Injectable()
@@ -91,29 +93,44 @@ export class ChatService extends AbstractService {
     };
 
     if (query.name) {
-      requireNonNullish(where.ChatParticipant).some = {
-        ...where.ChatParticipant?.some,
-        Account: {
-          profile: {
-            OR: [
-              {
-                username: {
-                  contains: query.name,
-                  mode: 'insensitive',
-                },
-                firstName: {
-                  contains: query.name,
-                  mode: 'insensitive',
-                },
-                lastName: {
-                  contains: query.name,
-                  mode: 'insensitive',
-                },
-              },
-            ],
+      where.OR = [
+        {
+          name: {
+            contains: query.name,
+            mode: 'insensitive',
           },
         },
-      };
+        {
+          ChatParticipant: {
+            some: {
+              Account: {
+                profile: {
+                  OR: [
+                    {
+                      username: {
+                        contains: query.name,
+                        mode: 'insensitive',
+                      },
+                    },
+                    {
+                      firstName: {
+                        contains: query.name,
+                        mode: 'insensitive',
+                      },
+                    },
+                    {
+                      lastName: {
+                        contains: query.name,
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      ];
     }
 
     if (query.isBlocked) {
@@ -294,7 +311,50 @@ export class ChatService extends AbstractService {
     return output;
   }
 
-  async getChatOrThrow(context: RequestContext, id: number) {
+  async readChat(context: RequestContext, id: number) {
+    this.logCaller(context, this.readChat);
+
+    const chat = await this.getChatOrThrow(context, id);
+    const chatParticipant = await this.prisma.chatParticipant.findFirst({
+      where: {
+        chatId: id,
+        accountId: context.account.id,
+      },
+    });
+    if (!chatParticipant) {
+      throw new ChatParticipantNotFoundException();
+    }
+
+    await this.prisma.chatParticipant.update({
+      where: {
+        id: chatParticipant.id,
+      },
+      data: {
+        read: true,
+      },
+    });
+
+    const output = await this.mapToDto(context, chat);
+
+    this.eventEmitter.emit(
+      ChatReadEvent.eventName,
+      new ChatReadEvent(
+        context,
+        output,
+        requireNonNullish(
+          output.participants.find((p) => p.id === context.account.id),
+        ),
+      ),
+    );
+
+    return output;
+  }
+
+  async getChatOrThrow(
+    context: RequestContext,
+    id: number,
+    includes?: ChatQueryInclude[],
+  ) {
     this.logCaller(context, this.getChatOrThrow);
 
     const chat = await this.prisma.chat.findUnique({
@@ -306,6 +366,7 @@ export class ChatService extends AbstractService {
           },
         },
       },
+      include: this.getChatInclude(includes),
     });
 
     if (!chat) {
@@ -317,13 +378,17 @@ export class ChatService extends AbstractService {
 
   async mapToDto(context: RequestContext, raw: any) {
     const participantIds = raw.ChatParticipant?.map((p) => p.accountId);
-    const participants =
+    const profiles =
       participantIds == null
         ? undefined
         : await this.profileService.getProfiles(context, {
             ids: participantIds,
             select: getProfileBasicSelect,
           });
+    const participants = profiles?.map((p) => ({
+      ...p,
+      read: raw.ChatParticipant?.find((cp) => cp.accountId === p.id)?.read,
+    }));
 
     const output = {
       ...raw,

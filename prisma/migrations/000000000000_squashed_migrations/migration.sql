@@ -198,6 +198,7 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "Chat" (
     "id" SERIAL NOT NULL,
+    "name" TEXT,
     "isBlocked" BOOLEAN NOT NULL DEFAULT false,
     "blockedBy" INTEGER,
     "blockedAt" TIMESTAMP(3),
@@ -214,6 +215,7 @@ CREATE TABLE "ChatParticipant" (
     "id" SERIAL NOT NULL,
     "chatId" INTEGER NOT NULL,
     "accountId" INTEGER NOT NULL,
+    "read" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
