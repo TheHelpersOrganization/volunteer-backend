@@ -352,6 +352,17 @@ CREATE TABLE "ProfileInterestedSkill" (
 );
 
 -- CreateTable
+CREATE TABLE "ProfileSkill" (
+    "profileId" INTEGER NOT NULL,
+    "skillId" INTEGER NOT NULL,
+    "hours" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ProfileSkill_pkey" PRIMARY KEY ("profileId","skillId")
+);
+
+-- CreateTable
 CREATE TABLE "OrganizationFile" (
     "organizationId" INTEGER NOT NULL,
     "fileId" INTEGER NOT NULL,
@@ -491,7 +502,6 @@ CREATE TABLE "VolunteerShift" (
     "active" BOOLEAN NOT NULL DEFAULT true,
     "rejectionReason" TEXT,
     "censorId" INTEGER,
-    "attendant" BOOLEAN NOT NULL DEFAULT false,
     "checkedIn" BOOLEAN,
     "checkedOut" BOOLEAN,
     "checkInAt" TIMESTAMP(3),
@@ -717,6 +727,12 @@ ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_prof
 
 -- AddForeignKey
 ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProfileSkill" ADD CONSTRAINT "ProfileSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("accountId") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProfileSkill" ADD CONSTRAINT "ProfileSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrganizationFile" ADD CONSTRAINT "OrganizationFile_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;

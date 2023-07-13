@@ -80,3 +80,10 @@ export const stringToBooleanTransform = (params: TransformFnParams) => {
 export const stringToIntTransform = (params: TransformFnParams) => {
   return parseInt(params.value);
 };
+
+export const stringToIntArrayTransform = (params: TransformFnParams) => {
+  if (!params.value) {
+    return undefined;
+  }
+  return params.value.split(',').map((v) => parseInt(v));
+};

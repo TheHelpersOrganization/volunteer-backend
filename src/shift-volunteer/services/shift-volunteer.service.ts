@@ -460,7 +460,7 @@ export class ShiftVolunteerService extends AbstractService {
           id: shiftVolunteer.id,
         },
         data: {
-          status: ShiftVolunteerStatus.Leaved,
+          status: ShiftVolunteerStatus.Left,
         },
       });
       return res;

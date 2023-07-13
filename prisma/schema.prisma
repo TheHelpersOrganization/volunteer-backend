@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["extendedWhereUnique", "fieldReference"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -69,9 +68,10 @@ model Profile {
   location                Location?                @relation(fields: [locationId], references: [id], onDelete: SetNull)
   avatarId                Int?                     @unique
   avatar                  File?                    @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  profileInterestedSkills ProfileInterestedSkill[]
   createdAt               DateTime?                @default(now())
   updatedAt               DateTime?                @default(now()) @updatedAt
+  profileInterestedSkills ProfileInterestedSkill[]
+  ProfileSkill            ProfileSkill[]
 }
 
 model Token {
@@ -175,6 +175,7 @@ model Skill {
   profileInterestedSkills ProfileInterestedSkill[]
   organizationSkills      OrganizationSkill[]
   activitySkills          ActivitySkill[]
+  ProfileSkill            ProfileSkill[]
 }
 
 model Activity {
@@ -414,6 +415,19 @@ model ProfileInterestedSkill {
   @@id([profileId, skillId])
 }
 
+model ProfileSkill {
+  profileId Int
+  skillId   Int
+  hours     Float
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now()) @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [accountId], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, skillId])
+}
+
 model OrganizationFile {
   organizationId Int
   fileId         Int          @id @unique
@@ -558,7 +572,6 @@ model VolunteerShift {
   rejectionReason      String?
   censorId             Int?
   censor               Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
-  attendant            Boolean   @default(false)
   checkedIn            Boolean?
   checkedOut           Boolean?
   checkInAt            DateTime?

@@ -45,9 +45,10 @@ export class SkillService extends AbstractService {
 
   getSkillWhere(query: SkillQueryDto) {
     const where: Prisma.SkillWhereInput = {};
-    if (query.ids) {
+    if (query.ids || query.excludeId) {
       where.id = {
         in: query.ids,
+        notIn: query.excludeId,
       };
     }
     if (query.name) {

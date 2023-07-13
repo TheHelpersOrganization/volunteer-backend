@@ -68,6 +68,9 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   @Type(() => ShiftOutputDto)
   shift?: ShiftOutputDto;
+
+  @Expose()
+  meetSkillRequirements?: boolean;
 }
 
 export class ShiftVolunteerErrorOutputDto {

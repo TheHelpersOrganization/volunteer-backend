@@ -33,7 +33,7 @@ import {
 
 const weightedNumberOfParticipants = Array.from({ length: 30 }).map((_, i) => ({
   weight: 30 / (i + 1),
-  value: i + 3,
+  value: i + 5,
 }));
 const weightedShiftTimeRange = Array.from({ length: 30 }).map((_, i) => ({
   value: (i + 1) * 0.0001,
@@ -302,7 +302,7 @@ export const seedActivities = async (
           id: getNextShiftVolunteerId(),
           shiftId: shiftId,
           status: status,
-          attendant: attendant,
+          //attendant: attendant,
           checkedIn: checkedIn,
           checkInAt: checkedInAt,
           checkedOut: checkedOut,
@@ -340,7 +340,7 @@ export const seedActivities = async (
       [
         ShiftVolunteerStatus.Cancelled,
         ShiftVolunteerStatus.Rejected,
-        ShiftVolunteerStatus.Leaved,
+        ShiftVolunteerStatus.Left,
         ShiftVolunteerStatus.Removed,
       ].forEach((status) => {
         const min = 3;
@@ -401,7 +401,7 @@ export const seedActivities = async (
             id: getNextShiftVolunteerId(),
             shiftId: shiftId,
             status: status,
-            attendant: attendant,
+            //attendant: attendant,
             checkedIn: checkedIn,
             checkInAt: checkedInAt,
             checkedOut: checkedOut,

@@ -146,7 +146,7 @@ export class OrganizationMemberService extends AbstractService {
     return this.output(MemberOutputDto, updated);
   }
 
-  // approved -> leaved
+  // approved -> left
   async leave(
     context: RequestContext,
     organizationId: number,

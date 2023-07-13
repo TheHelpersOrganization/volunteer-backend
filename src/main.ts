@@ -4,15 +4,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 
 import { AppModule } from './app.module';
-import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
   app.enableCors();
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
+  //const prismaService = app.get(PrismaService);
+  //await prismaService.enableShutdownHooks(app);
 
   /** Swagger configuration*/
   const options = new DocumentBuilder()

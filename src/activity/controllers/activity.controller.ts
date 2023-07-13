@@ -14,6 +14,8 @@ import { Role } from 'src/auth/constants';
 import { RequireRoles } from 'src/auth/decorators';
 import {
   ActivityOutputDto,
+  CountActivityOutputDto,
+  CountActivityQueryDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
   UpdateActivityInputDto,
@@ -31,6 +33,14 @@ export class ActivityController {
     @Query() query: GetActivitiesQueryDto,
   ): Promise<ActivityOutputDto[]> {
     return this.activityService.getAll(context, query);
+  }
+
+  @Get('count')
+  async countActivities(
+    @ReqContext() context: RequestContext,
+    @Query() query: CountActivityQueryDto,
+  ): Promise<CountActivityOutputDto> {
+    return this.activityService.countActivities(context, query);
   }
 
   @Get(':id')

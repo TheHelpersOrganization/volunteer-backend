@@ -4,7 +4,7 @@ export enum ShiftVolunteerStatus {
   Approved = 'approved',
   Rejected = 'rejected',
   Removed = 'removed',
-  Leaved = 'leaved',
+  Left = 'left',
 }
 
 export const shiftVolunteerStatuses = Object.values(ShiftVolunteerStatus);

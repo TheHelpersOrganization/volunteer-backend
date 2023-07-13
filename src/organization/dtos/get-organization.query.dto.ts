@@ -1,11 +1,39 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 import { Transform } from 'class-transformer';
-import { stringToBooleanTransform } from 'src/common/transformers';
+import {
+  stringToBooleanTransform,
+  stringToIntArrayTransform,
+} from 'src/common/transformers';
 import { PaginationQueryDto } from '../../common/dtos';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 
 export class OrganizationQueryDto extends PaginationQueryDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(64)
+  @IsInt({ each: true })
+  @Transform(stringToIntArrayTransform)
+  id?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(128)
+  @IsInt({ each: true })
+  @Transform(stringToIntArrayTransform)
+  excludeId?: number[];
+
   @IsOptional()
   @IsString()
   name?: string;

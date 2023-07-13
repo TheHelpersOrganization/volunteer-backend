@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -9,10 +8,6 @@ import {
 } from 'class-validator';
 
 export class ReviewShiftVolunteerInputDto {
-  @IsOptional()
-  @IsBoolean()
-  attendant: boolean;
-
   @IsOptional()
   @IsNumber()
   @Min(0)

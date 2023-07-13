@@ -5,12 +5,16 @@ import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 
 import { Prisma } from '@prisma/client';
+import * as dayjs from 'dayjs';
 import { ShiftStatus } from 'src/shift/constants';
 import { ActivityStatus } from '../constants';
 import {
   ActivityOutputDto,
+  CountActivityOutputDto,
+  CountActivityQueryDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
+  MonthlyActivityCountOutputDto,
   UpdateActivityInputDto,
 } from '../dtos';
 import { RawActivity } from '../types';
@@ -365,6 +369,77 @@ export class ActivityService extends AbstractService {
           },
         },
       },
+    });
+  }
+
+  async countActivities(context: RequestContext, query: CountActivityQueryDto) {
+    this.logCaller(context, this.countActivities);
+    // The first activity created is the oldest activity
+    const first = await this.prisma.activity.findFirst({
+      where: {
+        startTime: {
+          not: null,
+          gte: query.startTime,
+        },
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    });
+    if (first == null) {
+      return this.output(CountActivityOutputDto, {
+        total: 0,
+        monthly: [],
+      });
+    }
+    const firstMonth = dayjs(first.startTime).month() + 1;
+    const firstYear = dayjs(first.startTime).year();
+    // The last activity created is the latest activity
+    const last = await this.prisma.activity.findFirst({
+      where: {
+        startTime: {
+          not: null,
+          lte: query.endTime,
+        },
+      },
+      orderBy: {
+        startTime: 'desc',
+      },
+    });
+    if (last == null) {
+      return this.output(CountActivityOutputDto, {
+        total: 0,
+        monthly: [],
+      });
+    }
+    const lastMonth = dayjs(last.startTime).month() + 1;
+    const lastYear = dayjs(last.startTime).year();
+
+    const total = await this.prisma.activity.count();
+    const monthly: MonthlyActivityCountOutputDto[] = [];
+    for (let year = firstYear; year <= lastYear; year++) {
+      const startMonth = year === firstYear ? firstMonth : 1;
+      const endMonth = year === lastYear ? lastMonth : 12;
+      for (let month = startMonth; month <= endMonth; month++) {
+        const count = await this.prisma.activity.count({
+          where: {
+            startTime: {
+              gte: new Date(year, month - 1, 1),
+              lt: new Date(year, month, 1),
+            },
+          },
+        });
+        monthly.push({
+          year: year,
+          month: month,
+          count: count,
+        });
+      }
+    }
+
+    return this.output(CountActivityOutputDto, {
+      total: total,
+      monthly: monthly,
     });
   }
 

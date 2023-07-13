@@ -165,3 +165,15 @@ export class ModGetActivitiesQueryDto extends BaseGetActivityQueryDto {
   @Transform(({ value }) => value.split(',').map(String))
   status?: ActivityStatus[];
 }
+
+export class CountActivityQueryDto {
+  @IsOptional()
+  @IsDate()
+  @Transform(({ value }) => new Date(Number(value)))
+  startTime?: Date;
+
+  @IsOptional()
+  @IsDate()
+  @Transform(({ value }) => new Date(Number(value)))
+  endTime?: Date;
+}

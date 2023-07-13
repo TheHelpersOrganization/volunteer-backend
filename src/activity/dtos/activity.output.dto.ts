@@ -65,3 +65,23 @@ export class ActivityOutputDto {
   @Type(() => ActivityMeOutputDto)
   me?: ActivityMeOutputDto;
 }
+
+export class MonthlyActivityCountOutputDto {
+  @Expose()
+  month: number;
+
+  @Expose()
+  year: number;
+
+  @Expose()
+  count: number;
+}
+
+export class CountActivityOutputDto {
+  @Expose()
+  total: number;
+
+  @Expose()
+  @Type(() => MonthlyActivityCountOutputDto)
+  monthly: MonthlyActivityCountOutputDto[];
+}

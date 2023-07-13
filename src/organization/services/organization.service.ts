@@ -41,6 +41,10 @@ export class OrganizationService extends AbstractService {
 
     const organizations = await this.prisma.organization.findMany({
       where: {
+        id: {
+          in: query.id,
+          notIn: query.excludeId,
+        },
         name: {
           contains: query.name?.trim(),
           mode: 'insensitive',
