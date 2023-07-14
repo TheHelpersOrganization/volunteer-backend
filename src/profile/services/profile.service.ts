@@ -46,17 +46,21 @@ export class ProfileService extends AbstractService {
     const profiles: any[] = await this.prisma.profile.findMany({
       where: where,
       select: this.parseProfileSelect(query),
+      take: query.limit,
+      skip: query.offset,
     });
     const res: any[] = [];
 
     for (const profile of profiles) {
       const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
-        ? await this.shiftSkillService.getVolunteerSkillHours(
-            profile.accountId,
-            {
+        ? await this.prisma.profileSkill.findMany({
+            where: {
+              profileId: profile.accountId,
+            },
+            include: {
               skill: true,
             },
-          )
+          })
         : undefined;
 
       res.push({
@@ -106,8 +110,13 @@ export class ProfileService extends AbstractService {
       });
     }
     const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
-      ? await this.shiftSkillService.getVolunteerSkillHours(accountId, {
-          skill: true,
+      ? await this.prisma.profileSkill.findMany({
+          where: {
+            profileId: profile.accountId,
+          },
+          include: {
+            skill: true,
+          },
         })
       : undefined;
     const res = {

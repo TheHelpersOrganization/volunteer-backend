@@ -7,6 +7,7 @@ import { seedChats } from './seed-chat';
 import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
+import { seedProfileSkills } from './seed-profile-skill';
 import { seedReports } from './seed-report';
 import { seedSkills } from './seed-skill';
 
@@ -60,17 +61,23 @@ const seed = async () => {
     '- Seeding organizations...',
   );
 
-  const { activities, shifts } = await runWithTimer(
-    () =>
-      seedActivities(
-        prisma,
-        organizations,
-        skills,
-        volunteerAccounts,
-        modAccounts,
-        defaultAccounts,
-      ),
-    '- Seeding activities...',
+  const { activities, shifts, shiftVolunteers, shiftSkills } =
+    await runWithTimer(
+      () =>
+        seedActivities(
+          prisma,
+          organizations,
+          skills,
+          volunteerAccounts,
+          modAccounts,
+          defaultAccounts,
+        ),
+      '- Seeding activities...',
+    );
+
+  const { profileSkills } = await runWithTimer(
+    () => seedProfileSkills(prisma, shifts, shiftVolunteers, shiftSkills),
+    '- Seeding profile skills...',
   );
 
   const { reports } = await runWithTimer(

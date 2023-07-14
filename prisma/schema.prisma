@@ -121,6 +121,7 @@ model Location {
   organizationLocation OrganizationLocation?
   profile              Profile?
   shiftLocation        ShiftLocation?
+  ActivityLocation     ActivityLocation?
 }
 
 model Contact {
@@ -179,25 +180,26 @@ model Skill {
 }
 
 model Activity {
-  id                Int               @id @default(autoincrement())
+  id                Int                @id @default(autoincrement())
   name              String
   description       String?
-  isDisabled        Boolean           @default(false)
-  status            String            @default("pending")
+  isDisabled        Boolean            @default(false)
+  status            String             @default("pending")
   startTime         DateTime?
   endTime           DateTime?
-  createdAt         DateTime?         @default(now())
-  updatedAt         DateTime?         @default(now()) @updatedAt
-  thumbnail         Int?              @unique
-  activityThumbnail File?             @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
+  createdAt         DateTime?          @default(now())
+  updatedAt         DateTime?          @default(now()) @updatedAt
+  thumbnail         Int?               @unique
+  activityThumbnail File?              @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
   organizationId    Int
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   shifts            Shift[]
   activityManagers  ActivityManager[]
   activitySkills    ActivitySkill[]
   activityContacts  ActivityContact[]
-  reportedActivity  ReportActivity[]  @relation(name: "reportedActivity")
+  reportedActivity  ReportActivity[]   @relation(name: "reportedActivity")
   notification      Notification[]
+  ActivityLocation  ActivityLocation[]
 }
 
 model Shift {
@@ -507,6 +509,15 @@ model ActivityContact {
   @@id([activityId, contactId])
 }
 
+model ActivityLocation {
+  activityId Int
+  locationId Int       @id @unique
+  Activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  Location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
+}
+
 model VolunteerSkill {
   accountId Int
   skillId   Int
@@ -562,30 +573,31 @@ model ShiftSkillValue {
 }
 
 model VolunteerShift {
-  id                   Int       @id @default(autoincrement())
-  shiftId              Int
-  shift                Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
-  accountId            Int
-  account              Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
-  status               String
-  active               Boolean   @default(true)
-  rejectionReason      String?
-  censorId             Int?
-  censor               Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
-  checkedIn            Boolean?
-  checkedOut           Boolean?
-  checkInAt            DateTime?
-  checkOutAt           DateTime?
-  isCheckInVerified    Boolean?
-  isCheckOutVerified   Boolean?
-  checkInOutVerifierId Int?
-  checkInOutVerifier   Account?  @relation(name: "volunteerShiftCheckInOutVerifier", fields: [checkInOutVerifierId], references: [id], onDelete: SetNull)
-  completion           Float?
-  reviewNote           String?
-  reviewerId           Int?
-  reviewer             Account?  @relation(name: "volunteerShiftReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
-  createdAt            DateTime? @default(now())
-  updatedAt            DateTime? @default(now()) @updatedAt
+  id                    Int       @id @default(autoincrement())
+  shiftId               Int
+  shift                 Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  accountId             Int
+  account               Account   @relation(name: "volunteerShiftAccount", fields: [accountId], references: [id], onDelete: Cascade)
+  status                String
+  active                Boolean   @default(true)
+  rejectionReason       String?
+  censorId              Int?
+  censor                Account?  @relation(name: "volunteerShiftCensor", fields: [censorId], references: [id], onDelete: SetNull)
+  meetSkillRequirements Boolean   @default(false)
+  checkedIn             Boolean?
+  checkedOut            Boolean?
+  checkInAt             DateTime?
+  checkOutAt            DateTime?
+  isCheckInVerified     Boolean?
+  isCheckOutVerified    Boolean?
+  checkInOutVerifierId  Int?
+  checkInOutVerifier    Account?  @relation(name: "volunteerShiftCheckInOutVerifier", fields: [checkInOutVerifierId], references: [id], onDelete: SetNull)
+  completion            Float?
+  reviewNote            String?
+  reviewerId            Int?
+  reviewer              Account?  @relation(name: "volunteerShiftReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  createdAt             DateTime? @default(now())
+  updatedAt             DateTime? @default(now()) @updatedAt
 }
 
 model ShiftManager {

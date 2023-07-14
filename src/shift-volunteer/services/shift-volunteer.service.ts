@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, Shift, VolunteerShift } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import { toErrorObject } from 'src/common/filters';
@@ -7,9 +8,10 @@ import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
-import { ProfileService } from 'src/profile/services';
+import { ProfileService, ProfileSkillService } from 'src/profile/services';
 import { ShiftSkillService } from 'src/shift-skill/services';
 import { ShiftStatus } from 'src/shift/constants';
+import { ShiftOutputDto } from 'src/shift/dtos';
 import {
   InvalidStatusException,
   ShiftCheckInTimeLimitExceededException,
@@ -36,6 +38,7 @@ import {
   VerifyCheckInInputDto,
   VerifyVolunteerCheckInByIdInputDto,
 } from '../dtos';
+import { ShiftVolunteerReviewedEvent } from '../events';
 import {
   CheckInHasAlreadyBeenVerified,
   CheckOutHasAlreadyBeenVerified,
@@ -54,7 +57,9 @@ export class ShiftVolunteerService extends AbstractService {
     logger: AppLogger,
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
+    private readonly profileSkillService: ProfileSkillService,
     private readonly shiftSkillService: ShiftSkillService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super(logger);
   }
@@ -98,38 +103,38 @@ export class ShiftVolunteerService extends AbstractService {
       });
     }
 
-    if (query.meetSkillRequirements) {
-      const skillRequirementGroupedByShift: any = {};
-      const shiftRequirements = await this.prisma.shiftSkill.findMany({
-        where: {
-          shiftId: { in: res.map((v) => v.shiftId) },
-        },
-      });
-      shiftRequirements.forEach((r) => {
-        if (skillRequirementGroupedByShift[r.shiftId] == null) {
-          skillRequirementGroupedByShift[r.shiftId] = [];
-        }
-        skillRequirementGroupedByShift[r.shiftId].push(r);
-      });
-      const skillHours = await this.shiftSkillService.getVolunteersSkillHours(
-        res.map((v) => v.accountId),
-      );
-      res.forEach((r) => {
-        const requirements = skillRequirementGroupedByShift[r.shiftId];
-        for (const requirement of requirements) {
-          const skill = skillHours[r.accountId].find(
-            (s) => s.skillId === requirement.skillId,
-          );
-          if (skill == null || skill.hours < requirement.hours) {
-            const i = res.findIndex(
-              (v) => v.accountId == r.accountId && v.shiftId == r.shiftId,
-            );
-            res.splice(i, 1);
-            break;
-          }
-        }
-      });
-    }
+    // if (query.meetSkillRequirements) {
+    //   const skillRequirementGroupedByShift: any = {};
+    //   const shiftRequirements = await this.prisma.shiftSkill.findMany({
+    //     where: {
+    //       shiftId: { in: res.map((v) => v.shiftId) },
+    //     },
+    //   });
+    //   shiftRequirements.forEach((r) => {
+    //     if (skillRequirementGroupedByShift[r.shiftId] == null) {
+    //       skillRequirementGroupedByShift[r.shiftId] = [];
+    //     }
+    //     skillRequirementGroupedByShift[r.shiftId].push(r);
+    //   });
+    //   const skillHours = await this.shiftSkillService.getVolunteersSkillHours(
+    //     res.map((v) => v.accountId),
+    //   );
+    //   res.forEach((r) => {
+    //     const requirements = skillRequirementGroupedByShift[r.shiftId];
+    //     for (const requirement of requirements) {
+    //       const skill = skillHours[r.accountId].find(
+    //         (s) => s.skillId === requirement.skillId,
+    //       );
+    //       if (skill == null || skill.hours < requirement.hours) {
+    //         const i = res.findIndex(
+    //           (v) => v.accountId == r.accountId && v.shiftId == r.shiftId,
+    //         );
+    //         res.splice(i, 1);
+    //         break;
+    //       }
+    //     }
+    //   });
+    // }
 
     if (query.include?.includes(ShiftVolunteerInclude.Profile) == true) {
       const accountIds = res.map((v) => v.accountId);
@@ -199,6 +204,10 @@ export class ShiftVolunteerService extends AbstractService {
           },
         ],
       };
+    }
+
+    if (query.meetSkillRequirements) {
+      filter.meetSkillRequirements = query.meetSkillRequirements;
     }
 
     return filter;
@@ -348,6 +357,11 @@ export class ShiftVolunteerService extends AbstractService {
           accountId: context.account.id,
           status: ShiftVolunteerStatus.Pending,
           shiftId: shiftId,
+          meetSkillRequirements: await this.checkMeetSkillRequirements(
+            context,
+            context.account.id,
+            shiftId,
+          ),
         },
       });
       return res;
@@ -519,6 +533,8 @@ export class ShiftVolunteerService extends AbstractService {
       throw new InvalidStatusException();
     }
 
+    const prev = this.output(ShiftVolunteerOutputDto, shiftVolunteer);
+
     const res = await this.prisma.volunteerShift.update({
       where: {
         id: id,
@@ -529,7 +545,131 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
 
-    return this.output(ShiftVolunteerOutputDto, res);
+    const shiftOutput = this.output(ShiftOutputDto, shift);
+    const output = this.output(ShiftVolunteerOutputDto, res);
+
+    const event = new ShiftVolunteerReviewedEvent(
+      context,
+      shiftOutput,
+      prev,
+      output,
+    );
+
+    await this.profileSkillService.onShiftVolunteerReviewed(event);
+    await this.updateMeetSkillRequirements(context, event);
+
+    this.eventEmitter.emit(ShiftVolunteerReviewedEvent.eventName, event);
+
+    return output;
+  }
+
+  async checkMeetSkillRequirements(
+    context: RequestContext,
+    accountId: number,
+    shiftId: number,
+  ) {
+    this.logCaller(context, this.checkMeetSkillRequirements);
+
+    const profileSkills = await this.prisma.profileSkill.findMany({
+      where: {
+        profileId: accountId,
+      },
+    });
+    const requirements = await this.prisma.shiftSkill.findMany({
+      where: {
+        shiftId: shiftId,
+      },
+    });
+
+    let meetSkillRequirements = true;
+
+    for (const requirement of requirements) {
+      const existingProfileSkill = profileSkills.find(
+        (es) => es.skillId === requirement.skillId,
+      );
+      // No profile skill found, mark as not meet skill requirements
+      if (existingProfileSkill == null) {
+        meetSkillRequirements = false;
+        break;
+      }
+      // Profile skill hours is less than requirement, mark as not meet skill requirements
+      if (existingProfileSkill.hours < requirement.hours) {
+        meetSkillRequirements = false;
+        break;
+      }
+    }
+
+    return meetSkillRequirements;
+  }
+
+  async updateMeetSkillRequirements(
+    context: RequestContext,
+    event: ShiftVolunteerReviewedEvent,
+  ) {
+    this.logCaller(context, this.updateMeetSkillRequirements);
+
+    const shiftVolunteer = event.next;
+    const shiftVolunteers = await this.prisma.volunteerShift.findMany({
+      where: {
+        id: {
+          not: shiftVolunteer.id,
+        },
+        accountId: shiftVolunteer.accountId,
+        shift: {
+          status: { not: ShiftStatus.Completed },
+        },
+        status: {
+          in: [ShiftVolunteerStatus.Pending, ShiftVolunteerStatus.Approved],
+        },
+      },
+    });
+    const profileSkills = await this.prisma.profileSkill.findMany({
+      where: {
+        profileId: shiftVolunteer.accountId,
+      },
+    });
+    const shiftSkills = await this.prisma.shiftSkill.findMany({
+      where: {
+        shiftId: { in: shiftVolunteers.map((sv) => sv.shiftId) },
+      },
+    });
+    const meet: number[] = [];
+    for (const shiftVolunteer of shiftVolunteers) {
+      const requirements = shiftSkills.filter(
+        (ss) => ss.shiftId === shiftVolunteer.shiftId,
+      );
+      let meetSkillRequirements = true;
+      for (const requirement of requirements) {
+        const existingProfileSkill = profileSkills.find(
+          (es) => es.skillId === requirement.skillId,
+        );
+        // No profile skill found, mark as not meet skill requirements
+        if (existingProfileSkill == null) {
+          meetSkillRequirements = false;
+          break;
+        }
+        // Profile skill hours is less than requirement, mark as not meet skill requirements
+        if (existingProfileSkill.hours < requirement.hours) {
+          meetSkillRequirements = false;
+          break;
+        }
+      }
+      if (meetSkillRequirements) {
+        meet.push(shiftVolunteer.id);
+      }
+    }
+    // If meet skill requirements, update meetSkillRequirements to true
+    // Otherwise, keep it as false
+    await this.prisma.volunteerShift.updateMany({
+      where: {
+        id: {
+          in: meet,
+        },
+      },
+      data: {
+        meetSkillRequirements: true,
+      },
+    });
   }
 
   async approveOrReject(

@@ -21,6 +21,9 @@ export class ShiftVolunteerOutputDto {
   active: boolean;
 
   @Expose()
+  meetSkillRequirements?: boolean;
+
+  @Expose()
   checkedIn?: boolean;
 
   @Expose()
@@ -41,11 +44,11 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   checkInOutVerifierId?: number;
 
-  @Expose()
-  attendant: boolean;
+  // @Expose()
+  // attendant: boolean;
 
   @Expose()
-  completion: number;
+  completion?: number;
 
   @Expose()
   reviewNote?: string;
@@ -68,9 +71,6 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   @Type(() => ShiftOutputDto)
   shift?: ShiftOutputDto;
-
-  @Expose()
-  meetSkillRequirements?: boolean;
 }
 
 export class ShiftVolunteerErrorOutputDto {

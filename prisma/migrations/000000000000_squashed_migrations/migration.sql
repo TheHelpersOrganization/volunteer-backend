@@ -441,6 +441,16 @@ CREATE TABLE "ActivityContact" (
 );
 
 -- CreateTable
+CREATE TABLE "ActivityLocation" (
+    "activityId" INTEGER NOT NULL,
+    "locationId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ActivityLocation_pkey" PRIMARY KEY ("locationId")
+);
+
+-- CreateTable
 CREATE TABLE "VolunteerSkill" (
     "accountId" INTEGER NOT NULL,
     "skillId" INTEGER NOT NULL,
@@ -502,6 +512,7 @@ CREATE TABLE "VolunteerShift" (
     "active" BOOLEAN NOT NULL DEFAULT true,
     "rejectionReason" TEXT,
     "censorId" INTEGER,
+    "meetSkillRequirements" BOOLEAN NOT NULL DEFAULT false,
     "checkedIn" BOOLEAN,
     "checkedOut" BOOLEAN,
     "checkInAt" TIMESTAMP(3),
@@ -583,6 +594,9 @@ CREATE UNIQUE INDEX "OrganizationLocation_locationId_key" ON "OrganizationLocati
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OrganizationContact_contactId_key" ON "OrganizationContact"("contactId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ActivityLocation_locationId_key" ON "ActivityLocation"("locationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ShiftLocation_locationId_key" ON "ShiftLocation"("locationId");
@@ -784,6 +798,12 @@ ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_activityId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "ActivityContact" ADD CONSTRAINT "ActivityContact_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityLocation" ADD CONSTRAINT "ActivityLocation_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivityLocation" ADD CONSTRAINT "ActivityLocation_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VolunteerSkill" ADD CONSTRAINT "VolunteerSkill_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

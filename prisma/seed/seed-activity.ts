@@ -303,6 +303,8 @@ export const seedActivities = async (
           shiftId: shiftId,
           status: status,
           //attendant: attendant,
+          // TODO: Temporary
+          meetSkillRequirements: fakerEn.datatype.boolean(),
           checkedIn: checkedIn,
           checkInAt: checkedInAt,
           checkedOut: checkedOut,
@@ -312,7 +314,9 @@ export const seedActivities = async (
           checkInOutVerifierId: attendant
             ? fakerEn.helpers.arrayElement(modAccounts).id
             : null,
-          completion: attendant ? fakerEn.number.float({ min: 0, max: 1 }) : 0,
+          completion: attendant
+            ? fakerEn.number.float({ min: 0.5, max: 1 })
+            : 0,
           reviewerId: attendant
             ? fakerEn.helpers.arrayElement(volunteerAccounts).id
             : null,
@@ -401,7 +405,8 @@ export const seedActivities = async (
             id: getNextShiftVolunteerId(),
             shiftId: shiftId,
             status: status,
-            //attendant: attendant,
+            // TEMPORARY
+            meetSkillRequirements: fakerEn.datatype.boolean(),
             checkedIn: checkedIn,
             checkInAt: checkedInAt,
             checkedOut: checkedOut,
@@ -412,7 +417,7 @@ export const seedActivities = async (
               ? fakerEn.helpers.arrayElement(modAccounts).id
               : null,
             completion: attendant
-              ? fakerEn.number.float({ min: 0, max: 1 })
+              ? fakerEn.number.float({ min: 0.5, max: 1 })
               : 0,
             reviewerId: attendant
               ? fakerEn.helpers.arrayElement(volunteerAccounts).id
@@ -541,5 +546,6 @@ export const seedActivities = async (
     activities: activities,
     shifts,
     shiftVolunteers,
+    shiftSkills,
   };
 };
