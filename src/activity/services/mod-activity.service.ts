@@ -71,6 +71,11 @@ export class ModActivityService extends AbstractService {
             contact: true,
           },
         },
+        ActivityLocation: {
+          include: {
+            Location: true,
+          },
+        },
       },
       orderBy: getActivitySort(query),
     });
@@ -121,9 +126,32 @@ export class ModActivityService extends AbstractService {
             })),
           },
         },
+        activityContacts: {
+          create:
+            dto.contacts &&
+            dto.contacts.map((contact) => ({
+              contact: {
+                create: {
+                  name: contact.name,
+                  email: contact.email,
+                  phone: contact.phoneNumber,
+                },
+              },
+            })),
+        },
+        ActivityLocation: {
+          create: {
+            Location: { create: dto.location },
+          },
+        },
       },
       include: {
         activityManagers: true,
+        ActivityLocation: {
+          include: {
+            Location: true,
+          },
+        },
       },
     });
 
@@ -177,10 +205,26 @@ export class ModActivityService extends AbstractService {
                   })),
                 },
               },
+        ActivityLocation:
+          dto.location === undefined
+            ? undefined
+            : {
+                deleteMany: {},
+                create: {
+                  Location: {
+                    create: dto.location,
+                  },
+                },
+              },
       },
       include: {
         activitySkills: true,
         activityManagers: true,
+        ActivityLocation: {
+          include: {
+            Location: true,
+          },
+        },
       },
     });
 
@@ -198,6 +242,11 @@ export class ModActivityService extends AbstractService {
       },
       include: {
         activityManagers: true,
+        ActivityLocation: {
+          include: {
+            Location: true,
+          },
+        },
       },
     });
     return this.mapToDto(res);

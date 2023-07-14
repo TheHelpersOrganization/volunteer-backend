@@ -28,11 +28,11 @@ export class LocationOutputDto {
 
 export class ShortLocationOutputDto {
   @Expose()
-  locality?: string;
+  locality?: string | null;
 
   @Expose()
-  region?: string;
+  region?: string | null;
 
   @Expose()
-  country?: string;
+  country?: string | null;
 }

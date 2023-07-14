@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 import { RequestContext } from 'src/common/request-context';
-import { unionLocationsTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   BaseGetActivityQueryDto,
@@ -219,12 +218,12 @@ export const extendActivity = (
     }
   }
 
-  const locations = activity.shifts?.flatMap((s) =>
-    s.shiftLocations.map((sl) => sl.location),
-  );
-  const unionLocation = locations
-    ? unionLocationsTransform(locations)
-    : undefined;
+  // const locations = activity.shifts?.flatMap((s) =>
+  //   s.shiftLocations.map((sl) => sl.location),
+  // );
+  // const unionLocation = locations
+  //   ? unionLocationsTransform(locations)
+  //   : undefined;
 
   const skillIds = activity.shifts?.flatMap((shift) =>
     shift.shiftSkills?.map((sk) => sk.skillId),
@@ -262,7 +261,7 @@ export const extendActivity = (
     maxParticipants,
     joinedParticipants,
     skillIds: filteredSkillIds,
-    location: unionLocation,
+    location: activity.ActivityLocation?.[0]?.Location,
     contacts,
     activityManagerIds,
     isManager,

@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { CreateContactInputDto } from 'src/contact/dtos';
 import { IsFileId } from 'src/file/validators';
+import { CreateLocationInputDto } from 'src/location/dtos';
 
 export class UpdateActivityInputDto {
   @IsOptional()
@@ -38,4 +39,9 @@ export class UpdateActivityInputDto {
   @ValidateNested({ each: true })
   @ArrayNotEmpty()
   contacts?: CreateContactInputDto[];
+
+  @IsOptional()
+  @Type(() => CreateLocationInputDto)
+  @ValidateNested({ each: true })
+  location: CreateLocationInputDto;
 }

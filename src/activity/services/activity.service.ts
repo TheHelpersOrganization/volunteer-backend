@@ -84,6 +84,11 @@ export class ActivityService extends AbstractService {
             contact: true,
           },
         },
+        ActivityLocation: {
+          include: {
+            Location: true,
+          },
+        },
       },
       orderBy: sort,
     });
@@ -131,6 +136,11 @@ export class ActivityService extends AbstractService {
         activityContacts: {
           include: {
             contact: true,
+          },
+        },
+        ActivityLocation: {
+          include: {
+            Location: true,
           },
         },
       },

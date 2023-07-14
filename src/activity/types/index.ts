@@ -1,6 +1,7 @@
 import {
   Activity,
   ActivityContact,
+  ActivityLocation,
   ActivityManager,
   ActivitySkill,
   Contact,
@@ -18,6 +19,7 @@ export type ExtendedActivityInput = Activity & {
   activitySkills?: ActivitySkill[];
   activityManagers?: ActivityManager[];
   activityContacts?: (ActivityContact & { contact: Contact })[];
+  ActivityLocation?: (ActivityLocation & { Location: Location })[];
   shifts: (Shift & {
     shiftLocations: (ShiftLocation & {
       location: Location;
@@ -44,6 +46,8 @@ export type ExtendedActivity = ExtendedActivityInput & {
 export type RawActivity = Activity & {
   activitySkills?: ActivitySkill[];
   activityManagers?: ActivityManager[];
+  activityContacts?: (ActivityContact & { contact: Contact })[];
+  ActivityLocation?: (ActivityLocation & { Location: Location })[];
   shifts?: (Shift & {
     shiftLocations: (ShiftLocation & {
       location: Location;
