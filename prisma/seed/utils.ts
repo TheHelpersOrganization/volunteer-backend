@@ -82,9 +82,9 @@ export const generateViName = (
 export const generateLocation = (options?: { region?: string }) => {
   const location =
     options?.region == null
-      ? fakerVi.helpers.weightedArrayElement(weightedLocations)
+      ? fakerVi.helpers.weightedArrayElement(getWeightedLocations())
       : fakerVi.helpers.weightedArrayElement(
-          getLocationsGroupedByRegion(options.region),
+          getWeightedLocationsGroupedByRegion(options.region),
         );
 
   return {
@@ -244,14 +244,21 @@ export const readLocations = () => {
   return locations;
 };
 
-export const weightedLocations: WeightedRawLocation[] = readLocations();
-export const weightedLocationsGroupedByRegion: {
+const weightedLocations: WeightedRawLocation[] = [];
+const weightedLocationsGroupedByRegion: {
   [key: string]: WeightedRawLocation[];
 } = {};
 
-export const getLocationsGroupedByRegion = (region: string) => {
+export const getWeightedLocations = () => {
+  if (weightedLocations.length == 0) {
+    weightedLocations.push(...readLocations());
+  }
+  return weightedLocations;
+};
+
+export const getWeightedLocationsGroupedByRegion = (region: string) => {
   if (weightedLocationsGroupedByRegion[region] == null) {
-    weightedLocationsGroupedByRegion[region] = weightedLocations.filter(
+    weightedLocationsGroupedByRegion[region] = getWeightedLocations().filter(
       (l) => l.value.region == region,
     );
   }
