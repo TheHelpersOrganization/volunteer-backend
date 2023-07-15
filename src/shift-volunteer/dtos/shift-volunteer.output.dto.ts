@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { ErrorObject } from 'src/common/dtos';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import { ShiftOutputDto } from 'src/shift/dtos';
@@ -44,8 +44,11 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   checkInOutVerifierId?: number;
 
-  // @Expose()
-  // attendant: boolean;
+  @Transform(({ value, obj }) => {
+    return (obj.isCheckInVerified && obj.isCheckOutVerified) || value || false;
+  })
+  @Expose()
+  attendant: boolean;
 
   @Expose()
   completion?: number;
