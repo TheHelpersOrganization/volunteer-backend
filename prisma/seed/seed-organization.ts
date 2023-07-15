@@ -20,8 +20,8 @@ import {
 import { seedFiles } from './seed-file';
 import { skills } from './seed-skill';
 import {
+  generateLocation,
   generateMember,
-  generateViLocation,
   getNextContactId,
   getNextMemberId,
   getNextOrganizationId,
@@ -114,7 +114,7 @@ export const seedOrganizations = async (
 
   const organizationLocations: Location[] = Array.from({
     length: organizations.length * 2,
-  }).map(() => generateViLocation());
+  }).map(() => generateLocation());
 
   const organizationLocationsRel: OrganizationLocation[] = [];
   organizations.forEach((organization, i) => {

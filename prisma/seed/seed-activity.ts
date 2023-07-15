@@ -3,6 +3,7 @@ import {
   Account,
   Activity,
   ActivityContact,
+  ActivityLocation,
   Contact,
   Location,
   Organization,
@@ -23,8 +24,8 @@ import { OrganizationStatus } from '../../src/organization/constants';
 import { seedFiles } from './seed-file';
 import {
   capitalizeWords,
+  generateLocation,
   generateViContact,
-  generateViLocation,
   getNextActivityId,
   getNextShiftId,
   getNextShiftVolunteerId,
@@ -61,6 +62,8 @@ export const seedActivities = async (
   const activities: Activity[] = [];
   const activityContacts: Contact[] = [];
   const activityContactRels: ActivityContact[] = [];
+  const activityLocations: Location[] = [];
+  const activityLocationRels: ActivityLocation[] = [];
 
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
@@ -143,6 +146,15 @@ export const seedActivities = async (
 
   let hasApprovedShift = false;
   activities.forEach((activity) => {
+    const activityLocation = generateLocation();
+    activityLocations.push(activityLocation);
+    activityLocationRels.push({
+      activityId: activity.id,
+      locationId: activityLocation.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
     const numberOfShifts = fakerEn.helpers.weightedArrayElement(
       weightedNumberOfShifts,
     );
@@ -207,7 +219,7 @@ export const seedActivities = async (
       const numberOfParticipants = fakerEn.number.int({ min: 5, max: 30 });
 
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
-        const location = generateViLocation();
+        const location = generateLocation({ region: activityLocation.region });
         shiftLocations.push(location);
         shiftLocationsRel.push({
           shiftId: shiftId,
@@ -510,8 +522,16 @@ export const seedActivities = async (
     data: activityContacts,
   });
 
+  await prisma.location.createMany({
+    data: activityLocations,
+  });
+
   await prisma.activityContact.createMany({
     data: activityContactRels,
+  });
+
+  await prisma.activityLocation.createMany({
+    data: activityLocationRels,
   });
 
   await prisma.shift.createMany({

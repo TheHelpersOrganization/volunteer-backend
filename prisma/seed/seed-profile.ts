@@ -12,7 +12,7 @@ import { randomInt } from 'crypto';
 import * as _ from 'lodash';
 import { Gender } from '../../src/profile/constants';
 import { seedFiles } from './seed-file';
-import { generateViLocation, generateViName } from './utils';
+import { generateLocation, generateViName } from './utils';
 
 export const seedProfiles = async (
   prisma: PrismaClient,
@@ -20,7 +20,7 @@ export const seedProfiles = async (
   skills: Skill[],
 ) => {
   const locations: Location[] = Array.from({ length: accounts.length }).map(
-    () => generateViLocation(),
+    () => generateLocation(),
   );
 
   const avatars = await seedFiles(

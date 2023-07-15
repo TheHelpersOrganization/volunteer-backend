@@ -41,28 +41,28 @@ export const getShiftFilter = (
       },
     };
   }
-  if (query.locality || query.region || query.country) {
-    shiftQuery = {
-      ...shiftQuery,
-      some: {
-        shiftLocations: {
-          some: {
-            location: {
-              locality: {
-                contains: query.locality?.trim(),
-                mode: 'insensitive',
-              },
-              region: {
-                contains: query.region?.trim(),
-                mode: 'insensitive',
-              },
-              country: query.country,
-            },
-          },
-        },
-      },
-    };
-  }
+  // if (query.locality || query.region || query.country) {
+  //   shiftQuery = {
+  //     ...shiftQuery,
+  //     some: {
+  //       shiftLocations: {
+  //         some: {
+  //           location: {
+  //             locality: {
+  //               contains: query.locality?.trim(),
+  //               mode: 'insensitive',
+  //             },
+  //             region: {
+  //               contains: query.region?.trim(),
+  //               mode: 'insensitive',
+  //             },
+  //             country: query.country,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   };
+  // }
   if (query instanceof GetActivityByIdQueryDto) {
     if (query.joinStatus && extra && extra.joiner) {
       shiftQuery = {
@@ -89,7 +89,7 @@ export const getActivityFilter = (
   query: BaseGetActivityQueryDto,
   extra?: { joiner?: number; organizationOwner?: number },
 ) => {
-  let activityQuery: Prisma.ActivityWhereInput | undefined = undefined;
+  let activityQuery: Prisma.ActivityWhereInput = {};
 
   if (query instanceof GetActivitiesQueryDto && query.ids) {
     activityQuery = {
@@ -133,6 +133,23 @@ export const getActivityFilter = (
       endTime: {
         gte: query.endTime[0],
         lte: query.endTime[1],
+      },
+    };
+  }
+  if (query.locality || query.region || query.country) {
+    activityQuery.ActivityLocation = {
+      some: {
+        Location: {
+          locality: {
+            contains: query.locality?.trim(),
+            mode: 'insensitive',
+          },
+          region: {
+            contains: query.region?.trim(),
+            mode: 'insensitive',
+          },
+          country: query.country,
+        },
       },
     };
   }

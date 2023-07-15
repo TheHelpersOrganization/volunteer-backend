@@ -1,7 +1,10 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
 import { Account, Member, Organization } from '@prisma/client';
+import * as csv from 'csv-parse/sync';
+import * as fs from 'fs';
 import * as _ from 'lodash';
+import * as path from 'path';
 import { OrganizationMemberStatus } from '../../src/organization/constants';
 
 let accountId = 1;
@@ -76,31 +79,40 @@ export const generateViName = (
   };
 };
 
-export const generateViLocation = () => ({
-  id: getNextLocationId(),
-  addressLine1: fakerVi.location.streetAddress(false),
-  addressLine2: fakerVi.location.secondaryAddress(),
-  locality: fakerVi.location.street(),
-  region: fakerVi.location.city(),
-  country: 'VN',
-  latitude: fakerVi.location.latitude(),
-  longitude: fakerVi.location.longitude(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
-});
+export const generateLocation = (options?: { region?: string }) => {
+  const location =
+    options?.region == null
+      ? fakerVi.helpers.weightedArrayElement(weightedLocations)
+      : fakerVi.helpers.weightedArrayElement(
+          getLocationsGroupedByRegion(options.region),
+        );
 
-export const generateEnLocation = () => ({
-  id: getNextLocationId(),
-  addressLine1: fakerEn.location.streetAddress(false),
-  addressLine2: fakerEn.location.secondaryAddress(),
-  locality: fakerEn.location.city(),
-  region: fakerEn.location.state(),
-  country: 'US',
-  latitude: fakerEn.location.latitude(),
-  longitude: fakerEn.location.longitude(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
-});
+  return {
+    id: getNextLocationId(),
+    addressLine1: fakerVi.location.streetAddress(false),
+    addressLine2: fakerVi.location.secondaryAddress(),
+    locality: location.locality,
+    region: location.region,
+    country: location.country,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+};
+
+// export const generateEnLocation = () => ({
+//   id: getNextLocationId(),
+//   addressLine1: fakerEn.location.streetAddress(false),
+//   addressLine2: fakerEn.location.secondaryAddress(),
+//   locality: fakerEn.location.city(),
+//   region: fakerEn.location.state(),
+//   country: 'US',
+//   latitude: fakerEn.location.latitude(),
+//   longitude: fakerEn.location.longitude(),
+//   createdAt: new Date(),
+//   updatedAt: new Date(),
+// });
 
 export const generateMember = (
   account: Account,
@@ -173,3 +185,75 @@ export function normalizeFileSize(size: number): {
   }
   return { size, unit: units[unitIndex] };
 }
+export class WeightedRawLocation {
+  weight: number;
+  value: RawLocation;
+}
+export class RawLocation {
+  locality: string;
+  region: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+}
+
+export const readLocations = () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, `./assets/worldcities.csv`),
+    {
+      encoding: 'utf8',
+    },
+  );
+  const records: any[] = csv.parse(content, { bom: true });
+  const municipalities = [
+    'Ho Chi Minh City',
+    'Hanoi',
+    'Da Nang',
+    'Haiphong',
+    'Can Tho',
+  ];
+  const inMunicipalities = [
+    'Hồ Chí Minh',
+    'Hà Nội',
+    'Đà Nẵng',
+    'Hải Phòng',
+    'Cần Thơ',
+  ];
+  const locations: { weight: number; value: RawLocation }[] = [];
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    if (record[0] == '') {
+      break;
+    }
+    if (record[5] != 'VN') {
+      continue;
+    }
+    const isMunicipality = municipalities.includes(record[1]);
+    const isInMunicipality = inMunicipalities.includes(record[7]);
+    locations.push({
+      weight: isMunicipality || isInMunicipality ? 10 : 1,
+      value: {
+        locality: isMunicipality ? null : record[0],
+        region: record[7],
+        country: record[5],
+        latitude: parseFloat(record[2]),
+        longitude: parseFloat(record[3]),
+      },
+    });
+  }
+  return locations;
+};
+
+export const weightedLocations: WeightedRawLocation[] = readLocations();
+export const weightedLocationsGroupedByRegion: {
+  [key: string]: WeightedRawLocation[];
+} = {};
+
+export const getLocationsGroupedByRegion = (region: string) => {
+  if (weightedLocationsGroupedByRegion[region] == null) {
+    weightedLocationsGroupedByRegion[region] = weightedLocations.filter(
+      (l) => l.value.region == region,
+    );
+  }
+  return weightedLocationsGroupedByRegion[region];
+};
