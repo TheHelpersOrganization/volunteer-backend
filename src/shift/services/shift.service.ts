@@ -516,7 +516,7 @@ export class ShiftService extends AbstractService {
   }
 
   getShiftSort(query: GetShiftsQueryDto) {
-    const sort: Prisma.ShiftOrderByWithRelationInput = {};
+    const sort: Prisma.ShiftOrderByWithAggregationInput = {};
     if (query.sort) {
       if (query.sort.includes(GetShiftSort.StartTimeAscending)) {
         sort.startTime = 'asc';

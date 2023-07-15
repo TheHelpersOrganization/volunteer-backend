@@ -189,7 +189,7 @@ export const getActivityFilter = (
 };
 
 export const getActivitySort = (query: BaseGetActivityQueryDto) => {
-  const sort: Prisma.ActivityOrderByWithRelationInput = {};
+  const sort: Prisma.ActivityOrderByWithAggregationInput = {};
   if (query.sort?.includes(GetActivitySort.NameAsc)) {
     sort.name = 'asc';
   } else if (query.sort?.includes(GetActivitySort.NameDesc)) {
