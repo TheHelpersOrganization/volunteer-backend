@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { IsNumber, IsOptional, Max, Min, ValidateIf } from 'class-validator';
+import { InvalidCursorException } from '../exceptions';
 
 export class PaginationQueryDto {
   @ApiPropertyOptional({
@@ -28,5 +29,11 @@ export class PaginationQueryDto {
   @IsNumber()
   @Min(0)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
+  @ValidateIf((target, value) => {
+    if (value != null && target.offset != null) {
+      throw new InvalidCursorException();
+    }
+    return true;
+  })
   cursor?: number;
 }

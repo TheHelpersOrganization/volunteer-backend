@@ -5,25 +5,25 @@ export class LocationOutputDto {
   id: number;
 
   @Expose()
-  addressLine1?: string;
+  addressLine1?: string | null;
 
   @Expose()
-  addressLine2?: string;
+  addressLine2?: string | null;
 
   @Expose()
-  locality?: string;
+  locality?: string | null;
 
   @Expose()
-  region?: string;
+  region?: string | null;
 
   @Expose()
-  country?: string;
+  country?: string | null;
 
   @Expose()
-  latitude?: number;
+  latitude?: number | null;
 
   @Expose()
-  longitude?: number;
+  longitude?: number | null;
 }
 
 export class ShortLocationOutputDto {

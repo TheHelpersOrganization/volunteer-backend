@@ -58,7 +58,7 @@ export class ActivityService extends AbstractService {
     const res = await this.prisma.activity.findMany({
       where: activityQuery,
       take: query.limit,
-      skip: query.offset,
+      skip: query.cursor != null ? 1 : query.offset,
       cursor:
         query.cursor == null
           ? undefined

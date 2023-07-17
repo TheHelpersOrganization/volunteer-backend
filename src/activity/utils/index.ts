@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { isPointWithinRadius } from 'geolib';
 import { RequestContext } from 'src/common/request-context';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
@@ -297,6 +298,30 @@ export const filterExtendedActivity = (
         ? null
         : activity.maxParticipants - activity.joinedParticipants;
     if (availableSlots != null && availableSlots < query.availableSlots) {
+      return false;
+    }
+  }
+  if (
+    query.radius != null &&
+    query.lat != null &&
+    query.lng != null &&
+    activity.location != null &&
+    activity.location.latitude != null &&
+    activity.location.longitude != null
+  ) {
+    const isWithinRadius = isPointWithinRadius(
+      {
+        latitude: activity.location.latitude,
+        longitude: activity.location.longitude,
+      },
+      {
+        latitude: query.lat,
+        longitude: query.lng,
+      },
+      // km to m
+      query.radius * 1000,
+    );
+    if (!isWithinRadius) {
       return false;
     }
   }
