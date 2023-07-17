@@ -242,6 +242,20 @@ export class ChatService extends AbstractService {
           updatedAt: new Date(),
         },
       });
+      const otherParticipants = chat.participants
+        .filter((p) => p.id !== context.account.id)
+        .map((p) => p.id);
+      await tx.chatParticipant.updateMany({
+        where: {
+          chatId: dto.chatId,
+          accountId: {
+            in: otherParticipants,
+          },
+        },
+        data: {
+          read: false,
+        },
+      });
       return message;
     });
 
@@ -393,7 +407,7 @@ export class ChatService extends AbstractService {
       throw new ChatNotFoundException();
     }
 
-    return chat;
+    return this.mapToDto(context, chat);
   }
 
   async mapToDto(context: RequestContext, raw: any) {
