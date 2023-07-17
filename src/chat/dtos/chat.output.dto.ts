@@ -28,6 +28,9 @@ export class ChatOutputDto {
   id: number;
 
   @Expose()
+  name?: string;
+
+  @Expose()
   createdBy: number;
 
   @Expose()

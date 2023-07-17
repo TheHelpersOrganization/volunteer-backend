@@ -5,6 +5,9 @@ import { requireNonNullish } from 'prisma/seed/utils';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
+import { getProfileName, getProfileNameOrNull } from 'src/common/utils';
+import { NotificationType } from 'src/notification/constants';
+import { NotificationService } from 'src/notification/services';
 import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
@@ -37,6 +40,7 @@ export class ChatService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly notificationService: NotificationService,
   ) {
     super(logger);
   }
@@ -241,10 +245,26 @@ export class ChatService extends AbstractService {
       return message;
     });
 
+    const chatOutput = await this.mapToDto(context, chat);
+
     this.eventEmitter.emit(
       ChatMessageSentEvent.eventName,
-      new ChatMessageSentEvent(context, message),
+      new ChatMessageSentEvent(context, chatOutput, message),
     );
+
+    this.notificationService.sendNotifications(context, {
+      accountIds: chatOutput.participantIds,
+      type: NotificationType.Chat,
+      chatId: chatOutput.id,
+      title:
+        chatOutput.name ??
+        getProfileName(
+          requireNonNullish(
+            chatOutput.participants.find((p) => p.id !== context.account.id),
+          ),
+        ),
+      description: message.message,
+    });
 
     return this.output(ChatMessageOutputDto, message);
   }
@@ -392,6 +412,11 @@ export class ChatService extends AbstractService {
 
     const output = {
       ...raw,
+      name:
+        raw.name ??
+        getProfileNameOrNull(
+          profiles?.find((p) => p.id !== context.account.id),
+        ),
       messages: raw.ChatMessage,
       participantIds: participantIds,
       participants: participants,

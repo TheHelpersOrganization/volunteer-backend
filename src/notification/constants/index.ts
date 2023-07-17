@@ -4,6 +4,7 @@ export enum NotificationType {
   Shift = 'shift',
   Organization = 'organization',
   Report = 'report',
+  Chat = 'chat',
   Other = 'other',
 }
 

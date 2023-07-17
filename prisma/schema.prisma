@@ -249,6 +249,7 @@ model Notification {
   description      String
   shortDescription String?
   read             Boolean       @default(false)
+  pushOnly         Boolean       @default(false)
   activityId       Int?
   activity         Activity?     @relation(fields: [activityId], references: [id], onDelete: Cascade)
   shiftId          Int?

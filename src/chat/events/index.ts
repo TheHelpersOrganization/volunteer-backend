@@ -8,11 +8,12 @@ import {
 export class ChatMessageSentEvent extends AbstractEvent {
   static readonly eventName = 'chat.message.sent';
 
-  readonly message: ChatMessageOutputDto;
-
-  constructor(context, message: ChatMessageOutputDto) {
+  constructor(
+    context,
+    public readonly chat: ChatOutputDto,
+    public readonly message: ChatMessageOutputDto,
+  ) {
     super(context);
-    this.message = message;
   }
 }
 

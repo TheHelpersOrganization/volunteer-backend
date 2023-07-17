@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsObject,
@@ -27,6 +28,10 @@ export class CreateNotificationInputDto {
   shortDescription?: string;
 
   @IsOptional()
+  @IsBoolean()
+  pushOnly?: boolean;
+
+  @IsOptional()
   @IsInt()
   activityId?: number;
 
@@ -41,6 +46,10 @@ export class CreateNotificationInputDto {
   @IsOptional()
   @IsInt()
   reportId?: number;
+
+  @IsOptional()
+  @IsInt()
+  chatId?: number;
 }
 
 export class CreateNotificationsInputDto extends CreateNotificationInputDto {

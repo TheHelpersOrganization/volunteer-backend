@@ -3,6 +3,7 @@ import * as tz from 'dayjs/plugin/timezone';
 import * as utc from 'dayjs/plugin/utc';
 import * as path from 'path';
 import { FileSizeUnit } from 'src/file/constants';
+import { ProfileOutputDto } from 'src/profile/dtos';
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -79,3 +80,26 @@ export const parseBooleanString = (str: any) => {
 };
 
 export const rootProjectPath = path.resolve('./');
+
+export const getProfileNameOrNull = (
+  profile?: ProfileOutputDto,
+): string | undefined => {
+  if (!profile) {
+    return;
+  }
+  if (profile.firstName || profile.lastName) {
+    return `${profile.firstName ?? ''} ${profile.lastName ?? ''}`;
+  }
+  if (profile.username) {
+    return profile.username;
+  }
+  return profile.email;
+};
+
+export const getProfileName = (profile?: ProfileOutputDto): string => {
+  const name = getProfileNameOrNull(profile);
+  if (!name) {
+    throw new Error('Profile name is null');
+  }
+  return name;
+};

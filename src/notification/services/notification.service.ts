@@ -67,6 +67,7 @@ export class NotificationService extends AbstractService {
   ) {
     const where: Prisma.NotificationWhereInput = {
       accountId: context.account.id,
+      pushOnly: false,
     };
     if (query.id) {
       where.id = {
@@ -128,6 +129,7 @@ export class NotificationService extends AbstractService {
       where: {
         id: id,
         accountId: context.account.id,
+        pushOnly: false,
       },
       include: this.getNotificationInclude(query),
     });
@@ -148,6 +150,7 @@ export class NotificationService extends AbstractService {
           in: dto.id,
         },
         accountId: context.account.id,
+        pushOnly: false,
       },
       data: {
         read: true,
@@ -175,6 +178,7 @@ export class NotificationService extends AbstractService {
           in: dto.id,
         },
         accountId: context.account.id,
+        pushOnly: false,
       },
     });
     const notificationIds = notifications.map((n) => n.id);
@@ -268,12 +272,15 @@ export class NotificationService extends AbstractService {
       throw new InvalidInputException('organizationId');
     } else if (dto.type == NotificationType.Report && dto.reportId == null) {
       throw new InvalidInputException('reportId');
+    } else if (dto.type == NotificationType.Chat && dto.chatId == null) {
+      throw new InvalidInputException('chatId');
     }
     const inputs = dto.accountIds.map((accountId) => ({
       accountId: accountId,
       title: dto.title,
       description: dto.description,
       shortDescription: dto.shortDescription,
+      pushOnly: dto.pushOnly,
       type: dto.type,
       activityId: dto.activityId,
       shiftId: dto.shiftId,

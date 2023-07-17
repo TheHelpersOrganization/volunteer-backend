@@ -39,10 +39,7 @@ import {
   ChatReadEvent,
   ChatUnblockedEvent,
 } from '../events';
-import {
-  ChatNotFoundException,
-  HaveNotJoinedChatException,
-} from '../exceptions';
+import { HaveNotJoinedChatException } from '../exceptions';
 import { ChatService } from '../services';
 
 @WebSocketGateway(undefined, {
@@ -115,28 +112,23 @@ export class ChatGateway
   async joinChat(
     @ReqContext() context: RequestContext,
     @ConnectedSocket() client: Socket,
-    @MessageBody(ParseIntPipe) chatId: number,
   ) {
-    const chat = await this.chatService.getChatById(context, chatId, {});
-    if (!chat) {
-      throw new ChatNotFoundException();
-    }
-    await client.join(`chat-${chat.id}`);
-    this.logger.log(context, `Client ${client.id} joined chat ${chat.id}`);
-    return chat;
+    const accountId = context.account.id;
+    await client.join(`chat-${accountId}`);
+    this.logger.log(context, `Client ${client.id} joined chat ${accountId}`);
   }
 
   @SubscribeMessage('leave-chat')
   async leaveChat(
     @ReqContext() context: RequestContext,
     @ConnectedSocket() client: Socket,
-    @MessageBody(ParseIntPipe) chatId: number,
   ) {
-    if (!client.rooms.has(`chat-${chatId}`)) {
+    const accountId = context.account.id;
+    if (!client.rooms.has(`chat-${accountId}`)) {
       throw new HaveNotJoinedChatException();
     }
-    await client.leave(`chat-${chatId}`);
-    this.logger.log(context, `Client ${client.id} left chat ${chatId}`);
+    await client.leave(`chat-${accountId}`);
+    this.logger.log(context, `Client ${client.id} left chat ${accountId}`);
   }
 
   @SubscribeMessage('send-message')
@@ -146,9 +138,6 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const message = await this.chatService.sendChatMessage(context, data);
-    // this.server.sockets
-    //   .to(`chat-${data.chatId}`)
-    //   .emit('receive-message', message);
     return message;
   }
 
@@ -159,7 +148,6 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.blockChat(context, data);
-    //this.server.sockets.to(`chat-${chat.id}`).emit('chat-blocked', chat);
     return chat;
   }
 
@@ -170,7 +158,6 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.unblockChat(context, data);
-    //this.server.sockets.to(`chat-${chat.id}`).emit('chat-unblocked', chat);
     return chat;
   }
 
@@ -187,32 +174,28 @@ export class ChatGateway
   @OnEvent(ChatMessageSentEvent.eventName)
   async onReceiveMessage(event: ChatMessageSentEvent) {
     this.logCaller(event.context, this.onReceiveMessage);
-    this.server.sockets
-      .to(`chat-${event.message.chatId}`)
-      .emit('receive-message', event.message);
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('receive-message', event.message);
   }
 
   @OnEvent(ChatBlockedEvent.eventName)
   async onChatBlocked(event: ChatBlockedEvent) {
     this.logCaller(event.context, this.onChatBlocked);
-    this.server.sockets
-      .to(`chat-${event.chat.id}`)
-      .emit('chat-blocked', event.chat);
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-blocked', event.chat);
   }
 
   @OnEvent(ChatUnblockedEvent.eventName)
   async onChatUnblocked(event: ChatBlockedEvent) {
     this.logCaller(event.context, this.onChatUnblocked);
-    this.server.sockets
-      .to(`chat-${event.chat.id}`)
-      .emit('chat-unblocked', event.chat);
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-unblocked', event.chat);
   }
 
   @OnEvent(ChatReadEvent.eventName)
   async onChatRead(event: ChatReadEvent) {
     this.logCaller(event.context, this.onChatRead);
-    this.server.sockets
-      .to(`chat-${event.chat.id}`)
-      .emit('chat-read', event.chatParticipant);
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-read', event.chatParticipant);
   }
 }
