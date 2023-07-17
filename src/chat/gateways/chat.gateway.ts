@@ -176,6 +176,7 @@ export class ChatGateway
     this.logCaller(event.context, this.onReceiveMessage);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('receive-message', event.message);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 
   @OnEvent(ChatBlockedEvent.eventName)
@@ -183,6 +184,7 @@ export class ChatGateway
     this.logCaller(event.context, this.onChatBlocked);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-blocked', event.chat);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 
   @OnEvent(ChatUnblockedEvent.eventName)
@@ -190,6 +192,7 @@ export class ChatGateway
     this.logCaller(event.context, this.onChatUnblocked);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-unblocked', event.chat);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 
   @OnEvent(ChatReadEvent.eventName)
@@ -197,5 +200,6 @@ export class ChatGateway
     this.logCaller(event.context, this.onChatRead);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-read', event.chatParticipant);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 }

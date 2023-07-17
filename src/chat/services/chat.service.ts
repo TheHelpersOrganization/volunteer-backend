@@ -160,15 +160,13 @@ export class ChatService extends AbstractService {
       ChatParticipant: true,
     };
 
-    if (includes?.includes(ChatQueryInclude.Message)) {
-      include.ChatMessage = {
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: extra?.messageLimit,
-        skip: extra?.messageOffset,
-      };
-    }
+    include.ChatMessage = {
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: extra?.messageLimit ?? 1,
+      skip: extra?.messageOffset,
+    };
 
     if (Object.keys(include).length === 0) {
       return undefined;
