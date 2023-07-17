@@ -19,6 +19,8 @@ import { PaginationQueryDto } from 'src/common/dtos';
 import {
   separatedCommaNumberArrayTransform,
   stringToBooleanTransform,
+  stringToFloatTransform,
+  stringToIntTransform,
 } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ActivityStatus } from '../constants';
@@ -103,15 +105,18 @@ export class BaseGetActivityQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsLatitude()
+  @Transform(stringToFloatTransform)
   lat?: number;
 
   @IsOptional()
   @IsLongitude()
+  @Transform(stringToFloatTransform)
   lng?: number;
 
   @IsOptional()
-  @IsNumberString()
+  @IsNumber()
   @Min(0)
+  @Transform(stringToIntTransform)
   radius?: number;
 
   @IsOptional()

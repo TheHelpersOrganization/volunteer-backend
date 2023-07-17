@@ -87,3 +87,14 @@ export const stringToIntArrayTransform = (params: TransformFnParams) => {
   }
   return params.value.split(',').map((v) => parseInt(v));
 };
+
+export const stringToFloatTransform = (params: TransformFnParams) => {
+  return parseFloat(params.value);
+};
+
+export const stringToFloatArrayTransform = (params: TransformFnParams) => {
+  if (!params.value) {
+    return undefined;
+  }
+  return params.value.split(',').map((v) => parseFloat(v));
+};

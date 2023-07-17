@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';

@@ -17,7 +17,7 @@ import {
   MonthlyActivityCountOutputDto,
   UpdateActivityInputDto,
 } from '../dtos';
-import { RawActivity } from '../types';
+import { ExtendedActivityInput, RawActivity } from '../types';
 import {
   extendActivity,
   filterExtendedActivity,
@@ -54,8 +54,10 @@ export class ActivityService extends AbstractService {
       joiner: context.account.id,
     });
     const sort = getActivitySort(query);
+    const extendedActivities: ExtendedActivityInput[] = [];
 
-    const res = await this.prisma.activity.findMany({
+    const res: ExtendedActivityInput[] = [];
+    await this.prisma.activity.findMany({
       where: activityQuery,
       take: query.limit,
       skip: query.cursor != null ? 1 : query.offset,
@@ -98,9 +100,11 @@ export class ActivityService extends AbstractService {
       },
       orderBy: sort,
     });
-    const extendedActivities = res
-      .map((v) => extendActivity(v, { contextAccountId: accountId }))
-      .filter((a) => filterExtendedActivity(a, query));
+    extendedActivities.push(
+      ...res
+        .map((v) => extendActivity(v, { contextAccountId: accountId }))
+        .filter((a) => filterExtendedActivity(a, query)),
+    );
 
     return extendedActivities;
   }
