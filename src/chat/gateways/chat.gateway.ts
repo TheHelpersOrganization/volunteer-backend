@@ -199,7 +199,7 @@ export class ChatGateway
   async onChatRead(event: ChatReadEvent) {
     this.logCaller(event.context, this.onChatRead);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
-    this.server.sockets.to(rooms).emit('chat-read', event.chatParticipant);
+    this.server.sockets.to(rooms).emit('chat-read', event.chat);
     this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 }
