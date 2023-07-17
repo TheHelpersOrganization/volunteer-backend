@@ -222,7 +222,7 @@ export class ChatService extends AbstractService {
   async sendChatMessage(context: RequestContext, dto: CreateMessageInputDto) {
     this.logCaller(context, this.sendChatMessage);
 
-    const chat = await this.getChatOrThrow(context, dto.chatId);
+    let chat = await this.getChatOrThrow(context, dto.chatId);
 
     if (chat.isBlocked) {
       throw new ChatIsBlockedException();
@@ -231,14 +231,6 @@ export class ChatService extends AbstractService {
     const message = await this.prisma.$transaction(async (tx) => {
       const message = await tx.chatMessage.create({
         data: { ...dto, chatId: dto.chatId, sender: context.account.id },
-      });
-      await tx.chat.update({
-        where: {
-          id: dto.chatId,
-        },
-        data: {
-          updatedAt: new Date(),
-        },
       });
       const otherParticipants = chat.participants
         .filter((p) => p.id !== context.account.id)
@@ -254,6 +246,16 @@ export class ChatService extends AbstractService {
           read: false,
         },
       });
+      const newChat = await tx.chat.update({
+        where: {
+          id: dto.chatId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+        include: this.getChatInclude(),
+      });
+      chat = await this.mapToDto(context, newChat);
       return message;
     });
 
@@ -346,7 +348,7 @@ export class ChatService extends AbstractService {
   async readChat(context: RequestContext, id: number) {
     this.logCaller(context, this.readChat);
 
-    const chat = await this.getChatOrThrow(context, id);
+    await this.getChatOrThrow(context, id);
     const chatParticipant = await this.prisma.chatParticipant.findFirst({
       where: {
         chatId: id,
@@ -366,7 +368,9 @@ export class ChatService extends AbstractService {
       },
     });
 
-    const output = await this.mapToDto(context, chat);
+    const updatedChat = await this.getChatOrThrow(context, id);
+
+    const output = await this.mapToDto(context, updatedChat);
 
     this.eventEmitter.emit(
       ChatReadEvent.eventName,
