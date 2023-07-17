@@ -59,6 +59,12 @@ export class ActivityService extends AbstractService {
       where: activityQuery,
       take: query.limit,
       skip: query.offset,
+      cursor:
+        query.cursor == null
+          ? undefined
+          : {
+              id: query.cursor,
+            },
       include: {
         shifts: {
           include: {

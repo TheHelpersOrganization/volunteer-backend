@@ -155,6 +155,11 @@ export const seedActivities = async (
       updatedAt: new Date(),
     });
 
+    const activitySkills: Skill[] = _.sampleSize(
+      skills,
+      fakerEn.number.int({ min: 1, max: skills.length }),
+    );
+
     const numberOfShifts = fakerEn.helpers.weightedArrayElement(
       weightedNumberOfShifts,
     );
@@ -241,8 +246,8 @@ export const seedActivities = async (
       }
 
       _.sampleSize(
-        skills,
-        fakerEn.number.int({ min: 1, max: skills.length }),
+        activitySkills,
+        fakerEn.number.int({ min: 1, max: activitySkills.length }),
       ).forEach((skill) => {
         shiftSkills.push({
           shiftId: shiftId,

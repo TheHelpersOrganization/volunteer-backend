@@ -15,17 +15,18 @@ export class PaginationQueryDto {
   limit? = 100;
 
   @ApiPropertyOptional({
-    description: 'Optional, defaults to 0',
+    description: 'Optional',
     type: Number,
   })
   @IsNumber()
   @IsOptional()
   @Min(0)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
-  offset? = 0;
+  offset?: number;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
   cursor?: number;
 }
