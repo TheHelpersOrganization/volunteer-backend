@@ -368,9 +368,7 @@ export class ChatService extends AbstractService {
       },
     });
 
-    const updatedChat = await this.getChatOrThrow(context, id);
-
-    const output = await this.mapToDto(context, updatedChat);
+    const output = await this.getChatOrThrow(context, id);
 
     this.eventEmitter.emit(
       ChatReadEvent.eventName,
