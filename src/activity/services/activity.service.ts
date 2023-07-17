@@ -56,57 +56,78 @@ export class ActivityService extends AbstractService {
     const sort = getActivitySort(query);
     const extendedActivities: ExtendedActivityInput[] = [];
 
-    const res: ExtendedActivityInput[] = [];
-    await this.prisma.activity.findMany({
-      where: activityQuery,
-      take: query.limit,
-      skip: query.cursor != null ? 1 : query.offset,
-      cursor:
-        query.cursor == null
-          ? undefined
-          : {
-              id: query.cursor,
-            },
-      include: {
-        shifts: {
-          include: {
-            shiftLocations: {
-              include: {
-                location: true,
-              },
-            },
-            shiftVolunteers: true,
-            shiftContacts: {
-              include: {
-                contact: true,
-              },
-            },
-            shiftSkills: true,
-            shiftManagers: true,
-          },
-        },
-        activitySkills: true,
-        activityManagers: true,
-        activityContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        ActivityLocation: {
-          include: {
-            Location: true,
-          },
-        },
-      },
-      orderBy: sort,
-    });
-    extendedActivities.push(
-      ...res
-        .map((v) => extendActivity(v, { contextAccountId: accountId }))
-        .filter((a) => filterExtendedActivity(a, query)),
-    );
+    // Naive implementation of backend-filtered pagination
 
-    return extendedActivities;
+    const realLimit = query.limit ?? 100;
+    let notFoundIteration = 0;
+    let cursor = query.cursor;
+    let searchLimit = query.limit ?? 100;
+    if (query.radius) {
+      searchLimit = 10000;
+    }
+
+    while (extendedActivities.length < realLimit && notFoundIteration <= 3) {
+      const res: ExtendedActivityInput[] = await this.prisma.activity.findMany({
+        where: activityQuery,
+        take: searchLimit,
+        skip: cursor != null ? 1 : query.offset,
+        cursor:
+          cursor == null
+            ? undefined
+            : {
+                id: cursor,
+              },
+        include: {
+          shifts: {
+            include: {
+              shiftLocations: {
+                include: {
+                  location: true,
+                },
+              },
+              shiftVolunteers: true,
+              shiftContacts: {
+                include: {
+                  contact: true,
+                },
+              },
+              shiftSkills: true,
+              shiftManagers: true,
+            },
+          },
+          activitySkills: true,
+          activityManagers: true,
+          activityContacts: {
+            include: {
+              contact: true,
+            },
+          },
+          ActivityLocation: {
+            include: {
+              Location: true,
+            },
+          },
+        },
+        orderBy: sort,
+      });
+
+      if (res.length === 0) {
+        break;
+      }
+
+      const found = res
+        .map((v) => extendActivity(v, { contextAccountId: accountId }))
+        .filter((a) => filterExtendedActivity(a, query));
+
+      if (found.length === 0) {
+        notFoundIteration++;
+      }
+
+      extendedActivities.push(...found);
+      cursor = res[res.length - 1]?.id;
+    }
+
+    return extendedActivities.slice(0, realLimit);
   }
 
   private async internalGetById(
