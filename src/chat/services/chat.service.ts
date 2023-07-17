@@ -259,22 +259,20 @@ export class ChatService extends AbstractService {
       return message;
     });
 
-    const chatOutput = await this.mapToDto(context, chat);
-
     this.eventEmitter.emit(
       ChatMessageSentEvent.eventName,
-      new ChatMessageSentEvent(context, chatOutput, message),
+      new ChatMessageSentEvent(context, chat, message),
     );
 
     this.notificationService.sendNotifications(context, {
-      accountIds: chatOutput.participantIds,
+      accountIds: chat.participantIds,
       type: NotificationType.Chat,
-      chatId: chatOutput.id,
+      chatId: chat.id,
       title:
-        chatOutput.name ??
+        chat.name ??
         getProfileName(
           requireNonNullish(
-            chatOutput.participants.find((p) => p.id !== context.account.id),
+            chat.participants.find((p) => p.id !== context.account.id),
           ),
         ),
       description: message.message,
