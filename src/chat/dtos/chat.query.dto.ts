@@ -1,8 +1,5 @@
 import { Transform } from 'class-transformer';
 import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -15,9 +12,9 @@ import {
 import { PaginationQueryDto } from 'src/common/dtos';
 import { stringToBooleanTransform } from 'src/common/transformers';
 
-export enum ChatQueryInclude {
-  Message = 'message',
-}
+// export enum ChatQueryInclude {
+//   Message = 'message',
+// }
 
 export enum ChatQuerySort {
   CreatedAtAsc = 'createdAt',
@@ -26,16 +23,16 @@ export enum ChatQuerySort {
   UpdatedAtDesc = '-updatedAt',
 }
 
-export const chatQueryIncludes = Object.values(ChatQueryInclude);
+//export const chatQueryIncludes = Object.values(ChatQueryInclude);
 
 export class ChatQueryDto extends PaginationQueryDto {
-  @IsOptional()
-  @IsArray()
-  @ArrayMinSize(1)
-  @ArrayMaxSize(chatQueryIncludes.length)
-  @IsEnum(ChatQueryInclude, { each: true })
-  @Transform(({ value }) => value.split(','))
-  include?: ChatQueryInclude[];
+  // @IsOptional()
+  // @IsArray()
+  // @ArrayMinSize(1)
+  // @ArrayMaxSize(chatQueryIncludes.length)
+  // @IsEnum(ChatQueryInclude, { each: true })
+  // @Transform(({ value }) => value.split(','))
+  // include?: ChatQueryInclude[];
 
   @IsOptional()
   @IsInt()

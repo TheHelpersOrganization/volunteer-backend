@@ -14,14 +14,15 @@ import { ProfileService } from 'src/profile/services';
 import {
   ChatMessagesQueryDto,
   ChatQueryDto,
-  ChatQueryInclude,
   ChatQuerySort,
   ChatsQueryDto,
+  CreateChatInputDto,
   CreateMessageInputDto,
 } from '../dtos';
 import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
   ChatBlockedEvent,
+  ChatCreatedEvent,
   ChatMessageSentEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
@@ -50,10 +51,7 @@ export class ChatService extends AbstractService {
 
     const chats = await this.prisma.chat.findMany({
       where: this.getChatWhere(query, context.account.id),
-      include: this.getChatInclude(query.include, {
-        messageLimit: query.messageLimit,
-        messageOffset: query.messageOffset,
-      }),
+      include: this.getChatInclude(query),
       orderBy: this.getChatOrderBy(query.sort),
       take: query.limit,
       skip: query.offset,
@@ -74,10 +72,35 @@ export class ChatService extends AbstractService {
           },
         },
       },
-      include: this.getChatInclude(query.include, {
-        messageLimit: query.messageLimit,
-        messageOffset: query.messageOffset,
-      }),
+      include: this.getChatInclude(query),
+    });
+
+    if (!chat) {
+      return null;
+    }
+
+    return this.mapToDto(context, chat);
+  }
+
+  async getChatToAccountByAccountId(
+    context: RequestContext,
+    accountId: number,
+    query: ChatQueryDto,
+  ) {
+    this.logCaller(context, this.getChatById);
+
+    const chat = await this.prisma.chat.findFirst({
+      where: {
+        isGroup: false,
+        ChatParticipant: {
+          every: {
+            accountId: {
+              in: [context.account.id, accountId],
+            },
+          },
+        },
+      },
+      include: this.getChatInclude(query),
     });
 
     if (!chat) {
@@ -152,10 +175,7 @@ export class ChatService extends AbstractService {
     return where;
   }
 
-  getChatInclude(
-    includes?: ChatQueryInclude[],
-    extra?: { messageLimit?: number; messageOffset?: number },
-  ) {
+  getChatInclude(extra?: { messageLimit?: number; messageOffset?: number }) {
     const include: Prisma.ChatInclude = {
       ChatParticipant: true,
     };
@@ -217,6 +237,62 @@ export class ChatService extends AbstractService {
     });
 
     return this.outputArray(ChatMessageOutputDto, messages);
+  }
+
+  async createChat(context: RequestContext, dto: CreateChatInputDto) {
+    this.logCaller(context, this.createChat);
+
+    const toAccount = await this.prisma.account.findUnique({
+      where: {
+        id: dto.to,
+      },
+    });
+    if (!toAccount) {
+      throw new ChatParticipantNotFoundException();
+    }
+
+    const exist = await this.getChatToAccountByAccountId(context, dto.to, {});
+    if (exist) {
+      return exist;
+    }
+
+    const chat = await this.prisma.chat.create({
+      data: {
+        isGroup: false,
+        createdBy: context.account.id,
+        ChatParticipant: {
+          create: [
+            {
+              accountId: context.account.id,
+            },
+            {
+              accountId: dto.to,
+            },
+          ],
+        },
+        ChatMessage:
+          dto.initialMessage == null
+            ? undefined
+            : {
+                create: [
+                  {
+                    message: dto.initialMessage,
+                    sender: context.account.id,
+                  },
+                ],
+              },
+      },
+      include: this.getChatInclude(),
+    });
+
+    const output = await this.mapToDto(context, chat);
+
+    this.eventEmitter.emit(
+      ChatCreatedEvent.eventName,
+      new ChatCreatedEvent(context, output),
+    );
+
+    return output;
   }
 
   async sendChatMessage(context: RequestContext, dto: CreateMessageInputDto) {
@@ -382,11 +458,7 @@ export class ChatService extends AbstractService {
     return output;
   }
 
-  async getChatOrThrow(
-    context: RequestContext,
-    id: number,
-    includes?: ChatQueryInclude[],
-  ) {
+  async getChatOrThrow(context: RequestContext, id: number) {
     this.logCaller(context, this.getChatOrThrow);
 
     const chat = await this.prisma.chat.findUnique({
@@ -398,7 +470,7 @@ export class ChatService extends AbstractService {
           },
         },
       },
-      include: this.getChatInclude(includes),
+      include: this.getChatInclude(),
     });
 
     if (!chat) {
@@ -430,6 +502,9 @@ export class ChatService extends AbstractService {
           profiles?.find((p) => p.id !== context.account.id),
         ),
       messages: raw.ChatMessage,
+      latestMessage: raw.ChatMessage.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      )[0],
       participantIds: participantIds,
       participants: participants,
     };

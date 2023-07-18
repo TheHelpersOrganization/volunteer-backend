@@ -44,6 +44,10 @@ export class ChatOutputDto {
 
   @Expose()
   @Type(() => ChatMessageOutputDto)
+  latestMessage?: ChatMessageOutputDto;
+
+  @Expose()
+  @Type(() => ChatMessageOutputDto)
   messages: ChatMessageOutputDto[];
 
   @Expose()

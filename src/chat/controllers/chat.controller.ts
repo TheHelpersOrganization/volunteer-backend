@@ -14,6 +14,7 @@ import {
   ChatsQueryDto,
   CreateMessageInputDto,
 } from '../dtos';
+import { CreateChatInputDto } from '../dtos/create-chat.input.dto';
 import { ChatService } from '../services';
 
 @Controller('chats')
@@ -26,6 +27,19 @@ export class ChatController {
     @Query() query: ChatsQueryDto,
   ) {
     return this.chatService.getChats(context, query);
+  }
+
+  @Get('to/:accountId')
+  async getChatToAccount(
+    @ReqContext() context: RequestContext,
+    @Param('accountId', ParseIntPipe) accountId: number,
+    @Query() query: ChatQueryDto,
+  ) {
+    return this.chatService.getChatToAccountByAccountId(
+      context,
+      accountId,
+      query,
+    );
   }
 
   @Get(':id')
@@ -44,6 +58,14 @@ export class ChatController {
     @Query() query: ChatMessagesQueryDto,
   ) {
     return this.chatService.getChatMessages(context, id, query);
+  }
+
+  @Post()
+  async createChat(
+    @ReqContext() context: RequestContext,
+    @Body() dto: CreateChatInputDto,
+  ) {
+    return this.chatService.createChat(context, dto);
   }
 
   @Post('send')

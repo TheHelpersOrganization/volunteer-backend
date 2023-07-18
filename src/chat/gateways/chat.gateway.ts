@@ -32,9 +32,10 @@ import { AppLogger } from 'src/common/logger';
 import { VALIDATION_PIPE_OPTIONS } from 'src/common/pipes';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
-import { CreateMessageInputDto } from '../dtos';
+import { CreateChatInputDto, CreateMessageInputDto } from '../dtos';
 import {
   ChatBlockedEvent,
+  ChatCreatedEvent,
   ChatMessageSentEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
@@ -131,6 +132,16 @@ export class ChatGateway
     this.logger.log(context, `Client ${client.id} left chat ${accountId}`);
   }
 
+  @SubscribeMessage('create-chat')
+  async createChat(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: CreateChatInputDto,
+  ) {
+    this.logCaller(context, this.createChat);
+    const chat = await this.chatService.createChat(context, data);
+    return chat;
+  }
+
   @SubscribeMessage('send-message')
   async sendMessage(
     @ReqContext() context: RequestContext,
@@ -169,6 +180,13 @@ export class ChatGateway
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.readChat(context, data);
     return chat;
+  }
+
+  @OnEvent(ChatCreatedEvent.eventName)
+  async onChatCreated(event: ChatCreatedEvent) {
+    this.logCaller(event.context, this.onChatCreated);
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-created', event.chat);
   }
 
   @OnEvent(ChatMessageSentEvent.eventName)
