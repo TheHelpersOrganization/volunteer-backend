@@ -168,6 +168,12 @@ export class ChatService extends AbstractService {
       where.isGroup = query.isGroup;
     }
 
+    if (query.hasMessage) {
+      where.ChatMessage = {
+        some: {},
+      };
+    }
+
     if (Object.keys(where).length === 0) {
       return undefined;
     }

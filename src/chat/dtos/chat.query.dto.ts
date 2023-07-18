@@ -46,6 +46,11 @@ export class ChatQueryDto extends PaginationQueryDto {
   @Min(0)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
   messageOffset?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  hasMessage?: boolean;
 }
 
 export class ChatsQueryDto extends ChatQueryDto {
