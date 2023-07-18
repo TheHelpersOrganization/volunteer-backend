@@ -128,7 +128,7 @@ export const seedAccountsAndRoles = async (
   const banList: AccountBan[] = [];
 
   const volunteerAccounts = Array.from({
-    length: options?.numberOfVolunteerAccounts ?? 100,
+    length: options?.numberOfVolunteerAccounts ?? 300,
   }).map(() => {
     const accountId = getNextAccountId();
 

@@ -82,7 +82,8 @@ export const seedReports = async (
     });
   });
 
-  for (const report of reports) {
+  for (let i = 0; i < reports.length; i++) {
+    const report = reports[i];
     const reportMessage = createReportMessage({
       reportId: report.id,
       senderId: faker.helpers.arrayElement(adminAccounts).id,
@@ -92,10 +93,21 @@ export const seedReports = async (
     });
     reportMessages.push(reportMessage);
 
-    reportMessageFilesCount[reportMessage.id] = faker.number.int({
-      min: 0,
-      max: 2,
-    });
+    reportMessageFilesCount[reportMessage.id] =
+      faker.helpers.weightedArrayElement([
+        {
+          weight: Math.pow(i + 1, 50),
+          value: 0,
+        },
+        {
+          weight: 5,
+          value: 1,
+        },
+        {
+          weight: 1,
+          value: 2,
+        },
+      ]);
 
     const numberOfReportMessages = faker.number.int({ min: 0, max: 2 });
     for (let i = 0; i < numberOfReportMessages; i++) {
@@ -113,7 +125,7 @@ export const seedReports = async (
       reportMessageFilesCount[otherReportMessage.id] =
         faker.helpers.weightedArrayElement([
           {
-            weight: 20,
+            weight: 20 + Math.pow(i + 1, 100),
             value: 0,
           },
           {

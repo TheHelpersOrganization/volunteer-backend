@@ -7,6 +7,7 @@ import {
   Member,
   Organization,
   OrganizationContact,
+  OrganizationFile,
   OrganizationLocation,
   OrganizationSkill,
   PrismaClient,
@@ -153,6 +154,37 @@ export const seedOrganizations = async (
       })),
   );
 
+  const organizationFileCount = organizations.map((organization) => ({
+    organizationId: organization.id,
+    fileCount: randomInt(0, 3),
+  }));
+  const organizationFiles = await seedFiles(
+    prisma,
+    './tmp/images/organization-file',
+    organizationFileCount.reduce((acc, cur) => acc + cur.fileCount, 0),
+    () =>
+      fakerEn.image.urlLoremFlickr({
+        width: 128,
+        height: 128,
+      }),
+  );
+  let organizationFileIndex = 0;
+  const organizationFileRel: OrganizationFile[] = [];
+  organizationFileCount.forEach((ofc) => {
+    for (let j = 0; j < ofc.fileCount; j++) {
+      const fileId = organizationFiles[organizationFileIndex]?.id;
+      if (fileId == null) {
+        organizationFileIndex++;
+        continue;
+      }
+      organizationFileRel.push({
+        organizationId: ofc.organizationId,
+        fileId: fileId,
+      });
+      organizationFileIndex++;
+    }
+  });
+
   const members: Member[] = organizations.flatMap((organization) => {
     const memberMappings: Member[] = [];
 
@@ -208,6 +240,10 @@ export const seedOrganizations = async (
 
   await prisma.organizationSkill.createMany({
     data: organizationSkills,
+  });
+
+  await prisma.organizationFile.createMany({
+    data: organizationFileRel,
   });
 
   await prisma.member.createMany({

@@ -11,6 +11,7 @@ import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 import {
   CreateOrganizationInputDto,
   DisableOrganizationInputDto,
+  OrganizationInclude,
   OrganizationOutputDto,
   OrganizationQueryDto,
   RejectOrganizationInputDto,
@@ -32,11 +33,11 @@ export class OrganizationService extends AbstractService {
     super(logger);
   }
 
-  async get(
+  async getOrganizations(
     context: RequestContext,
     query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
-    this.logCaller(context, this.get);
+    this.logCaller(context, this.getOrganizations);
     const accountId = context.account.id;
 
     const organizations = await this.prisma.organization.findMany({
@@ -66,6 +67,14 @@ export class OrganizationService extends AbstractService {
             location: true,
           },
         },
+        organizationFiles:
+          query.include?.includes(OrganizationInclude.File) == null
+            ? undefined
+            : {
+                include: {
+                  file: true,
+                },
+              },
         members: {
           where: {
             OR: [
@@ -80,17 +89,19 @@ export class OrganizationService extends AbstractService {
         },
       },
     });
-    const res = organizations.map((o) => this.mapRawToDto(o, accountId));
+    const res = organizations.map((o) =>
+      this.mapRawToDto(context, o, accountId),
+    );
 
     return this.outputArray(OrganizationOutputDto, res);
   }
 
-  async getById(
+  async getOrganizationById(
     context: RequestContext,
     id: number,
     query?: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto | null> {
-    this.logCaller(context, this.get);
+    this.logCaller(context, this.getOrganizations);
     const organization = await this.prisma.organization.findUnique({
       where: {
         id: id,
@@ -116,6 +127,14 @@ export class OrganizationService extends AbstractService {
             location: true,
           },
         },
+        organizationFiles:
+          query?.include?.includes(OrganizationInclude.File) == null
+            ? undefined
+            : {
+                include: {
+                  file: true,
+                },
+              },
         members: {
           where: {
             status: OrganizationMemberStatus.Approved,
@@ -126,7 +145,7 @@ export class OrganizationService extends AbstractService {
     if (organization == null) {
       return null;
     }
-    return this.mapRawToDto(organization, context.account.id);
+    return this.mapRawToDto(context, organization, context.account.id);
   }
 
   private getMemberQuery(query: OrganizationQueryDto, accountId: number) {
@@ -166,13 +185,36 @@ export class OrganizationService extends AbstractService {
     return whereMember;
   }
 
+  private getOrganizationInclude(query: OrganizationQueryDto) {
+    const include: Prisma.OrganizationInclude = {
+      organizationContacts: {
+        include: {
+          contact: true,
+        },
+      },
+      organizationLocations: {
+        include: {
+          location: true,
+        },
+      },
+    };
+    if (query.include?.includes(OrganizationInclude.File)) {
+      include.organizationFiles = {
+        include: {
+          file: true,
+        },
+      };
+    }
+    return include;
+  }
+
   async getVerifiedOrganizations(
     context: RequestContext,
     query: OrganizationQueryDto,
   ) {
     this.logCaller(context, this.getVerifiedOrganizations);
     query.status = OrganizationStatus.Verified;
-    return this.get(context, query);
+    return this.getOrganizations(context, query);
   }
 
   async getVerifiedOrganizationById(
@@ -180,7 +222,7 @@ export class OrganizationService extends AbstractService {
     id: number,
   ): Promise<OrganizationOutputDto | null> {
     this.logCaller(context, this.getVerifiedOrganizationById);
-    return this.getById(context, id, {
+    return this.getOrganizationById(context, id, {
       status: OrganizationStatus.Verified,
       limit: 1,
       offset: 0,
@@ -193,7 +235,7 @@ export class OrganizationService extends AbstractService {
   ) {
     this.logCaller(context, this.getOwnedOrganizations);
     query.owner = true;
-    return this.get(context, query);
+    return this.getOrganizations(context, query);
   }
 
   async getOwnedOrganizationById(
@@ -201,7 +243,7 @@ export class OrganizationService extends AbstractService {
     id: number,
   ): Promise<OrganizationOutputDto | null> {
     this.logCaller(context, this.getOwnedOrganizationById);
-    return this.getById(context, id, {
+    return this.getOrganizationById(context, id, {
       owner: true,
       limit: 1,
       offset: 0,
@@ -278,7 +320,7 @@ export class OrganizationService extends AbstractService {
         timeout: 15000,
       },
     );
-    return this.mapRawToDto(org);
+    return this.mapRawToDto(context, org);
   }
 
   async update(
@@ -342,7 +384,7 @@ export class OrganizationService extends AbstractService {
         timeout: 15000,
       },
     );
-    return this.mapRawToDto(org);
+    return this.mapRawToDto(context, org);
   }
 
   async updateStatus(
@@ -404,13 +446,21 @@ export class OrganizationService extends AbstractService {
     return this.output(OrganizationOutputDto, org);
   }
 
-  private mapRawToDto(raw: any, accountId?: number): OrganizationOutputDto {
+  private mapRawToDto(
+    context: RequestContext,
+    raw: any,
+    accountId?: number,
+  ): OrganizationOutputDto {
     const res = {
       ...raw,
       organizationContacts: undefined,
       organizationLocations: undefined,
       contacts: raw.organizationContacts?.map((c) => c.contact) ?? [],
       locations: raw.organizationLocations?.map((l) => l.location) ?? [],
+      files:
+        raw.ownerId !== context.account.id || !context.isAdmin
+          ? undefined
+          : raw.organizationFiles?.map((f) => f.file),
       numberOfMembers: raw.members?.filter(
         (m) => m.status === OrganizationMemberStatus.Approved,
       ).length,

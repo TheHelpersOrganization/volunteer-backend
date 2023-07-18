@@ -1,5 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 
+import { FileOutputDto } from 'src/file/dtos';
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
 import { OrganizationStatus } from '../constants';
@@ -53,4 +54,10 @@ export class OrganizationOutputDto {
 
   @Expose()
   hasJoined: boolean;
+
+  // ----- Extra fields -----
+
+  @Expose()
+  @Type(() => FileOutputDto)
+  files: FileOutputDto[];
 }

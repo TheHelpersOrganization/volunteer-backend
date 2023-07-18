@@ -17,6 +17,12 @@ import {
 import { PaginationQueryDto } from '../../common/dtos';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 
+export enum OrganizationInclude {
+  File = 'file',
+}
+
+export const organizationIncludes = Object.values(OrganizationInclude);
+
 export class OrganizationQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsArray()
@@ -55,4 +61,12 @@ export class OrganizationQueryDto extends PaginationQueryDto {
   @Transform(stringToBooleanTransform)
   @IsBoolean()
   owner?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(organizationIncludes.length)
+  @IsEnum(OrganizationInclude, { each: true })
+  @Transform(({ value }) => value.split(','))
+  include?: OrganizationInclude[];
 }

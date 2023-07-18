@@ -21,7 +21,7 @@ export class OrganizationAdminController {
     @ReqContext() context: RequestContext,
     @Query() query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
-    return this.organizationService.get(context, query);
+    return this.organizationService.getOrganizations(context, query);
   }
 
   @Get(':id')
@@ -29,7 +29,7 @@ export class OrganizationAdminController {
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
   ) {
-    return this.organizationService.getById(context, id);
+    return this.organizationService.getOrganizationById(context, id);
   }
 
   @Post(':id/verify')
