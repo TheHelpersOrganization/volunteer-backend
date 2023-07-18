@@ -13,6 +13,9 @@ export class OrganizationOutputDto {
   status: OrganizationStatus;
 
   @Expose()
+  isDisabled: boolean;
+
+  @Expose()
   name: string;
 
   @Expose()

@@ -92,7 +92,7 @@ export const seedAccountsAndRoles = async (
     length: options?.numberOfOpAccounts ?? 5,
   }).map((_, index) => ({
     id: getNextAccountId(),
-    email: `op${index}@a.com`,
+    email: `op${index}@thehelpers.me`,
     password: hashedPassword,
     isAccountVerified: false,
     isAccountDisabled: false,
@@ -104,7 +104,7 @@ export const seedAccountsAndRoles = async (
     length: options?.numberOfModAccounts ?? 30,
   }).map((_, index) => ({
     id: getNextAccountId(),
-    email: `mod${index}@a.com`,
+    email: `mod${index}@thehelpers.me`,
     password: hashedPassword,
     isAccountVerified: false,
     isAccountDisabled: false,
@@ -129,8 +129,8 @@ export const seedAccountsAndRoles = async (
 
   const volunteerAccounts = Array.from({
     length: options?.numberOfVolunteerAccounts ?? 100,
-  }).map((_, i) => {
-    const accountId = 300 + i;
+  }).map(() => {
+    const accountId = getNextAccountId();
 
     const createdAt = fakerVi.date.between({
       from: '2018-01-01',
@@ -218,7 +218,7 @@ export const seedAccountsAndRoles = async (
 
     return {
       id: accountId,
-      email: fakerVi.internet.exampleEmail(),
+      email: `volunteer${accountId}@thehelpers.me`,
       password: hashedPassword,
       isAccountVerified: fakerVi.datatype.boolean(),
       isAccountDisabled: fakerVi.datatype.boolean(),
