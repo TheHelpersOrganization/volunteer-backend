@@ -10,6 +10,7 @@ import { seedProfiles } from './seed-profile';
 import { seedProfileSkills } from './seed-profile-skill';
 import { seedReports } from './seed-report';
 import { seedSkills } from './seed-skill';
+import { SkillType } from './utils';
 
 fakerEn.seed(1);
 fakerVi.seed(1);
@@ -75,6 +76,20 @@ const seed = async () => {
           volunteerAccounts,
           modAccounts,
           defaultAccounts,
+          {
+            accountPreferences: {
+              [defaultAccountIds[0]]: {
+                skills: [SkillType.Health, SkillType.Education],
+                locations: [
+                  'Thủ Đức',
+                  'Ho Chi Minh',
+                  'Hồ Chí Minh',
+                  'Bình Dương',
+                  'Biên Hòa',
+                ],
+              },
+            },
+          },
         ),
       '- Seeding activities...',
     );

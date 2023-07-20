@@ -6,6 +6,8 @@ import { PrismaService } from 'src/prisma';
 
 import { Prisma } from '@prisma/client';
 import * as dayjs from 'dayjs';
+import * as geolib from 'geolib';
+import { LocationOutputDto } from 'src/location/dtos';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from 'src/shift/constants';
 import { ActivityStatus } from '../constants';
@@ -489,6 +491,11 @@ export class ActivityService extends AbstractService {
       },
       include: {
         shiftSkills: true,
+        shiftLocations: {
+          include: {
+            location: true,
+          },
+        },
       },
     });
     previousInterestedShifts.forEach((shift) => {
@@ -552,7 +559,47 @@ export class ActivityService extends AbstractService {
       }
     });
 
-    console.log(skillWeight);
+    const startTimeWeight: { [key: number]: number } = {};
+    const workDurationWeight: { [key: number]: number } = {};
+
+    previousInterestedShifts.forEach((shift) => {
+      const timeDiff = dayjs(dayjs()).diff(shift.startTime, 'day');
+      // More recent activity has more weight
+      let weight = 100 / Math.pow(timeDiff + 1, 2);
+      weight = Math.min(weight, 100);
+      weight = Math.max(weight, 1);
+      startTimeWeight[shift.startTime.getHours()] = weight;
+
+      // 30 minutes count as 1 hour and so on
+      const hours = dayjs(shift.endTime).diff(shift.startTime, 'hour') + 1;
+      workDurationWeight[hours] = weight;
+    });
+
+    const locationWeight: { location: LocationOutputDto; weight: number }[] =
+      [];
+    previousInterestedShifts.forEach((shift) => {
+      shift.shiftLocations.forEach((shiftLocation) => {
+        const location = shiftLocation.location;
+        const timeDiff = dayjs(dayjs()).diff(shift.startTime, 'day');
+        // More recent activity has more weight
+        let weight = 200 / (timeDiff + 1);
+        weight = Math.min(weight, 200);
+        weight = Math.max(weight, 1);
+        locationWeight.push({
+          location: location,
+          weight: weight,
+        });
+      });
+    });
+
+    // console.log(skillWeight);
+    // console.log(startTimeWeight);
+    // console.log(workDurationWeight);
+    // console.log(
+    //   locationWeight
+    //     .sort((v, v2) => v2.weight - v.weight)
+    //     .map((v) => `${v.location.locality},${v.location.region} ${v.weight}`),
+    // );
 
     const activities = await this.prisma.activity.findMany({
       where: {
@@ -572,15 +619,25 @@ export class ActivityService extends AbstractService {
       },
       include: {
         shifts: {
+          where: {
+            status: ShiftStatus.Pending,
+            shiftVolunteers: {
+              none: {
+                accountId: context.account.id,
+              },
+            },
+          },
           include: {
             shiftSkills: true,
+            shiftLocations: {
+              include: {
+                location: true,
+              },
+            },
           },
         },
       },
-      take: 1000,
     });
-
-    console.log(activities.length);
 
     const weightedActivities = activities
       .map((activity) => {
@@ -590,6 +647,36 @@ export class ActivityService extends AbstractService {
             if (skillWeight[shiftSkill.skillId] != null) {
               weight += skillWeight[shiftSkill.skillId];
             }
+          });
+          if (startTimeWeight[shift.startTime.getUTCHours()] != null) {
+            weight += startTimeWeight[shift.startTime.getUTCHours()];
+          }
+          const hours = dayjs(shift.endTime).diff(shift.startTime, 'hour') + 1;
+          if (workDurationWeight[hours] != null) {
+            weight += workDurationWeight[hours];
+          }
+          shift.shiftLocations.forEach((shiftLocation) => {
+            const location = shiftLocation.location;
+            const lat1 = location.latitude;
+            const lng1 = location.longitude;
+            if (lat1 == null || lng1 == null) {
+              return;
+            }
+            locationWeight.forEach((locationWeight) => {
+              const lat2 = locationWeight.location.latitude;
+              const lng2 = locationWeight.location.longitude;
+              if (lat2 == null || lng2 == null) {
+                return;
+              }
+              // 10km traveling is acceptable
+              const dist =
+                geolib.getDistance(
+                  { lat: lat2, lng: lng2 },
+                  { lat: lat1, lng: lng1 },
+                  1000,
+                ) * 0.1;
+              weight += locationWeight.weight / (dist + 1);
+            });
           });
         });
         return {
@@ -602,7 +689,14 @@ export class ActivityService extends AbstractService {
     const res = weightedActivities.slice(0, readLimit).map((v) => v.activity);
 
     console.log(
-      res.map((v) => v.shifts.map((v) => v.shiftSkills.map((v) => v.skillId))),
+      res.map((v) =>
+        v.shifts.map((v) =>
+          v.shiftLocations.map(
+            (v) =>
+              ` ${v.location.locality} ${v.location.region} ${v.location.country}`,
+          ),
+        ),
+      ),
     );
 
     return res;

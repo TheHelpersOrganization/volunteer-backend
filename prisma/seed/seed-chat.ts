@@ -14,7 +14,13 @@ import {
   requireNonNullish,
 } from './utils';
 
-export const seedChats = async (prisma: PrismaClient, accounts: Account[]) => {
+export const seedChats = async (
+  prisma: PrismaClient,
+  accounts: Account[],
+  options?: {
+    runWithoutDb?: boolean;
+  },
+) => {
   const chats: Chat[] = [];
   const chatParticipants: ChatParticipant[] = [];
   const chatMessages: ChatMessage[] = [];
@@ -81,6 +87,14 @@ export const seedChats = async (prisma: PrismaClient, accounts: Account[]) => {
       }
     });
   });
+
+  if (options?.runWithoutDb) {
+    return {
+      chats: chats,
+      chatParticipants: chatParticipants,
+      chatMessages: chatMessages,
+    };
+  }
 
   await prisma.chat.createMany({
     data: chats,

@@ -27,6 +27,7 @@ export class SeedAccountsAndRolesOptions {
   numberOfModAccounts?: number;
   numberOfAdminAccounts?: number;
   numberOfVolunteerAccounts?: number;
+  runWithoutDb?: boolean;
 }
 
 export const seedAccountsAndRoles = async (
@@ -280,6 +281,18 @@ export const seedAccountsAndRoles = async (
       updatedAt: account.updatedAt,
     });
   });
+
+  if (options?.runWithoutDb) {
+    return {
+      roles,
+      accountRoles,
+      adminAccounts,
+      modAccounts,
+      volunteerAccounts,
+      defaultAccounts,
+      accounts,
+    };
+  }
 
   await prisma.role.createMany({
     data: roles,

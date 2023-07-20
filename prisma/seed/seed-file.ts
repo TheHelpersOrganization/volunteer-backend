@@ -67,6 +67,9 @@ export const seedFiles = async (
   relativeOutputFolderPath: string,
   count: number,
   generateUrl: () => string,
+  options?: {
+    runWithoutDb?: boolean;
+  },
 ) => {
   const files: (File | null)[] = [];
   const folderPath = path.join(__dirname, relativeOutputFolderPath);

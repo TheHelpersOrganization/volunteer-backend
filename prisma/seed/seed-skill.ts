@@ -1,58 +1,67 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { PrismaClient, Skill } from '@prisma/client';
-import { getNextSkillId } from './utils';
+import { SkillType, getNextSkillId } from './utils';
 
 export const skills: Skill[] = [
   {
     id: getNextSkillId(),
-    name: 'Health',
+    name: SkillType.Health,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Food',
+    name: SkillType.Food,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Education',
+    name: SkillType.Education,
     description: fakerEn.lorem.paragraphs(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Equality',
+    name: SkillType.Equality,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Climate',
+    name: SkillType.Climate,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Conservation',
+    name: SkillType.Conservation,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
-    name: 'Job',
+    name: SkillType.Job,
     description: fakerEn.lorem.paragraph(),
     createdAt: new Date(),
     updatedAt: new Date(),
   },
 ];
+
+export const skillFromSkillType = (skillType: SkillType): Skill => {
+  return skills.find((x) => x.name === skillType)!;
+};
+
+export const skillTypeFromSkillId = (id: number): SkillType => {
+  const name = skills.find((x) => x.id === id)!.name;
+  return name as SkillType;
+};
 
 export const seedSkills = async (prisma: PrismaClient) => {
   await prisma.skill.createMany({

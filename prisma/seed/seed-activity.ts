@@ -22,11 +22,13 @@ import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from 'src/shift/constants';
 import { OrganizationStatus } from '../../src/organization/constants';
 import { seedFiles } from './seed-file';
+import { skillTypeFromSkillId } from './seed-skill';
 import {
+  SkillType,
   capitalizeWords,
   generateLocation,
   generateViContact,
-  getActivityTemplates,
+  getActivityTemplateAt,
   getNextActivityId,
   getNextShiftId,
   getNextShiftVolunteerId,
@@ -54,13 +56,19 @@ export const seedActivities = async (
   modAccounts: Account[],
   defaultAccounts: Account[],
   options?: {
+    runWithoutDb?: boolean;
     activityPerOrganization?: {
       min?: number;
       max?: number;
     };
+    accountPreferences?: {
+      [id: number]: {
+        locations?: string[];
+        skills?: SkillType[];
+      };
+    };
   },
 ) => {
-  const activityTemplates = getActivityTemplates();
   const activities: Activity[] = [];
   const activityContacts: Contact[] = [];
   const activityContactRels: ActivityContact[] = [];
@@ -96,7 +104,7 @@ export const seedActivities = async (
       ) {
         const id = getNextActivityId();
         // Id start from 1
-        const template = activityTemplates[(id - 1) % activityTemplates.length];
+        const template = getActivityTemplateAt(id - 1);
         activities.push({
           id: id,
           isDisabled: fakerEn.datatype.boolean(),
@@ -151,8 +159,9 @@ export const seedActivities = async (
   const shiftSkills: ShiftSkill[] = [];
   const shiftVolunteers: VolunteerShift[] = [];
 
-  let hasApprovedShift = false;
   activities.forEach((activity, activityIndex) => {
+    const template = getActivityTemplateAt(activity.id - 1);
+
     const activityLocation = generateLocation();
     activityLocations.push(activityLocation);
     activityLocationRels.push({
@@ -162,14 +171,29 @@ export const seedActivities = async (
       updatedAt: new Date(),
     });
 
-    const activitySkills: Skill[] = _.sampleSize(
-      skills,
-      fakerEn.helpers.weightedArrayElement([
-        { weight: 10, value: 1 },
-        { weight: 3, value: 2 },
-        { weight: 1, value: 3 },
-      ]),
+    // const activitySkills: Skill[] = _.sampleSize(
+    //   skills,
+    //   fakerEn.helpers.weightedArrayElement([
+    //     { weight: 10, value: 1 },
+    //     { weight: 3, value: 2 },
+    //     { weight: 1, value: 3 },
+    //   ]),
+    // );
+    const activitySkills: Skill[] = template.skillTypes.flatMap((skillType) =>
+      requireNonNullish(skills.find((s) => s.name === skillType)),
     );
+    if (activitySkills.length === 0) {
+      activitySkills.push(
+        ..._.sampleSize(
+          skills,
+          fakerEn.helpers.weightedArrayElement([
+            { weight: 10, value: 1 },
+            { weight: 3, value: 2 },
+            { weight: 1, value: 3 },
+          ]),
+        ),
+      );
+    }
 
     const activityStatus: ActivityStatus =
       activityIndex == 0
@@ -218,7 +242,6 @@ export const seedActivities = async (
           .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
           .toDate();
       } else if (shiftStatus === ShiftStatus.Ongoing) {
-        hasApprovedShift = true;
         shiftStartTime = fakerEn.date.past({
           years: fakerEn.helpers.weightedArrayElement(weightedShiftTimeRange),
           refDate: refTime,
@@ -286,9 +309,50 @@ export const seedActivities = async (
 
       // Create approved or pending volunteers first, then use created at to determine the rest
       const accountActiveVolunteers: { [key: number]: Date } = {};
+      const filteredDefaultAccount: Account[] = defaultAccounts.filter(
+        (account) => {
+          if (options?.accountPreferences?.[account.id]?.locations) {
+            const locations = options.accountPreferences[account.id].locations!;
+            const ok = shiftLocations.some((location) => {
+              if (
+                location.country &&
+                locations.some((l) => l.includes(location.country!))
+              ) {
+                return true;
+              }
+              if (
+                location.region &&
+                locations.some((l) => l.includes(location.region!))
+              ) {
+                return true;
+              }
+              if (
+                location.locality &&
+                locations.some((l) => l.includes(location.locality!))
+              ) {
+                return true;
+              }
+              return false;
+            });
+            if (!ok) {
+              return false;
+            }
+          }
+          if (options?.accountPreferences?.[account.id]?.skills) {
+            const skills = options.accountPreferences[account.id].skills!;
+            const ok = shiftSkills.some((skill) =>
+              skills.includes(skillTypeFromSkillId(skill.skillId)),
+            );
+            if (!ok) {
+              return false;
+            }
+          }
+          return true;
+        },
+      );
       let numberOfApprovedVolunteers = 0;
       _.sampleSize(
-        [...volunteerAccounts, ...defaultAccounts],
+        [...volunteerAccounts, ...filteredDefaultAccount],
         fakerEn.helpers.weightedArrayElement(
           Array.from({ length: numberOfParticipants + 5 }, (_, i) => ({
             value: i + 1,
@@ -539,6 +603,15 @@ export const seedActivities = async (
           : _.max([activity.endTime, shiftEndTime]) ?? null;
     }
   });
+
+  if (options?.runWithoutDb) {
+    return {
+      activities: activities,
+      shifts,
+      shiftVolunteers,
+      shiftSkills,
+    };
+  }
 
   await prisma.activity.createMany({
     data: activities,

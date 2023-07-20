@@ -47,6 +47,18 @@ export const getNextChatId = () => chatId++;
 export const getNextChatParticipantId = () => chatParticipantId++;
 export const getNextChatMessageId = () => chatMessageId++;
 
+export enum SkillType {
+  Health = 'Health',
+  Food = 'Food',
+  Education = 'Education',
+  Equality = 'Equality',
+  Climate = 'Climate',
+  Conservation = 'Conservation',
+  Job = 'Job',
+}
+
+export const skillTypes = Object.values(SkillType);
+
 export const requireNonNullish = <T>(
   value: T | null | undefined,
   message = 'Value is null',
@@ -271,6 +283,7 @@ export const getWeightedLocationsGroupedByRegion = (region: string) => {
 class ActivityTemplate {
   name: string;
   description: string;
+  skillTypes: SkillType[];
 }
 
 const activityTemplates: ActivityTemplate[] = [];
@@ -290,9 +303,26 @@ const readActivityTemplates = () => {
     if (record[0] == '') {
       break;
     }
+    const skillTypes: SkillType[] = [];
+    const skillTypeName = record[9].trim();
+    const skillType: SkillType | undefined = skillTypes.find(
+      (s) => s == skillTypeName,
+    );
+    if (skillType != null) {
+      skillTypes.push(skillType);
+    }
+    if (skillTypeName == 'Environment') {
+      if (fakerEn.datatype.boolean()) {
+        skillTypes.push(SkillType.Climate);
+      }
+      if (fakerEn.datatype.boolean()) {
+        skillTypes.push(SkillType.Conservation);
+      }
+    }
     activityTemplates.push({
       name: record[4],
       description: record[6],
+      skillTypes: skillTypes,
     });
   }
   const content2 = fs.readFileSync(
@@ -311,9 +341,28 @@ const readActivityTemplates = () => {
     if (record[0] == '') {
       break;
     }
+    const skillTypes: SkillType[] = [];
+    const skillTypeName = record[4].trim();
+    const skillType: SkillType | undefined = skillTypes.find((s) =>
+      s.includes(skillTypeName),
+    );
+    if (skillType != null) {
+      skillTypes.push(skillType);
+    }
+    if (skillTypeName == 'Environment') {
+      if (fakerEn.datatype.boolean()) {
+        skillTypes.push(SkillType.Climate);
+      }
+      if (fakerEn.datatype.boolean()) {
+        skillTypes.push(SkillType.Conservation);
+      }
+    } else if (skillTypeName.includes('Economic')) {
+      skillTypes.push(SkillType.Job);
+    }
     activityTemplates.push({
       name: record[1],
       description: record[3],
+      skillTypes: skillTypes,
     });
   }
   return activityTemplates;
@@ -324,4 +373,9 @@ export const getActivityTemplates = () => {
     activityTemplates.push(...readActivityTemplates());
   }
   return activityTemplates;
+};
+
+export const getActivityTemplateAt = (index: number) => {
+  const templates = getActivityTemplates();
+  return templates[index % templates.length];
 };
