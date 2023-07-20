@@ -688,17 +688,6 @@ export class ActivityService extends AbstractService {
 
     const res = weightedActivities.slice(0, readLimit).map((v) => v.activity);
 
-    console.log(
-      res.map((v) =>
-        v.shifts.map((v) =>
-          v.shiftLocations.map(
-            (v) =>
-              ` ${v.location.locality} ${v.location.region} ${v.location.country}`,
-          ),
-        ),
-      ),
-    );
-
     return res;
   }
 
