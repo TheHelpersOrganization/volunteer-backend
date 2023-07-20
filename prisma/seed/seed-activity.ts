@@ -26,6 +26,7 @@ import {
   capitalizeWords,
   generateLocation,
   generateViContact,
+  getActivityTemplates,
   getNextActivityId,
   getNextShiftId,
   getNextShiftVolunteerId,
@@ -59,6 +60,7 @@ export const seedActivities = async (
     };
   },
 ) => {
+  const activityTemplates = getActivityTemplates();
   const activities: Activity[] = [];
   const activityContacts: Contact[] = [];
   const activityContactRels: ActivityContact[] = [];
@@ -87,18 +89,23 @@ export const seedActivities = async (
         let i = 0;
         i <
         fakerEn.number.int({
-          min: options?.activityPerOrganization?.min ?? 3,
-          max: options?.activityPerOrganization?.max ?? 5,
+          min: options?.activityPerOrganization?.min ?? 5,
+          max: options?.activityPerOrganization?.max ?? 50,
         });
         i++
       ) {
+        const id = getNextActivityId();
+        // Id start from 1
+        const template = activityTemplates[(id - 1) % activityTemplates.length];
         activities.push({
-          id: getNextActivityId(),
+          id: id,
           isDisabled: fakerEn.datatype.boolean(),
           status: ActivityStatus.Pending,
           organizationId: organization.id,
-          name: capitalizeWords(fakerEn.lorem.words()),
-          description: fakerEn.lorem.paragraphs(),
+          // name: capitalizeWords(fakerEn.lorem.words()),
+          // description: fakerEn.lorem.paragraphs(),
+          name: template.name,
+          description: template.description,
           thumbnail: null,
           startTime: null,
           endTime: null,
@@ -145,7 +152,7 @@ export const seedActivities = async (
   const shiftVolunteers: VolunteerShift[] = [];
 
   let hasApprovedShift = false;
-  activities.forEach((activity) => {
+  activities.forEach((activity, activityIndex) => {
     const activityLocation = generateLocation();
     activityLocations.push(activityLocation);
     activityLocationRels.push({
@@ -157,26 +164,46 @@ export const seedActivities = async (
 
     const activitySkills: Skill[] = _.sampleSize(
       skills,
-      fakerEn.number.int({ min: 1, max: skills.length }),
+      fakerEn.helpers.weightedArrayElement([
+        { weight: 10, value: 1 },
+        { weight: 3, value: 2 },
+        { weight: 1, value: 3 },
+      ]),
     );
+
+    const activityStatus: ActivityStatus =
+      activityIndex == 0
+        ? ActivityStatus.Ongoing
+        : requireNonNullish(_.sample(Object.values(ActivityStatus)));
+    activity.status = activityStatus;
 
     const numberOfShifts = fakerEn.helpers.weightedArrayElement(
       weightedNumberOfShifts,
     );
-    let correctedActivityStatus: ActivityStatus | undefined = undefined;
+
     for (let i = 0; i < numberOfShifts; i++) {
       const shiftId = getNextShiftId();
-      const shiftStatus =
-        i == 0
-          ? ShiftStatus.Ongoing
-          : requireNonNullish(
-              _.sample([ShiftStatus.Pending, ShiftStatus.Completed]),
-            );
+      let shiftStatus: ShiftStatus;
+      switch (activityStatus) {
+        case ActivityStatus.Pending:
+          shiftStatus = ShiftStatus.Pending;
+          break;
+        case ActivityStatus.Completed:
+          shiftStatus = ShiftStatus.Completed;
+          break;
+        default:
+          shiftStatus =
+            i == 0
+              ? ShiftStatus.Ongoing
+              : requireNonNullish(
+                  _.sample([ShiftStatus.Pending, ShiftStatus.Completed]),
+                );
+      }
       const refTime = new Date();
       let shiftStartTime: Date;
       let shiftEndTime: Date;
       if (shiftStatus === ShiftStatus.Pending) {
-        shiftStartTime = fakerEn.date.soon({ days: 15, refDate: refTime });
+        shiftStartTime = fakerEn.date.soon({ days: 30, refDate: refTime });
 
         let interval = dayjs(shiftStartTime)
           .add(1, 'day')
@@ -245,21 +272,16 @@ export const seedActivities = async (
         });
       }
 
-      _.sampleSize(
-        activitySkills,
-        fakerEn.number.int({ min: 1, max: activitySkills.length }),
-      ).forEach((skill) => {
-        shiftSkills.push({
-          shiftId: shiftId,
-          skillId: skill.id,
-          hours: fakerEn.number.float({
-            min: 0.5,
-            max: 12,
-            precision: 0.5,
-          }),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+      shiftSkills.push({
+        shiftId: shiftId,
+        skillId: requireNonNullish(_.sample(activitySkills)).id,
+        hours: fakerEn.number.float({
+          min: 0.5,
+          max: 12,
+          precision: 0.5,
+        }),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       // Create approved or pending volunteers first, then use created at to determine the rest
@@ -483,30 +505,30 @@ export const seedActivities = async (
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      if (correctedActivityStatus == null) {
-        switch (shiftStatus) {
-          case ShiftStatus.Pending:
-            correctedActivityStatus = ActivityStatus.Pending;
-            break;
-          case ShiftStatus.Completed:
-            correctedActivityStatus = ActivityStatus.Completed;
-            break;
-          case ShiftStatus.Ongoing:
-            correctedActivityStatus = ActivityStatus.Ongoing;
-            break;
-        }
-      } else {
-        if (correctedActivityStatus === ActivityStatus.Pending) {
-          if (shiftStatus !== ShiftStatus.Pending) {
-            correctedActivityStatus = ActivityStatus.Ongoing;
-          }
-        }
-        if (correctedActivityStatus === ActivityStatus.Completed) {
-          if (shiftStatus !== ShiftStatus.Completed) {
-            correctedActivityStatus = ActivityStatus.Ongoing;
-          }
-        }
-      }
+      // if (activityStatus == null) {
+      //   switch (shiftStatus) {
+      //     case ShiftStatus.Pending:
+      //       activityStatus = ActivityStatus.Pending;
+      //       break;
+      //     case ShiftStatus.Completed:
+      //       activityStatus = ActivityStatus.Completed;
+      //       break;
+      //     case ShiftStatus.Ongoing:
+      //       activityStatus = ActivityStatus.Ongoing;
+      //       break;
+      //   }
+      // } else {
+      //   if (activityStatus === ActivityStatus.Pending) {
+      //     if (shiftStatus !== ShiftStatus.Pending) {
+      //       activityStatus = ActivityStatus.Ongoing;
+      //     }
+      //   }
+      //   if (activityStatus === ActivityStatus.Completed) {
+      //     if (shiftStatus !== ShiftStatus.Completed) {
+      //       activityStatus = ActivityStatus.Ongoing;
+      //     }
+      //   }
+      // }
       activity.startTime =
         activity.startTime == null
           ? shiftStartTime
@@ -515,7 +537,6 @@ export const seedActivities = async (
         activity.endTime == null
           ? shiftEndTime
           : _.max([activity.endTime, shiftEndTime]) ?? null;
-      activity.status = correctedActivityStatus;
     }
   });
 

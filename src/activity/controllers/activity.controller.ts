@@ -35,12 +35,25 @@ export class ActivityController {
     return this.activityService.getAll(context, query);
   }
 
+  @Get('search/history')
+  async getSearchActivityHistories(@ReqContext() context: RequestContext) {
+    return this.activityService.getSearchHistory(context);
+  }
+
   @Get('count')
   async countActivities(
     @ReqContext() context: RequestContext,
     @Query() query: CountActivityQueryDto,
   ): Promise<CountActivityOutputDto> {
     return this.activityService.countActivities(context, query);
+  }
+
+  @Get('suggest')
+  async suggestActivities(
+    @ReqContext() context: RequestContext,
+    @Query() query: GetActivitiesQueryDto,
+  ) {
+    return this.activityService.suggestActivities(context, query);
   }
 
   @Get(':id')
@@ -67,10 +80,5 @@ export class ActivityController {
     @Param('id') id: number,
   ): Promise<ActivityOutputDto> {
     return this.activityService.deleteActivity(context, id);
-  }
-
-  @Get('suggest')
-  async suggestActivities(@ReqContext() context: RequestContext) {
-    return this.activityService.suggestActivities(context);
   }
 }

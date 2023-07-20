@@ -103,3 +103,19 @@ export const getProfileName = (profile?: ProfileOutputDto): string => {
   }
   return name;
 };
+
+export const normalize = (val: number, max: number, min = 0) => {
+  if (max <= min) {
+    throw new Error('Max must be greater than min');
+  }
+  const delta = max - min;
+  return (val - min) / delta;
+};
+
+export const normalizeArray = (arr: number[], max: number, min = 0) => {
+  if (max <= min) {
+    throw new Error('Max must be greater than min');
+  }
+  const delta = max - min;
+  return arr.map((val) => (val - min) / delta);
+};

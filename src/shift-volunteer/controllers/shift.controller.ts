@@ -119,8 +119,8 @@ export class IdentifiedShiftVolunteerController {
     @ReqContext() context: RequestContext,
     @Param('shiftId') shiftId: number,
     @Body() dto: VerifyCheckInInputDto,
-  ): Promise<ShiftVolunteerOutputDto[]> {
-    return this.shiftVolunteerService.verifyCheckIn(context, shiftId, dto);
+  ) {
+    return this.shiftVolunteerService.verifyCheckInMany(context, shiftId, dto);
   }
 
   @Put(':id/verify-check-in')

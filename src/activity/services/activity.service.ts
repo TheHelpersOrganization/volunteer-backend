@@ -6,10 +6,13 @@ import { PrismaService } from 'src/prisma';
 
 import { Prisma } from '@prisma/client';
 import * as dayjs from 'dayjs';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from 'src/shift/constants';
 import { ActivityStatus } from '../constants';
 import {
   ActivityOutputDto,
+  ActivityQueryOutputDto,
+  BaseGetActivityQueryDto,
   CountActivityOutputDto,
   CountActivityQueryDto,
   GetActivitiesQueryDto,
@@ -61,9 +64,45 @@ export class ActivityService extends AbstractService {
     const realLimit = query.limit ?? 100;
     let notFoundIteration = 0;
     let cursor = query.cursor;
-    let searchLimit = query.limit ?? 100;
+    let searchLimit = 1000;
     if (query.radius) {
       searchLimit = 10000;
+    }
+
+    const previousHistory = await this.prisma.activitySearchHistory.findFirst({
+      where: {
+        accountId: accountId,
+      },
+      take: 1,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Prevent spamming of search history
+    // Check if previous history is within 30 seconds
+    if (previousHistory != null) {
+      console.log(dayjs(previousHistory.createdAt).diff(dayjs(), 'second'));
+    }
+    if (
+      previousHistory != null &&
+      dayjs(dayjs()).diff(previousHistory.createdAt, 'second') < 30
+    ) {
+      await this.prisma.activitySearchHistory.update({
+        where: {
+          id: previousHistory.id,
+        },
+        data: {
+          query: query as Prisma.InputJsonObject,
+        },
+      });
+    } else {
+      await this.prisma.activitySearchHistory.create({
+        data: {
+          accountId: accountId,
+          query: query as Prisma.InputJsonObject,
+        },
+      });
     }
 
     while (extendedActivities.length < realLimit && notFoundIteration <= 3) {
@@ -182,6 +221,28 @@ export class ActivityService extends AbstractService {
     }
 
     return extendActivity(activity, { contextAccountId: accountId });
+  }
+
+  async getSearchHistory(context: RequestContext) {
+    this.logCaller(context, this.getSearchHistory);
+
+    const histories = await this.prisma.activitySearchHistory.findMany({
+      where: {
+        accountId: context.account.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const res = histories.map((v) =>
+      this.output(ActivityQueryOutputDto, {
+        ...v,
+        ...(v.query as Prisma.JsonObject),
+      }),
+    );
+
+    return res;
   }
 
   async getById(
@@ -386,7 +447,10 @@ export class ActivityService extends AbstractService {
     }
   }
 
-  async suggestActivities(context: RequestContext) {
+  async suggestActivities(
+    context: RequestContext,
+    query: BaseGetActivityQueryDto,
+  ) {
     this.logCaller(context, this.suggestActivities);
 
     /* Activity suggestion algorithm
@@ -395,13 +459,109 @@ export class ActivityService extends AbstractService {
     3. Get activities that is in the user's skill set
     4. Get activities that is in the user's interest
     5. Get activities that is in the user's preferred time
+    6. Activity terms
+    7. Search terms
+    8. Sort by distance
     */
+
+    const readLimit = query.limit ?? 100;
+
+    const skillWeight: { [key: number]: number } = {};
+
+    const previousInterestedShifts = await this.prisma.shift.findMany({
+      where: {
+        status: {
+          in: [ShiftStatus.Ongoing, ShiftStatus.Completed],
+        },
+        shiftVolunteers: {
+          some: {
+            accountId: context.account.id,
+            active: true,
+            status: {
+              in: [
+                ShiftVolunteerStatus.Approved,
+                ShiftVolunteerStatus.Rejected,
+                ShiftVolunteerStatus.Removed,
+              ],
+            },
+          },
+        },
+      },
+      include: {
+        shiftSkills: true,
+      },
+    });
+    previousInterestedShifts.forEach((shift) => {
+      shift.shiftSkills.forEach((shiftSkill) => {
+        if (skillWeight[shiftSkill.skillId] == null) {
+          skillWeight[shiftSkill.skillId] = 0;
+        }
+        const timeDiff = dayjs(dayjs()).diff(shift.startTime, 'day');
+        // More recent activity has more weight
+        // 100 days ago: 1 weight
+        // 1 day ago: 100 weight
+        let weight = 100 / Math.pow(timeDiff + 1, 2);
+        weight = Math.min(weight, 100);
+        weight = Math.max(weight, 1);
+        skillWeight[shiftSkill.skillId] += weight;
+      });
+    });
+
+    // Recent activity weight more
+
+    // Interest skills: 100
+
+    const interestedSkills = await this.prisma.profileInterestedSkill.findMany({
+      where: {
+        profileId: context.account.id,
+      },
+    });
+    interestedSkills.forEach((interestedSkill) => {
+      if (skillWeight[interestedSkill.skillId] == null) {
+        skillWeight[interestedSkill.skillId] = 0;
+      }
+      skillWeight[interestedSkill.skillId] += 100;
+    });
+
+    const searchHistories = await this.prisma.activitySearchHistory.findMany({
+      where: {
+        accountId: context.account.id,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      take: 100,
+    });
+    searchHistories.forEach((searchHistory) => {
+      const query = searchHistory.query as GetActivitiesQueryDto;
+      if (query.skill != null) {
+        query.skill.forEach((skillId) => {
+          if (skillWeight[skillId] == null) {
+            skillWeight[skillId] = 0;
+          }
+
+          const timeDiff = dayjs(dayjs()).diff(searchHistory.updatedAt, 'day');
+          // More recent activity has more weight
+          // 100 days ago: 1 weight
+          // 1 day ago: 100 weight
+          let weight = 100 / Math.pow(timeDiff + 1, 2);
+          weight = Math.min(weight, 100);
+          console.log(`skill ${skillId} weight ${weight}`);
+          skillWeight[skillId] += weight;
+        });
+      }
+    });
+
+    console.log(skillWeight);
 
     const activities = await this.prisma.activity.findMany({
       where: {
-        status: ActivityStatus.Pending,
+        id: {
+          notIn: previousInterestedShifts.map((activity) => activity.id),
+        },
         shifts: {
           some: {
+            status: ShiftStatus.Pending,
             shiftVolunteers: {
               none: {
                 accountId: context.account.id,
@@ -410,7 +570,42 @@ export class ActivityService extends AbstractService {
           },
         },
       },
+      include: {
+        shifts: {
+          include: {
+            shiftSkills: true,
+          },
+        },
+      },
+      take: 1000,
     });
+
+    console.log(activities.length);
+
+    const weightedActivities = activities
+      .map((activity) => {
+        let weight = 0;
+        activity.shifts.forEach((shift) => {
+          shift.shiftSkills.forEach((shiftSkill) => {
+            if (skillWeight[shiftSkill.skillId] != null) {
+              weight += skillWeight[shiftSkill.skillId];
+            }
+          });
+        });
+        return {
+          activity: activity,
+          weight: weight,
+        };
+      })
+      .sort((a, b) => b.weight - a.weight);
+
+    const res = weightedActivities.slice(0, readLimit).map((v) => v.activity);
+
+    console.log(
+      res.map((v) => v.shifts.map((v) => v.shiftSkills.map((v) => v.skillId))),
+    );
+
+    return res;
   }
 
   async countActivities(context: RequestContext, query: CountActivityQueryDto) {

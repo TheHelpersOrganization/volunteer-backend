@@ -38,6 +38,7 @@ const seed = async () => {
       }),
     '- Seeding accounts and roles...',
   );
+  const defaultAccountIds = defaultAccounts.map((a) => a.id);
 
   const { skills } = await runWithTimer(
     () => seedSkills(prisma),
@@ -45,7 +46,10 @@ const seed = async () => {
   );
 
   await runWithTimer(
-    () => seedProfiles(prisma, accounts, skills),
+    () =>
+      seedProfiles(prisma, accounts, skills, {
+        importantAccountIds: defaultAccountIds,
+      }),
     '- Seeding profiles...',
   );
 
@@ -89,6 +93,9 @@ const seed = async () => {
         accounts,
         organizations,
         activities,
+        {
+          importantAccountIds: defaultAccountIds,
+        },
       ),
     '- Seeding reports...',
   );

@@ -1097,12 +1097,12 @@ export class ShiftVolunteerService extends AbstractService {
     return true;
   }
 
-  async verifyCheckIn(
+  async verifyCheckInMany(
     context: RequestContext,
     shiftId: number,
     dto: VerifyCheckInInputDto,
   ) {
-    this.logCaller(context, this.verifyCheckIn);
+    this.logCaller(context, this.verifyCheckInMany);
     const shift = await this.prisma.shift.findUnique({
       where: {
         id: shiftId,
@@ -1112,26 +1112,37 @@ export class ShiftVolunteerService extends AbstractService {
       throw new ShiftNotFoundException();
     }
     const res = await this.prisma.$transaction(async (tx) => {
-      const res: VolunteerShift[] = [];
+      const res: UpdateManyShiftVolunteerStatusOutputDto = {
+        success: [],
+        error: [],
+      };
       for (const volunteer of dto.volunteers) {
-        const r = await tx.volunteerShift.update({
-          where: {
+        try {
+          const r = await tx.volunteerShift.update({
+            where: {
+              id: volunteer.id,
+              shiftId: shiftId,
+              status: ShiftVolunteerStatus.Approved,
+              active: true,
+            },
+            data: {
+              isCheckInVerified: volunteer.checkedIn,
+              isCheckOutVerified: volunteer.checkedOut,
+              checkInOutVerifierId: context.account.id,
+            },
+          });
+          const output = this.output(ShiftVolunteerOutputDto, r);
+          res.success.push(output);
+        } catch (err) {
+          res.error.push({
             id: volunteer.id,
-            shiftId: shiftId,
-            status: ShiftVolunteerStatus.Approved,
-            active: true,
-          },
-          data: {
-            isCheckInVerified: volunteer.checkedIn,
-            isCheckOutVerified: volunteer.checkedOut,
-            checkInOutVerifierId: context.account.id,
-          },
-        });
-        res.push(r);
+            error: toErrorObject(err),
+          });
+        }
       }
       return res;
     });
-    return this.outputArray(ShiftVolunteerOutputDto, res);
+    return this.output(UpdateManyShiftVolunteerStatusOutputDto, res);
   }
 
   async verifyCheckInById(

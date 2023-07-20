@@ -204,7 +204,10 @@ export const readLocations = () => {
       encoding: 'utf8',
     },
   );
-  const records: any[] = csv.parse(content, { bom: true });
+  const records: any[] = csv.parse(content, {
+    bom: true,
+    skipEmptyLines: true,
+  });
   const municipalities = [
     'Ho Chi Minh City',
     'Hanoi',
@@ -263,4 +266,62 @@ export const getWeightedLocationsGroupedByRegion = (region: string) => {
     );
   }
   return weightedLocationsGroupedByRegion[region];
+};
+
+class ActivityTemplate {
+  name: string;
+  description: string;
+}
+
+const activityTemplates: ActivityTemplate[] = [];
+
+const readActivityTemplates = () => {
+  const activityTemplates: ActivityTemplate[] = [];
+  const content = fs.readFileSync(path.join(__dirname, `./assets/events.csv`), {
+    encoding: 'utf8',
+  });
+  const records: any[] = csv.parse(content, {
+    bom: true,
+    skipEmptyLines: true,
+    fromLine: 2,
+  });
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    if (record[0] == '') {
+      break;
+    }
+    activityTemplates.push({
+      name: record[4],
+      description: record[6],
+    });
+  }
+  const content2 = fs.readFileSync(
+    path.join(__dirname, `./assets/events2.csv`),
+    {
+      encoding: 'utf8',
+    },
+  );
+  const records2: any[] = csv.parse(content2, {
+    bom: true,
+    skipEmptyLines: true,
+    fromLine: 2,
+  });
+  for (let i = 0; i < records2.length; i++) {
+    const record = records2[i];
+    if (record[0] == '') {
+      break;
+    }
+    activityTemplates.push({
+      name: record[1],
+      description: record[3],
+    });
+  }
+  return activityTemplates;
+};
+
+export const getActivityTemplates = () => {
+  if (activityTemplates.length == 0) {
+    activityTemplates.push(...readActivityTemplates());
+  }
+  return activityTemplates;
 };

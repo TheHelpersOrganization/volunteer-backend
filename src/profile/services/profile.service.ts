@@ -119,6 +119,7 @@ export class ProfileService extends AbstractService {
           },
         })
       : undefined;
+    console.log(this.parseProfileSelect(query));
     const res = {
       ...profile,
       id: profile.accountId,

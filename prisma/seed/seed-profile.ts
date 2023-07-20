@@ -18,6 +18,9 @@ export const seedProfiles = async (
   prisma: PrismaClient,
   accounts: Account[],
   skills: Skill[],
+  options?: {
+    importantAccountIds?: number[];
+  },
 ) => {
   const locations: Location[] = Array.from({ length: accounts.length }).map(
     () => generateLocation(),
@@ -65,7 +68,12 @@ export const seedProfiles = async (
 
   const profileInterestedSkills: ProfileInterestedSkill[] = [
     ...profiles.flatMap((profile) =>
-      _.sampleSize(skills, randomInt(0, 3)).map((skill) => ({
+      _.sampleSize(
+        skills,
+        options?.importantAccountIds?.includes(profile.accountId)
+          ? 3
+          : randomInt(0, 3),
+      ).map((skill) => ({
         profileId: profile.accountId,
         skillId: skill.id,
         createdAt: new Date(),

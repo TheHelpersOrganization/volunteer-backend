@@ -85,3 +85,46 @@ export class CountActivityOutputDto {
   @Type(() => MonthlyActivityCountOutputDto)
   monthly: MonthlyActivityCountOutputDto[];
 }
+
+export class ActivityQueryOutputDto {
+  @Expose()
+  name?: string;
+
+  // Start date range
+  @Expose()
+  startTime?: Date[];
+
+  // End date range
+  @Expose()
+  endTime?: Date[];
+
+  @Expose()
+  skill?: number[];
+
+  @Expose()
+  org?: number[];
+
+  @Expose()
+  locality?: string;
+
+  @Expose()
+  region?: string;
+
+  @Expose()
+  country?: string;
+
+  @Expose()
+  lat?: number;
+
+  @Expose()
+  lng?: number;
+
+  @Expose()
+  radius?: number;
+
+  @Expose()
+  accountId: number;
+
+  @Expose()
+  createdAt: Date;
+}

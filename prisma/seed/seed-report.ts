@@ -11,7 +11,12 @@ import {
   ReportMessageFile,
   ReportOrganization,
 } from '@prisma/client';
-import { ReportStatus, ReportType, reportStatuses } from 'src/report/constants';
+import {
+  ReportStatus,
+  ReportType,
+  reportStatuses,
+  reportTypes,
+} from 'src/report/constants';
 import { seedFiles } from './seed-file';
 import { getNextReportId } from './utils';
 
@@ -22,6 +27,9 @@ export const seedReports = async (
   accounts: Account[],
   organizations: Organization[],
   activities: Activity[],
+  options?: {
+    importantAccountIds?: number[];
+  },
 ) => {
   const reports: Report[] = [];
   const accountReports: ReportAccount[] = [];
@@ -33,53 +41,94 @@ export const seedReports = async (
   const reportMessageFiles: ReportMessageFile[] = [];
 
   accounts.forEach((account) => {
-    reportStatuses.forEach((status) => {
-      const numberOfAccountReports = faker.number.int({ min: 0, max: 1 });
-      for (let i = 0; i < numberOfAccountReports; i++) {
+    if (!options?.importantAccountIds?.includes(account.id)) {
+      const numberOfReports = faker.number.int({ min: 0, max: 1 });
+      for (let i = 0; i < numberOfReports; i++) {
         const report = createReport({
-          type: ReportType.Account,
-          status: status,
+          type: faker.helpers.arrayElement(reportTypes),
+          status: faker.helpers.arrayElement(reportStatuses),
           reporterId: account.id,
           reviewerId: faker.helpers.arrayElement(adminAccounts).id,
         });
         reports.push(report);
 
-        accountReports.push({
-          id: report.id,
-          reportedAccountId: faker.helpers.arrayElement(volunteerAccounts).id,
-        });
+        if (report.type === ReportType.Account) {
+          accountReports.push({
+            id: report.id,
+            reportedAccountId: faker.helpers.arrayElement(volunteerAccounts).id,
+          });
+        } else if (report.type === ReportType.Organization) {
+          organizationReports.push({
+            id: report.id,
+            reportedOrganizationId:
+              faker.helpers.arrayElement(organizations).id,
+          });
+        } else if (report.type === ReportType.Activity) {
+          activityReports.push({
+            id: report.id,
+            reportedActivityId: faker.helpers.arrayElement(activities).id,
+          });
+        }
       }
-      const numberOfOrganizationReports = faker.number.int({ min: 0, max: 1 });
-      for (let i = 0; i < numberOfOrganizationReports; i++) {
-        const report = createReport({
-          type: ReportType.Organization,
-          status: status,
-          reporterId: account.id,
-          reviewerId: faker.helpers.arrayElement(adminAccounts).id,
-        });
-        reports.push(report);
+    } else {
+      reportStatuses.forEach((status) => {
+        const numberOfAccountReports = faker.helpers.weightedArrayElement([
+          { weight: account.id, value: 0 },
+          { weight: 1, value: 1 },
+        ]);
+        for (let i = 0; i < numberOfAccountReports; i++) {
+          const report = createReport({
+            type: ReportType.Account,
+            status: status,
+            reporterId: account.id,
+            reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+          });
+          reports.push(report);
 
-        organizationReports.push({
-          id: report.id,
-          reportedOrganizationId: faker.helpers.arrayElement(organizations).id,
-        });
-      }
-      const numberOfActivityReports = faker.number.int({ min: 0, max: 1 });
-      for (let i = 0; i < numberOfActivityReports; i++) {
-        const report = createReport({
-          type: ReportType.Activity,
-          status: status,
-          reporterId: account.id,
-          reviewerId: faker.helpers.arrayElement(adminAccounts).id,
-        });
-        reports.push(report);
+          accountReports.push({
+            id: report.id,
+            reportedAccountId: faker.helpers.arrayElement(volunteerAccounts).id,
+          });
+        }
+        const numberOfOrganizationReports = faker.helpers.weightedArrayElement([
+          { weight: account.id, value: 0 },
+          { weight: 1, value: 1 },
+        ]);
+        for (let i = 0; i < numberOfOrganizationReports; i++) {
+          const report = createReport({
+            type: ReportType.Organization,
+            status: status,
+            reporterId: account.id,
+            reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+          });
+          reports.push(report);
 
-        activityReports.push({
-          id: report.id,
-          reportedActivityId: faker.helpers.arrayElement(activities).id,
-        });
-      }
-    });
+          organizationReports.push({
+            id: report.id,
+            reportedOrganizationId:
+              faker.helpers.arrayElement(organizations).id,
+          });
+        }
+        const numberOfActivityReports = faker.helpers.weightedArrayElement([
+          { weight: account.id, value: 0 },
+          { weight: 1, value: 1 },
+        ]);
+        for (let i = 0; i < numberOfActivityReports; i++) {
+          const report = createReport({
+            type: ReportType.Activity,
+            status: status,
+            reporterId: account.id,
+            reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+          });
+          reports.push(report);
+
+          activityReports.push({
+            id: report.id,
+            reportedActivityId: faker.helpers.arrayElement(activities).id,
+          });
+        }
+      });
+    }
   });
 
   for (let i = 0; i < reports.length; i++) {
@@ -93,21 +142,25 @@ export const seedReports = async (
     });
     reportMessages.push(reportMessage);
 
-    reportMessageFilesCount[reportMessage.id] =
-      faker.helpers.weightedArrayElement([
-        {
-          weight: Math.pow(i + 1, 50),
-          value: 0,
-        },
-        {
-          weight: 5,
-          value: 1,
-        },
-        {
-          weight: 1,
-          value: 2,
-        },
-      ]);
+    if (options?.importantAccountIds?.includes(report.reporterId)) {
+      reportMessageFilesCount[reportMessage.id] = 2;
+    } else {
+      reportMessageFilesCount[reportMessage.id] =
+        faker.helpers.weightedArrayElement([
+          {
+            weight: 1000,
+            value: 0,
+          },
+          {
+            weight: 100,
+            value: 1,
+          },
+          {
+            weight: 1,
+            value: 2,
+          },
+        ]);
+    }
 
     const numberOfReportMessages = faker.number.int({ min: 0, max: 2 });
     for (let i = 0; i < numberOfReportMessages; i++) {
@@ -122,21 +175,40 @@ export const seedReports = async (
       });
       reportMessages.push(otherReportMessage);
 
-      reportMessageFilesCount[otherReportMessage.id] =
-        faker.helpers.weightedArrayElement([
-          {
-            weight: 20 + Math.pow(i + 1, 100),
-            value: 0,
-          },
-          {
-            weight: 5,
-            value: 1,
-          },
-          {
-            weight: 1,
-            value: 2,
-          },
-        ]);
+      if (options?.importantAccountIds?.includes(report.reporterId)) {
+        reportMessageFilesCount[otherReportMessage.id] =
+          faker.helpers.weightedArrayElement([
+            {
+              weight: 2000,
+              value: 0,
+            },
+            {
+              weight: 100,
+              value: 1,
+            },
+            {
+              weight: 1,
+              value: 2,
+            },
+          ]);
+        continue;
+      } else {
+        reportMessageFilesCount[otherReportMessage.id] =
+          faker.helpers.weightedArrayElement([
+            {
+              weight: 10000,
+              value: 0,
+            },
+            {
+              weight: 1000,
+              value: 1,
+            },
+            {
+              weight: 1,
+              value: 2,
+            },
+          ]);
+      }
     }
   }
 

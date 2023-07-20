@@ -1,4 +1,4 @@
-import { generateLocation, readLocations } from 'prisma/seed/utils';
+import { getActivityTemplates } from 'prisma/seed/utils';
 import { AppPrismaClient } from 'src/prisma';
 
 const prisma = new AppPrismaClient();
@@ -12,8 +12,7 @@ async function main() {
 }
 
 async function test() {
-  await readLocations();
-  console.log(generateLocation());
+  getActivityTemplates();
 }
 
 main()
