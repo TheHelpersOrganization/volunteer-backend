@@ -92,10 +92,10 @@ export const getActivityFilter = (
 ) => {
   let activityQuery: Prisma.ActivityWhereInput = {};
 
-  if (query instanceof GetActivitiesQueryDto && query.ids) {
+  if (query['ids']) {
     activityQuery = {
       id: {
-        in: query.ids,
+        in: query['ids'],
       },
     };
   }

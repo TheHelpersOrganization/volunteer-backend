@@ -13,6 +13,9 @@ export const seedProfileSkills = async (
   shifts: Shift[],
   shiftVolunteers: VolunteerShift[],
   shiftSkills: ShiftSkill[],
+  options?: {
+    runWithoutDb?: boolean;
+  },
 ) => {
   const profileSkillData: ProfileSkill[] = [];
 
@@ -48,11 +51,17 @@ export const seedProfileSkills = async (
       });
     });
 
-  const profileSkills = await prisma.profileSkill.createMany({
+  if (options?.runWithoutDb) {
+    return {
+      profileSkills: profileSkillData,
+    };
+  }
+
+  await prisma.profileSkill.createMany({
     data: profileSkillData,
   });
 
   return {
-    profileSkills,
+    profileSkills: profileSkillData,
   };
 };

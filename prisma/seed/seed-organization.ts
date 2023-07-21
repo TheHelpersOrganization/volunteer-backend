@@ -34,6 +34,9 @@ export const seedOrganizations = async (
   adminAccounts: Account[],
   modAccounts: Account[],
   volunteerAccounts: Account[],
+  options?: {
+    runWithoutDb?: boolean;
+  },
 ) => {
   const account1OrganizationTemplate = [
     OrganizationStatus.Verified,
@@ -45,51 +48,81 @@ export const seedOrganizations = async (
       randomInt(0, Object.values(OrganizationStatus).length) + 1,
     ).map((value) => ({ account, organizationStatus: value })),
   );
+  const organizationCount =
+    account1OrganizationTemplate.length + modAccounts.length;
+
+  const hasLogo: boolean[] = [];
+
+  for (let i = 0; i < organizationCount; i++) {
+    const v = fakerEn.helpers.weightedArrayElement([
+      { weight: 3, value: true },
+      { weight: 1, value: false },
+    ]);
+    hasLogo.push(v);
+  }
 
   const organizationLogos = await seedFiles(
     prisma,
     './tmp/images/organization-logo',
-    account1OrganizationTemplate.length + modOrganizationTemplate.length,
+    hasLogo.length,
     () =>
       fakerEn.image.urlLoremFlickr({
         width: 128,
         height: 128,
         category: 'logo',
       }),
+    {
+      runWithoutDb: options?.runWithoutDb,
+    },
   );
 
   const organizationBanner = await seedFiles(
     prisma,
     './tmp/images/organization-banner',
-    account1OrganizationTemplate.length + modOrganizationTemplate.length,
+    hasLogo.length,
     () =>
       fakerEn.image.urlLoremFlickr({
         width: 1280,
         height: 720,
         category: 'background',
       }),
+    {
+      runWithoutDb: options?.runWithoutDb,
+    },
   );
 
+  let logoIndex = 0;
+
   const organizations: Organization[] = [
-    ...account1OrganizationTemplate.map((value, index) => ({
-      id: getNextOrganizationId(),
-      name: `The Helpers ${index === 0 ? '' : index}`,
-      phoneNumber: fakerVi.phone.number('+84#########'),
-      email: fakerVi.internet.exampleEmail(),
-      description: fakerEn.lorem.paragraphs(),
-      website: fakerVi.internet.url(),
-      status: value,
-      isDisabled: false,
-      logo: organizationLogos[index]?.id ?? null,
-      banner: organizationBanner[index]?.id ?? null,
-      ownerId: 1,
-      verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
-      verifierComment: fakerEn.lorem.sentence(),
-      createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
-      updatedAt: new Date(),
-    })),
+    ...account1OrganizationTemplate.map((value, index) => {
+      const res = {
+        id: getNextOrganizationId(),
+        name: `The Helpers ${index === 0 ? '' : index}`,
+        phoneNumber: fakerVi.phone.number('+84#########'),
+        email: fakerVi.internet.exampleEmail(),
+        description: fakerEn.lorem.paragraphs(),
+        website: fakerVi.internet.url(),
+        status: value,
+        isDisabled: false,
+        logo: hasLogo[index] ? organizationLogos[logoIndex]?.id ?? null : null,
+        banner: hasLogo[index]
+          ? organizationBanner[logoIndex]?.id ?? null
+          : null,
+        ownerId: 1,
+        verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
+        verifierComment: fakerEn.lorem.sentence(),
+        createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
+        updatedAt: new Date(),
+      };
+      if (hasLogo[index]) {
+        logoIndex++;
+      }
+      return res;
+    }),
     ...modOrganizationTemplate.map((value, index) => {
-      return {
+      const realIndex = index + account1OrganizationTemplate.length;
+
+      const res = {
         id: getNextOrganizationId(),
         name: fakerEn.company.name(),
         phoneNumber: fakerVi.phone.number('+84#########'),
@@ -98,18 +131,24 @@ export const seedOrganizations = async (
         website: fakerVi.internet.url(),
         status: value.organizationStatus,
         isDisabled: fakerVi.datatype.boolean(),
-        logo:
-          organizationLogos[index + account1OrganizationTemplate.length]?.id ??
-          null,
-        banner:
-          organizationBanner[index + account1OrganizationTemplate.length]?.id ??
-          null,
+        logo: hasLogo[realIndex]
+          ? organizationLogos[logoIndex]?.id ?? null
+          : null,
+        banner: hasLogo[realIndex]
+          ? organizationBanner[logoIndex]?.id ?? null
+          : null,
         ownerId: value.account.id,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
         verifierComment: fakerEn.lorem.sentence(),
         createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
         updatedAt: new Date(),
       };
+
+      if (hasLogo[realIndex]) {
+        logoIndex++;
+      }
+
+      return res;
     }),
   ];
 
@@ -167,6 +206,9 @@ export const seedOrganizations = async (
         width: 128,
         height: 128,
       }),
+    {
+      runWithoutDb: options?.runWithoutDb,
+    },
   );
   let organizationFileIndex = 0;
   const organizationFileRel: OrganizationFile[] = [];
@@ -217,6 +259,18 @@ export const seedOrganizations = async (
     .forEach((organization) => {
       members.push(generateMember(accounts[0], organization));
     });
+
+  if (options?.runWithoutDb) {
+    return {
+      organizations,
+      organizationLocations,
+      organizationLocationsRel,
+      organizationContacts,
+      organizationContactsRel,
+      organizationSkills,
+      members,
+    };
+  }
 
   await prisma.organization.createMany({
     data: organizations,

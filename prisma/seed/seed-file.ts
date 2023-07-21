@@ -71,6 +71,24 @@ export const seedFiles = async (
     runWithoutDb?: boolean;
   },
 ) => {
+  if (options?.runWithoutDb) {
+    const files: File[] = [];
+    for (let i = 0; i < count; i++) {
+      files.push({
+        id: getNextFileId(),
+        name: `file-${i}`,
+        internalName: `file-${i}`,
+        mimetype: 'text/plain',
+        path: '/',
+        size: 0,
+        sizeUnit: 'B',
+        createdBy: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+    return files;
+  }
   const files: (File | null)[] = [];
   const folderPath = path.join(__dirname, relativeOutputFolderPath);
   if (!fs.existsSync(folderPath)) {
@@ -170,14 +188,30 @@ const uploadFileToStorage = async (
   }
 
   const normalizedFileSize = normalizeFileSize(fileStat.size);
-  const file: File = {
-    id: getNextFileId(),
-    name: originalname,
+  return createFile({
+    originalname,
     internalName: key,
-    mimetype: mimetype ?? null,
-    path: '/',
+    mimetype,
     size: normalizedFileSize.size,
     sizeUnit: normalizedFileSize.unit,
+  });
+};
+
+const createFile = (data: {
+  originalname: string;
+  internalName: string;
+  mimetype?: string;
+  size: number;
+  sizeUnit: string;
+}) => {
+  const file: File = {
+    id: getNextFileId(),
+    name: data.originalname,
+    internalName: data.internalName,
+    mimetype: data.mimetype ?? null,
+    path: '/',
+    size: data.size,
+    sizeUnit: data.sizeUnit,
     createdBy: 1,
     createdAt: new Date(),
     updatedAt: new Date(),

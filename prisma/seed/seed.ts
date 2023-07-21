@@ -26,6 +26,9 @@ async function main() {
 }
 
 const seed = async () => {
+  const runWithoutDb = process.argv.includes('--run-without-db');
+  if (runWithoutDb) console.log(`+ Run without db: ${runWithoutDb}`);
+
   const {
     accounts,
     adminAccounts,
@@ -36,13 +39,14 @@ const seed = async () => {
     () =>
       seedAccountsAndRoles(prisma, {
         defaultAccountOptions: { include: true },
+        runWithoutDb,
       }),
     '- Seeding accounts and roles...',
   );
   const defaultAccountIds = defaultAccounts.map((a) => a.id);
 
   const { skills } = await runWithTimer(
-    () => seedSkills(prisma),
+    () => seedSkills(prisma, { runWithoutDb }),
     '- Seeding skills...',
   );
 
@@ -50,6 +54,7 @@ const seed = async () => {
     () =>
       seedProfiles(prisma, accounts, skills, {
         importantAccountIds: defaultAccountIds,
+        runWithoutDb,
       }),
     '- Seeding profiles...',
   );
@@ -62,6 +67,9 @@ const seed = async () => {
         adminAccounts,
         modAccounts,
         volunteerAccounts,
+        {
+          runWithoutDb,
+        },
       ),
     '- Seeding organizations...',
   );
@@ -77,16 +85,21 @@ const seed = async () => {
           modAccounts,
           defaultAccounts,
           {
+            runWithoutDb,
+            joinIfMatchAccountPreferences: true,
             accountPreferences: {
               [defaultAccountIds[0]]: {
-                skills: [SkillType.Health, SkillType.Education],
+                skills: [SkillType.Health, SkillType.Education, SkillType.Job],
                 locations: [
                   'Thủ Đức',
                   'Ho Chi Minh',
                   'Hồ Chí Minh',
                   'Bình Dương',
                   'Biên Hòa',
+                  'Đồng Nai',
                 ],
+                startHour: [7, 8, 9, 15, 16],
+                duration: [1, 2, 3, 4],
               },
             },
           },
@@ -95,7 +108,10 @@ const seed = async () => {
     );
 
   const { profileSkills } = await runWithTimer(
-    () => seedProfileSkills(prisma, shifts, shiftVolunteers, shiftSkills),
+    () =>
+      seedProfileSkills(prisma, shifts, shiftVolunteers, shiftSkills, {
+        runWithoutDb,
+      }),
     '- Seeding profile skills...',
   );
 
@@ -109,6 +125,7 @@ const seed = async () => {
         organizations,
         activities,
         {
+          runWithoutDb,
           importantAccountIds: defaultAccountIds,
         },
       ),
@@ -124,11 +141,21 @@ const seed = async () => {
         shifts,
         organizations,
         reports,
+        {
+          runWithoutDb,
+        },
       ),
     '- Seeding notifications...',
   );
 
-  await runWithTimer(() => seedChats(prisma, accounts), '- Seeding chats...');
+  await runWithTimer(
+    () => seedChats(prisma, accounts, { runWithoutDb }),
+    '- Seeding chats...',
+  );
+
+  if (runWithoutDb) {
+    return;
+  }
 
   // Fix sequences
   await runWithTimer(async () => {

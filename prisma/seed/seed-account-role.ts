@@ -102,7 +102,7 @@ export const seedAccountsAndRoles = async (
   }));
 
   const modAccounts = Array.from({
-    length: options?.numberOfModAccounts ?? 60,
+    length: options?.numberOfModAccounts ?? 80,
   }).map((_, index) => ({
     id: getNextAccountId(),
     email: `mod${index}@thehelpers.me`,

@@ -22,6 +22,9 @@ export const seedNotifications = async (
   shifts: Shift[],
   organizations: Organization[],
   reports: Report[],
+  options?: {
+    runWithoutDb?: boolean;
+  },
 ) => {
   const notifications: Prisma.NotificationUncheckedCreateInput[] = [];
 
@@ -89,11 +92,17 @@ export const seedNotifications = async (
     }
   });
 
-  const res = await prisma.notification.createMany({
+  if (options?.runWithoutDb) {
+    return {
+      notifications: notifications,
+    };
+  }
+
+  await prisma.notification.createMany({
     data: notifications,
   });
 
   return {
-    notifications: res,
+    notifications: notifications,
   };
 };

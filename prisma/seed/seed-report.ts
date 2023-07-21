@@ -29,6 +29,7 @@ export const seedReports = async (
   activities: Activity[],
   options?: {
     importantAccountIds?: number[];
+    runWithoutDb?: boolean;
   },
 ) => {
   const reports: Report[] = [];
@@ -148,7 +149,7 @@ export const seedReports = async (
       reportMessageFilesCount[reportMessage.id] =
         faker.helpers.weightedArrayElement([
           {
-            weight: 50,
+            weight: 100,
             value: 0,
           },
           {
@@ -164,7 +165,7 @@ export const seedReports = async (
       reportMessageFilesCount[reportMessage.id] =
         faker.helpers.weightedArrayElement([
           {
-            weight: 1000,
+            weight: 10000,
             value: 0,
           },
           {
@@ -195,7 +196,7 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 100,
+              weight: 1000,
               value: 0,
             },
             {
@@ -208,7 +209,7 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 100,
+              weight: 10000,
               value: 0,
             },
             {
@@ -229,6 +230,9 @@ export const seedReports = async (
         width: 128,
         height: 128,
       }),
+    {
+      runWithoutDb: options?.runWithoutDb,
+    },
   );
 
   let fileIndex = 0;
@@ -248,6 +252,15 @@ export const seedReports = async (
       });
       fileIndex++;
     }
+  }
+
+  if (options?.runWithoutDb) {
+    return {
+      reports: reports,
+      accountReports: accountReports,
+      organizationReports: organizationReports,
+      activityReports: activityReports,
+    };
   }
 
   await prisma.report.createMany({

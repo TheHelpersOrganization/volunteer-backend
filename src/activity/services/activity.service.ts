@@ -474,7 +474,7 @@ export class ActivityService extends AbstractService {
     8. Sort by distance
     */
 
-    const readLimit = query.limit ?? 100;
+    const realLimit = query.limit ?? 100;
 
     const skillWeight: { [key: number]: number } = {};
 
@@ -515,8 +515,8 @@ export class ActivityService extends AbstractService {
         // More recent activity has more weight
         // 100 days ago: 1 weight
         // 1 day ago: 100 weight
-        let weight = 100 / Math.pow(timeDiff + 1, 2);
-        weight = Math.min(weight, 100);
+        let weight = 300 / Math.pow(timeDiff + 1, 2);
+        weight = Math.min(weight, 300);
         weight = Math.max(weight, 1);
         skillWeight[shiftSkill.skillId] += weight;
       });
@@ -557,10 +557,8 @@ export class ActivityService extends AbstractService {
 
           const timeDiff = dayjs(dayjs()).diff(searchHistory.updatedAt, 'day');
           // More recent activity has more weight
-          // 100 days ago: 1 weight
-          // 1 day ago: 100 weight
-          let weight = 100 / Math.pow(timeDiff + 1, 2);
-          weight = Math.min(weight, 100);
+          let weight = 200 / Math.pow(timeDiff + 1, 2);
+          weight = Math.min(weight, 200);
           skillWeight[skillId] += weight;
         });
       }
@@ -589,8 +587,8 @@ export class ActivityService extends AbstractService {
         const location = shiftLocation.location;
         const timeDiff = dayjs(dayjs()).diff(shift.startTime, 'day');
         // More recent activity has more weight
-        let weight = 200 / (timeDiff + 1);
-        weight = Math.min(weight, 200);
+        let weight = 400 / (timeDiff + 1);
+        weight = Math.min(weight, 400);
         weight = Math.max(weight, 1);
         locationWeight.push({
           location: location,
@@ -599,9 +597,13 @@ export class ActivityService extends AbstractService {
       });
     });
 
+    // console.log('Skill weight');
     // console.log(skillWeight);
+    // console.log('Start time weight');
     // console.log(startTimeWeight);
+    // console.log('Work duration weight');
     // console.log(workDurationWeight);
+    // console.log('Location weight');
     // console.log(
     //   locationWeight
     //     .sort((v, v2) => v2.weight - v.weight)
@@ -649,18 +651,29 @@ export class ActivityService extends AbstractService {
     const weightedActivities = activities
       .map((activity) => {
         let weight = 0;
+        let totalSkillWeight = 0;
+        let totalStartTimeWeight = 0;
+        let totalDurationWeight = 0;
+        let totalLocationWeight = 0;
+        const addSkills = new Set<number>();
         activity.shifts.forEach((shift) => {
           shift.shiftSkills.forEach((shiftSkill) => {
             if (skillWeight[shiftSkill.skillId] != null) {
-              weight += skillWeight[shiftSkill.skillId];
+              // weight += skillWeight[shiftSkill.skillId];
+              if (addSkills.has(shiftSkill.skillId)) {
+                return;
+              }
+              addSkills.add(shiftSkill.skillId);
+              totalSkillWeight += skillWeight[shiftSkill.skillId];
             }
           });
           if (startTimeWeight[shift.startTime.getUTCHours()] != null) {
-            weight += startTimeWeight[shift.startTime.getUTCHours()];
+            totalStartTimeWeight +=
+              startTimeWeight[shift.startTime.getUTCHours()];
           }
           const hours = dayjs(shift.endTime).diff(shift.startTime, 'hour') + 1;
           if (workDurationWeight[hours] != null) {
-            weight += workDurationWeight[hours];
+            totalDurationWeight += workDurationWeight[hours];
           }
           shift.shiftLocations.forEach((shiftLocation) => {
             const location = shiftLocation.location;
@@ -676,28 +689,49 @@ export class ActivityService extends AbstractService {
                 return;
               }
               // 10km traveling is acceptable
-              const dist =
-                geolib.getDistance(
-                  { lat: lat2, lng: lng2 },
-                  { lat: lat1, lng: lng1 },
-                  1000,
-                ) * 0.1;
-              weight += locationWeight.weight / (dist + 1);
+              const dist = geolib.getDistance(
+                { lat: lat2, lng: lng2 },
+                { lat: lat1, lng: lng1 },
+                1000,
+              );
+              // weight +=
+              //   dist < 20
+              //     ? locationWeight.weight
+              //     : locationWeight.weight / Math.pow(dist * 0.1 + 1, 2);
+              totalLocationWeight +=
+                dist < 30
+                  ? locationWeight.weight
+                  : locationWeight.weight / Math.pow(dist * 0.1 + 1, 2);
             });
           });
         });
+        weight +=
+          totalSkillWeight * totalLocationWeight +
+          totalStartTimeWeight +
+          totalDurationWeight;
         return {
           activity: activity,
           weight: weight,
+          skillWeight: totalSkillWeight,
+          locationWeight: totalLocationWeight,
         };
       })
       .sort((a, b) => b.weight - a.weight);
 
+    // console.log(
+    //   weightedActivities
+    //     .slice(0, realLimit)
+    //     .map(
+    //       (v) =>
+    //         `${v.activity.id} ${v.weight} ${v.skillWeight} ${v.locationWeight}`,
+    //     ),
+    // );
+
     const ids = weightedActivities
-      .slice(0, readLimit)
+      .slice(0, realLimit)
       .map((v) => v.activity.id);
 
-    return this.getAll(
+    const unordered = await this.getAll(
       context,
       {
         ids: ids,
@@ -708,6 +742,16 @@ export class ActivityService extends AbstractService {
         recordHistory: false,
       },
     );
+
+    const ordered: ActivityOutputDto[] = [];
+    ids.forEach((id) => {
+      const found = unordered.find((v) => v.id === id);
+      if (found != null) {
+        ordered.push(found);
+      }
+    });
+
+    return ordered;
   }
 
   async countActivities(context: RequestContext, query: CountActivityQueryDto) {

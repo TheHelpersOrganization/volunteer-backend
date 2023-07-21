@@ -65,8 +65,11 @@ export const seedActivities = async (
       [id: number]: {
         locations?: string[];
         skills?: SkillType[];
+        startHour?: number[];
+        duration?: number[];
       };
     };
+    joinIfMatchAccountPreferences?: boolean;
   },
 ) => {
   const activities: Activity[] = [];
@@ -134,6 +137,9 @@ export const seedActivities = async (
         height: 720,
         category: 'volunteer',
       }),
+    {
+      runWithoutDb: options?.runWithoutDb,
+    },
   );
   activities.forEach((activity, index) => {
     activity.thumbnail = thumbnails[index]?.id ?? null;
@@ -233,13 +239,14 @@ export const seedActivities = async (
           .add(1, 'day')
           .startOf('day')
           .diff(shiftStartTime, 'hour');
+        interval = Math.max(interval, 12);
         if (interval < 1) {
           shiftStartTime = dayjs(shiftStartTime).subtract(3, 'hour').toDate();
           interval += 3;
         }
 
         shiftEndTime = dayjs(shiftStartTime)
-          .add(interval * fakerEn.number.float({ min: 0.1, max: 1 }), 'hour')
+          .add(interval * fakerEn.number.float({ min: 0.1, max: 0.3 }), 'hour')
           .toDate();
       } else if (shiftStatus === ShiftStatus.Ongoing) {
         shiftStartTime = fakerEn.date.past({
@@ -250,12 +257,13 @@ export const seedActivities = async (
           .add(1, 'day')
           .startOf('day')
           .diff(shiftStartTime, 'hour');
+        interval = Math.max(interval, 12);
         if (interval < 1) {
           shiftStartTime = dayjs(shiftStartTime).subtract(3, 'hour').toDate();
           interval += 3;
         }
         shiftEndTime = dayjs(shiftStartTime)
-          .add(interval * fakerEn.number.float({ min: 0.7, max: 1 }), 'hour')
+          .add(interval * fakerEn.number.float({ min: 0.1, max: 0.3 }), 'hour')
           .toDate();
       } else {
         shiftStartTime = fakerEn.date.past({ years: 1, refDate: refTime });
@@ -273,9 +281,10 @@ export const seedActivities = async (
       }
       const numberOfParticipants = fakerEn.number.int({ min: 5, max: 30 });
 
+      const locations: Location[] = [];
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const location = generateLocation({ region: activityLocation.region });
-        shiftLocations.push(location);
+        locations.push(location);
         shiftLocationsRel.push({
           shiftId: shiftId,
           locationId: location.id,
@@ -283,6 +292,7 @@ export const seedActivities = async (
           updatedAt: new Date(),
         });
       }
+      shiftLocations.push(...locations);
 
       for (let j = 0; j < fakerEn.number.int({ min: 1, max: 3 }); j++) {
         const contact = generateViContact();
@@ -295,7 +305,7 @@ export const seedActivities = async (
         });
       }
 
-      shiftSkills.push({
+      const shiftSkill = {
         shiftId: shiftId,
         skillId: requireNonNullish(_.sample(activitySkills)).id,
         hours: fakerEn.number.float({
@@ -305,30 +315,32 @@ export const seedActivities = async (
         }),
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
+      shiftSkills.push(shiftSkill);
 
       // Create approved or pending volunteers first, then use created at to determine the rest
       const accountActiveVolunteers: { [key: number]: Date } = {};
       const filteredDefaultAccount: Account[] = defaultAccounts.filter(
         (account) => {
           if (options?.accountPreferences?.[account.id]?.locations) {
-            const locations = options.accountPreferences[account.id].locations!;
-            const ok = shiftLocations.some((location) => {
+            const preferredLocations =
+              options.accountPreferences[account.id].locations!;
+            const ok = locations.some((location) => {
               if (
                 location.country &&
-                locations.some((l) => l.includes(location.country!))
+                preferredLocations.some((l) => l.includes(location.country!))
               ) {
                 return true;
               }
               if (
                 location.region &&
-                locations.some((l) => l.includes(location.region!))
+                preferredLocations.some((l) => l.includes(location.region!))
               ) {
                 return true;
               }
               if (
                 location.locality &&
-                locations.some((l) => l.includes(location.locality!))
+                preferredLocations.some((l) => l.includes(location.locality!))
               ) {
                 return true;
               }
@@ -340,8 +352,30 @@ export const seedActivities = async (
           }
           if (options?.accountPreferences?.[account.id]?.skills) {
             const skills = options.accountPreferences[account.id].skills!;
-            const ok = shiftSkills.some((skill) =>
-              skills.includes(skillTypeFromSkillId(skill.skillId)),
+            const ok = skills.includes(
+              skillTypeFromSkillId(shiftSkill.skillId),
+            );
+            if (!ok) {
+              return false;
+            }
+          }
+          if (options?.accountPreferences?.[account.id]?.startHour) {
+            const startHour = options.accountPreferences[account.id].startHour!;
+            const ok = startHour.some(
+              (h) =>
+                dayjs(shiftStartTime).hour() >= h &&
+                dayjs(shiftStartTime).hour() < h + 1,
+            );
+            if (!ok) {
+              return false;
+            }
+          }
+          if (options?.accountPreferences?.[account.id]?.duration) {
+            const duration = options.accountPreferences[account.id].duration!;
+            const ok = duration.some(
+              (d) =>
+                dayjs(shiftEndTime).diff(shiftStartTime, 'hour') >= d &&
+                dayjs(shiftEndTime).diff(shiftStartTime, 'hour') < d + 1,
             );
             if (!ok) {
               return false;
@@ -351,7 +385,7 @@ export const seedActivities = async (
         },
       );
       let numberOfApprovedVolunteers = 0;
-      _.sampleSize(
+      const joinedAccounts = _.sampleSize(
         [...volunteerAccounts, ...filteredDefaultAccount],
         fakerEn.helpers.weightedArrayElement(
           Array.from({ length: numberOfParticipants + 5 }, (_, i) => ({
@@ -359,7 +393,24 @@ export const seedActivities = async (
             weight: 1 / (i + 1),
           })),
         ),
-      ).forEach((account) => {
+      );
+      if (
+        options?.joinIfMatchAccountPreferences &&
+        options?.accountPreferences
+      ) {
+        for (const key in options.accountPreferences) {
+          if (
+            !joinedAccounts.some((v) => v.id === Number(key)) &&
+            filteredDefaultAccount.some((v) => v.id === Number(key))
+          ) {
+            //console.log('Joining account', key);
+            joinedAccounts.push(
+              filteredDefaultAccount.find((v) => v.id === Number(key))!,
+            );
+          }
+        }
+      }
+      joinedAccounts.forEach((account) => {
         const status =
           shiftStatus === ShiftStatus.Pending
             ? requireNonNullish(
@@ -462,8 +513,8 @@ export const seedActivities = async (
           max = 10;
         }
 
-        _.sampleSize(
-          [...volunteerAccounts, ...defaultAccounts],
+        const joinedAccounts = _.sampleSize(
+          [...volunteerAccounts, ...filteredDefaultAccount],
           // fakerEn.helpers.weightedArrayElement(
           //   Array.from({ length: max }, (_, i) => ({
           //     value: i,
@@ -471,7 +522,24 @@ export const seedActivities = async (
           //   })),
           // ),
           fakerEn.number.int({ min: min, max: max }),
-        ).forEach((account) => {
+        );
+        // if (
+        //   options?.joinIfMatchAccountPreferences &&
+        //   options?.accountPreferences
+        // ) {
+        //   for (const key in options.accountPreferences) {
+        //     if (
+        //       !joinedAccounts.some((v) => v.id === Number(key)) &&
+        //       filteredDefaultAccount.some((v) => v.id === Number(key))
+        //     ) {
+        //       joinedAccounts.push(
+        //         filteredDefaultAccount.find((v) => v.id === Number(key))!,
+        //       );
+        //     }
+        //   }
+        // }
+
+        joinedAccounts.forEach((account) => {
           if (status === ShiftVolunteerStatus.Approved) {
             numberOfApprovedVolunteers++;
           }

@@ -63,7 +63,16 @@ export const skillTypeFromSkillId = (id: number): SkillType => {
   return name as SkillType;
 };
 
-export const seedSkills = async (prisma: PrismaClient) => {
+export const seedSkills = async (
+  prisma: PrismaClient,
+  options?: { runWithoutDb?: boolean },
+) => {
+  if (options?.runWithoutDb) {
+    return {
+      skills,
+    };
+  }
+
   await prisma.skill.createMany({
     data: skills,
   });
