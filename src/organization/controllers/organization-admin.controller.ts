@@ -4,7 +4,6 @@ import { RequireRoles } from 'src/auth/decorators';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import { OrganizationStatus } from '../constants';
 import {
-  DisableOrganizationInputDto,
   OrganizationOutputDto,
   OrganizationQueryDto,
   RejectOrganizationInputDto,
@@ -70,12 +69,23 @@ export class OrganizationAdminController {
     );
   }
 
+  @Post(':id/enable')
+  async enable(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ): Promise<OrganizationOutputDto> {
+    return this.organizationService.updateDisable(context, id, {
+      isDisabled: false,
+    });
+  }
+
   @Post(':id/disable')
   async disable(
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
-    @Body() dto: DisableOrganizationInputDto,
   ): Promise<OrganizationOutputDto> {
-    return this.organizationService.updateDisable(context, id, dto);
+    return this.organizationService.updateDisable(context, id, {
+      isDisabled: true,
+    });
   }
 }

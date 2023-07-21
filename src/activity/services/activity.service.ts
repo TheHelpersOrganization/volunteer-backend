@@ -39,10 +39,15 @@ export class ActivityService extends AbstractService {
   async getAll(
     context: RequestContext,
     query: GetActivitiesQueryDto,
+    options?: {
+      recordHistory?: boolean;
+    },
   ): Promise<ActivityOutputDto[]> {
     this.logCaller(context, this.getAll);
 
-    const res = await this.internalGet(context, query);
+    const res = await this.internalGet(context, query, {
+      recordHistory: options?.recordHistory ?? true,
+    });
     const updated = res.map((activity) => this.mapToDto(activity));
 
     return this.outputArray(ActivityOutputDto, updated);
@@ -51,6 +56,9 @@ export class ActivityService extends AbstractService {
   private async internalGet(
     context: RequestContext,
     query: GetActivitiesQueryDto,
+    options?: {
+      recordHistory?: boolean;
+    },
   ) {
     this.logCaller(context, this.internalGet);
 
@@ -66,45 +74,45 @@ export class ActivityService extends AbstractService {
     const realLimit = query.limit ?? 100;
     let notFoundIteration = 0;
     let cursor = query.cursor;
-    let searchLimit = 1000;
-    if (query.radius) {
-      searchLimit = 10000;
+    let searchLimit = realLimit;
+    if (query.availableSlots || query.radius) {
+      searchLimit = 1000;
     }
-
-    const previousHistory = await this.prisma.activitySearchHistory.findFirst({
-      where: {
-        accountId: accountId,
-      },
-      take: 1,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
 
     // Prevent spamming of search history
     // Check if previous history is within 30 seconds
-    if (previousHistory != null) {
-      console.log(dayjs(previousHistory.createdAt).diff(dayjs(), 'second'));
-    }
-    if (
-      previousHistory != null &&
-      dayjs(dayjs()).diff(previousHistory.createdAt, 'second') < 30
-    ) {
-      await this.prisma.activitySearchHistory.update({
-        where: {
-          id: previousHistory.id,
+    if (options?.recordHistory) {
+      const previousHistory = await this.prisma.activitySearchHistory.findFirst(
+        {
+          where: {
+            accountId: accountId,
+          },
+          take: 1,
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
-        data: {
-          query: query as Prisma.InputJsonObject,
-        },
-      });
-    } else {
-      await this.prisma.activitySearchHistory.create({
-        data: {
-          accountId: accountId,
-          query: query as Prisma.InputJsonObject,
-        },
-      });
+      );
+      if (
+        previousHistory != null &&
+        dayjs(dayjs()).diff(previousHistory.createdAt, 'second') < 30
+      ) {
+        await this.prisma.activitySearchHistory.update({
+          where: {
+            id: previousHistory.id,
+          },
+          data: {
+            query: query as Prisma.InputJsonObject,
+          },
+        });
+      } else {
+        await this.prisma.activitySearchHistory.create({
+          data: {
+            accountId: accountId,
+            query: query as Prisma.InputJsonObject,
+          },
+        });
+      }
     }
 
     while (extendedActivities.length < realLimit && notFoundIteration <= 3) {
@@ -685,9 +693,21 @@ export class ActivityService extends AbstractService {
       })
       .sort((a, b) => b.weight - a.weight);
 
-    const res = weightedActivities.slice(0, readLimit).map((v) => v.activity);
+    const ids = weightedActivities
+      .slice(0, readLimit)
+      .map((v) => v.activity.id);
 
-    return res;
+    return this.getAll(
+      context,
+      {
+        ids: ids,
+        limit: query.limit,
+        cursor: query.cursor,
+      },
+      {
+        recordHistory: false,
+      },
+    );
   }
 
   async countActivities(context: RequestContext, query: CountActivityQueryDto) {

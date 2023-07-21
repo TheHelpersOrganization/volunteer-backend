@@ -53,6 +53,7 @@ export class OrganizationService extends AbstractService {
         members: this.getMemberQuery(query, accountId),
         status: query.status,
         ownerId: query.owner ? accountId : undefined,
+        isDisabled: query.isDisabled,
       },
       take: query.limit,
       skip: query.offset,

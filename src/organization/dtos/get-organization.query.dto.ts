@@ -45,6 +45,11 @@ export class OrganizationQueryDto extends PaginationQueryDto {
   name?: string;
 
   @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isDisabled?: boolean;
+
+  @IsOptional()
   @IsEnum(OrganizationStatus)
   status?: OrganizationStatus;
 

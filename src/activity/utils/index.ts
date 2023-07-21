@@ -325,27 +325,5 @@ export const filterExtendedActivity = (
       return false;
     }
   }
-  // if (query.startTime != null) {
-  //   if (activity.startTime == null) {
-  //     return false;
-  //   }
-  //   if (
-  //     activity.startTime.getTime() < query.startTime[0].getTime() ||
-  //     activity.startTime.getTime() > query.startTime[1].getTime()
-  //   ) {
-  //     return false;
-  //   }
-  // }
-  // if (query.endTime != null) {
-  //   if (activity.endTime == null) {
-  //     return false;
-  //   }
-  //   if (
-  //     activity.endTime.getTime() < query.endTime[0].getTime() ||
-  //     activity.endTime.getTime() > query.endTime[1].getTime()
-  //   ) {
-  //     return false;
-  //   }
-  // }
   return true;
 };
