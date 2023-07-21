@@ -148,7 +148,7 @@ export const seedReports = async (
       reportMessageFilesCount[reportMessage.id] =
         faker.helpers.weightedArrayElement([
           {
-            weight: 10,
+            weight: 50,
             value: 0,
           },
           {
@@ -168,7 +168,7 @@ export const seedReports = async (
             value: 0,
           },
           {
-            weight: 100,
+            weight: 10,
             value: 1,
           },
           {
@@ -195,16 +195,12 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 2000,
+              weight: 100,
               value: 0,
             },
             {
-              weight: 100,
-              value: 1,
-            },
-            {
               weight: 1,
-              value: 2,
+              value: 1,
             },
           ]);
         continue;
@@ -212,16 +208,12 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 10000,
+              weight: 100,
               value: 0,
             },
             {
-              weight: 1000,
-              value: 1,
-            },
-            {
               weight: 1,
-              value: 2,
+              value: 1,
             },
           ]);
       }

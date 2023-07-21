@@ -553,7 +553,6 @@ export class ActivityService extends AbstractService {
           // 1 day ago: 100 weight
           let weight = 100 / Math.pow(timeDiff + 1, 2);
           weight = Math.min(weight, 100);
-          console.log(`skill ${skillId} weight ${weight}`);
           skillWeight[skillId] += weight;
         });
       }
