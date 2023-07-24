@@ -31,7 +31,7 @@ export class ProfileService extends AbstractService {
   }
 
   async getProfiles(
-    ctx: RequestContext,
+    ctx: RequestContext | null | undefined,
     query: GetProfilesQueryDto,
   ): Promise<ProfileOutputDto[]> {
     this.logCaller(ctx, this.getProfiles);

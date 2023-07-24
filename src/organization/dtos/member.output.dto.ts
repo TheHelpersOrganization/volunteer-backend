@@ -1,6 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import { OrganizationMemberStatus } from '../constants';
+import { MemberRoleOutputDto } from './role.dto';
 
 export class MemberOutputDto {
   @Expose()
@@ -11,7 +12,7 @@ export class MemberOutputDto {
 
   @Expose()
   @Type(() => ProfileOutputDto)
-  accountProfile: ProfileOutputDto;
+  accountProfile?: ProfileOutputDto;
 
   @Expose()
   organizationId: number;
@@ -21,6 +22,10 @@ export class MemberOutputDto {
 
   @Expose()
   censorId?: number;
+
+  @Expose()
+  @Type(() => MemberRoleOutputDto)
+  roles: MemberRoleOutputDto[];
 
   @Expose()
   rejectionReason?: string;

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CommonModule } from 'src/common/common.module';
 
+import { ProfileModule } from 'src/profile/profile.module';
+import { RoleModule } from 'src/role/role.module';
 import { ContactModule } from '../contact/contact.module';
 import { FileModule } from '../file/file.module';
 import { LocationModule } from '../location/location.module';
@@ -11,10 +13,21 @@ import {
   OrganizationMemberModController,
   OrganizationModController,
 } from './controllers';
-import { OrganizationMemberService, OrganizationService } from './services';
+import {
+  OrganizationMemberService,
+  OrganizationRoleService,
+  OrganizationService,
+} from './services';
 
 @Module({
-  imports: [CommonModule, FileModule, LocationModule, ContactModule],
+  imports: [
+    CommonModule,
+    FileModule,
+    LocationModule,
+    ContactModule,
+    RoleModule,
+    ProfileModule,
+  ],
   controllers: [
     OrganizationController,
     OrganizationAdminController,
@@ -22,7 +35,15 @@ import { OrganizationMemberService, OrganizationService } from './services';
     OrganizationMemberController,
     OrganizationMemberModController,
   ],
-  providers: [OrganizationService, OrganizationMemberService],
-  exports: [OrganizationService, OrganizationMemberService],
+  providers: [
+    OrganizationService,
+    OrganizationMemberService,
+    OrganizationRoleService,
+  ],
+  exports: [
+    OrganizationService,
+    OrganizationMemberService,
+    OrganizationRoleService,
+  ],
 })
 export class OrganizationModule {}

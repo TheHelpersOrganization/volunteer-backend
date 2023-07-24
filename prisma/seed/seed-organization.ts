@@ -5,16 +5,19 @@ import {
   Contact,
   Location,
   Member,
+  MemberRole,
   Organization,
   OrganizationContact,
   OrganizationFile,
   OrganizationLocation,
   OrganizationSkill,
   PrismaClient,
+  Role,
 } from '@prisma/client';
 import { randomInt } from 'crypto';
 import * as _ from 'lodash';
 import {
+  OrganizationMemberRole,
   OrganizationMemberStatus,
   OrganizationStatus,
 } from '../../src/organization/constants';
@@ -23,9 +26,11 @@ import { skills } from './seed-skill';
 import {
   generateLocation,
   generateMember,
+  generateMemberRoles,
   getNextContactId,
   getNextMemberId,
   getNextOrganizationId,
+  getOrganizationMemberRoleByName,
 } from './utils';
 
 export const seedOrganizations = async (
@@ -34,6 +39,7 @@ export const seedOrganizations = async (
   adminAccounts: Account[],
   modAccounts: Account[],
   volunteerAccounts: Account[],
+  roles: Role[],
   options?: {
     runWithoutDb?: boolean;
   },
@@ -227,16 +233,29 @@ export const seedOrganizations = async (
     }
   });
 
+  const memberRoles: MemberRole[] = [];
   const members: Member[] = organizations.flatMap((organization) => {
     const memberMappings: Member[] = [];
+    const memberId = getNextMemberId();
 
     memberMappings.push({
-      id: getNextMemberId(),
+      id: memberId,
       status: OrganizationMemberStatus.Approved,
       censorId: null,
       rejectionReason: null,
       accountId: organization.ownerId,
       organizationId: organization.id,
+      createdAt: organization.createdAt,
+      updatedAt: new Date(),
+    });
+
+    memberRoles.push({
+      memberId: memberId,
+      roleId: getOrganizationMemberRoleByName(
+        roles,
+        OrganizationMemberRole.Owner,
+      ).id,
+      grantedBy: null,
       createdAt: organization.createdAt,
       updatedAt: new Date(),
     });
@@ -252,8 +271,16 @@ export const seedOrganizations = async (
       memberMappings.push(generateMember(account, organization)),
     );
 
+    _.sampleSize(
+      memberMappings,
+      randomInt(0, Math.max(memberMappings.length, 15)),
+    ).forEach((member) =>
+      memberRoles.push(...generateMemberRoles(member, roles, accounts)),
+    );
+
     return memberMappings;
   });
+
   organizations
     .filter((o) => o.ownerId !== 1 && o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
@@ -302,6 +329,10 @@ export const seedOrganizations = async (
 
   await prisma.member.createMany({
     data: members,
+  });
+
+  await prisma.memberRole.createMany({
+    data: memberRoles,
   });
 
   return {

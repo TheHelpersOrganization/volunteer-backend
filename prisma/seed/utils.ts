@@ -1,11 +1,20 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
-import { Account, Member, Organization } from '@prisma/client';
+import {
+  Account,
+  Member,
+  MemberRole,
+  Organization,
+  Role,
+} from '@prisma/client';
 import * as csv from 'csv-parse/sync';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
-import { OrganizationMemberStatus } from '../../src/organization/constants';
+import {
+  OrganizationMemberRole,
+  OrganizationMemberStatus,
+} from '../../src/organization/constants';
 
 let accountId = 1;
 let organizationId = 1;
@@ -157,6 +166,32 @@ export const generateMember = (
     createdAt: organization.createdAt,
     updatedAt: new Date(),
   };
+};
+
+export const generateMemberRoles = (
+  member: Member,
+  roles: Role[],
+  granter: Account[],
+) => {
+  const grantedRoles: MemberRole[] = [];
+  const roleNames = _.sampleSize(
+    [
+      OrganizationMemberRole.Manager,
+      OrganizationMemberRole.MemberManager,
+      OrganizationMemberRole.ActivityManager,
+    ],
+    fakerEn.number.int({ min: 0, max: 3 }),
+  );
+  for (const roleName of roleNames) {
+    grantedRoles.push({
+      memberId: member.id,
+      roleId: getOrganizationMemberRoleByName(roles, roleName).id,
+      grantedBy: _.sample(granter)?.id ?? null,
+      createdAt: member.createdAt,
+      updatedAt: new Date(),
+    });
+  }
+  return grantedRoles;
 };
 
 export const generateViContact = () => ({
@@ -378,4 +413,15 @@ export const getActivityTemplates = () => {
 export const getActivityTemplateAt = (index: number) => {
   const templates = getActivityTemplates();
   return templates[index % templates.length];
+};
+
+export const getOrganizationMemberRoleByName = (
+  roles: Role[],
+  roleName: OrganizationMemberRole,
+) => {
+  const role = roles.find((r) => r.name == roleName);
+  if (!role) {
+    throw new Error('Role not found');
+  }
+  return role;
 };

@@ -10,6 +10,7 @@ import {
 } from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import { AccountVerificationStatus } from 'src/account-verification/constants';
+import { OrganizationMemberRole } from 'src/organization/constants';
 import { Role as RoleEnum } from '../../src/auth/constants';
 import {
   getNextAccountBanId,
@@ -60,6 +61,38 @@ export const seedAccountsAndRoles = async (
       id: getNextRoleId(),
       name: RoleEnum.Operator,
       description: 'Operator',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
+  const organizationMemberRoles = [
+    {
+      id: getNextRoleId(),
+      name: OrganizationMemberRole.Owner,
+      description: ' Organization owner read, update and delete organization ',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: getNextRoleId(),
+      name: OrganizationMemberRole.Manager,
+      description: 'Organization Manager can read, update organization',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: getNextRoleId(),
+      name: OrganizationMemberRole.MemberManager,
+      description:
+        'Organization Member Manager can read, update and delete organization member',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: getNextRoleId(),
+      name: OrganizationMemberRole.ActivityManager,
+      description:
+        'Organization Activity Manager can read, update and delete organization activity',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -291,11 +324,12 @@ export const seedAccountsAndRoles = async (
       volunteerAccounts,
       defaultAccounts,
       accounts,
+      organizationMemberRoles,
     };
   }
 
   await prisma.role.createMany({
-    data: roles,
+    data: [...roles, ...organizationMemberRoles],
   });
 
   await prisma.account.createMany({
@@ -317,6 +351,7 @@ export const seedAccountsAndRoles = async (
   return {
     roles,
     accountRoles,
+    organizationMemberRoles,
     adminAccounts,
     modAccounts,
     volunteerAccounts,
