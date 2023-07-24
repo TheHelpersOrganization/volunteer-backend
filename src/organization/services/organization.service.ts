@@ -3,11 +3,16 @@ import { AppLogger } from 'src/common/logger';
 import { AbstractService } from 'src/common/services';
 
 import { Prisma } from '@prisma/client';
+import { RoleService } from 'src/role/services';
 import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
+import {
+  OrganizationMemberRole,
+  OrganizationMemberStatus,
+  OrganizationStatus,
+} from '../constants';
 import {
   CreateOrganizationInputDto,
   DisableOrganizationInputDto,
@@ -29,6 +34,7 @@ export class OrganizationService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly locationService: LocationService,
     private readonly contactService: ContactService,
+    private readonly roleService: RoleService,
   ) {
     super(logger);
   }
@@ -256,6 +262,9 @@ export class OrganizationService extends AbstractService {
     dto: CreateOrganizationInputDto,
   ): Promise<OrganizationOutputDto> {
     this.logCaller(context, this.create);
+    const ownerRole = await this.roleService.getRoleByNameOrThrow(
+      OrganizationMemberRole.Owner,
+    );
     const raw = {
       ...dto,
       locations: undefined,
@@ -299,6 +308,15 @@ export class OrganizationService extends AbstractService {
               create: {
                 accountId: context.account.id,
                 status: OrganizationMemberStatus.Approved,
+                MemberRole: {
+                  create: {
+                    role: {
+                      connect: {
+                        id: ownerRole.id,
+                      },
+                    },
+                  },
+                },
               },
             },
           },

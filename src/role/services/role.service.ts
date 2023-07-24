@@ -3,8 +3,10 @@ import { Role } from 'src/auth/constants';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
+import { OrganizationMemberRole } from 'src/organization/constants';
 import { PrismaService } from 'src/prisma';
-import { CreateRoleInputDto, CreateRoleOutputDto } from '../dto';
+import { CreateRoleInputDto, CreateRoleOutputDto, RoleOutputDto } from '../dto';
+import { RoleNotFountException } from '../exceptions';
 
 @Injectable()
 export class RoleService extends AbstractService {
@@ -39,6 +41,25 @@ export class RoleService extends AbstractService {
         { name: Role.Moderator, description: 'Moderator' },
         { name: Role.Admin, description: 'Admin' },
         { name: Role.Operator, description: 'Operator' },
+        {
+          name: OrganizationMemberRole.Owner,
+          description:
+            'Organization Manager can read, update and delete organization',
+        },
+        {
+          name: OrganizationMemberRole.Manager,
+          description: 'Organization Manager can read, update',
+        },
+        {
+          name: OrganizationMemberRole.MemberManager,
+          description:
+            'Organization Member Manager can read, update and delete organization member',
+        },
+        {
+          name: OrganizationMemberRole.ActivityManager,
+          description:
+            'Organization Activity Manager can read, update and delete organization activity',
+        },
       ],
       skipDuplicates: true,
     });
@@ -47,5 +68,31 @@ export class RoleService extends AbstractService {
     });
 
     return this.outputArray(CreateRoleOutputDto, roles);
+  }
+
+  async getRoleByName(name: string) {
+    const res = await this.prisma.role.findUnique({ where: { name } });
+    if (res == null) {
+      return null;
+    }
+    return this.output(RoleOutputDto, res);
+  }
+
+  async getRoleByNamesOrThrow(names: string[]) {
+    const res = await this.prisma.role.findMany({
+      where: { name: { in: names } },
+    });
+    if (res.length !== names.length) {
+      throw new RoleNotFountException();
+    }
+    return this.outputArray(RoleOutputDto, res);
+  }
+
+  async getRoleByNameOrThrow(name: string) {
+    const res = await this.prisma.role.findUnique({ where: { name } });
+    if (res == null) {
+      throw new RoleNotFountException();
+    }
+    return this.output(RoleOutputDto, res);
   }
 }

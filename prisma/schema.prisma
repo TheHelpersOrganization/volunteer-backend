@@ -45,6 +45,7 @@ model Account {
   ChatParticipant                  ChatParticipant[]
   BlockedChat                      Chat[]                  @relation(name: "blockedByAccount")
   ActivitySearchHistory            ActivitySearchHistory[]
+  GrantMemberRole                  MemberRole[]            @relation(name: "memberRoleGrantedBy")
 }
 
 model Role {
@@ -54,6 +55,7 @@ model Role {
   createdAt    DateTime?     @default(now())
   updatedAt    DateTime?     @default(now()) @updatedAt
   accountRoles AccountRole[]
+  MemberRole   MemberRole[]
 }
 
 model Profile {
@@ -477,6 +479,20 @@ model Member {
   rejectionReason String?
   createdAt       DateTime?    @default(now())
   updatedAt       DateTime?    @default(now()) @updatedAt
+  MemberRole      MemberRole[]
+}
+
+model MemberRole {
+  memberId        Int
+  roleId          Int
+  member          Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role            Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  grantedBy       Int?
+  grantedByMember Account?  @relation(name: "memberRoleGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @default(now()) @updatedAt
+
+  @@id([memberId, roleId])
 }
 
 model ActivitySkill {

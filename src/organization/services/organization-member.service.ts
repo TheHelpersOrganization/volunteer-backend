@@ -3,8 +3,16 @@ import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
 import { PrismaService } from 'src/prisma';
+import { getProfileBasicSelect } from 'src/profile/dtos';
+import { ProfileService } from 'src/profile/services';
+import { RoleService } from 'src/role/services';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
-import { GetMemberQueryDto, MemberOutputDto } from '../dtos';
+import {
+  GetMemberQueryDto,
+  GrantRoleInputDto,
+  MemberOutputDto,
+  RevokeRoleInputDto,
+} from '../dtos';
 import {
   OrganizationNotFoundException,
   UserHaveAlreadyJoinedOrganizationException,
@@ -15,7 +23,12 @@ import {
 
 @Injectable()
 export class OrganizationMemberService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+    private readonly roleService: RoleService,
+    private readonly profileService: ProfileService,
+  ) {
     super(logger);
   }
 
@@ -26,17 +39,25 @@ export class OrganizationMemberService extends AbstractService {
     this.logCaller(context, this.getMe);
     const accountId = context.account.id;
 
-    const member = await this.prisma.member.findMany({
+    const members = await this.prisma.member.findMany({
       where: {
         accountId: accountId,
         organizationId: organizationId,
       },
+      include: {
+        MemberRole: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
-    if (member == null) {
+    if (members.length == 0) {
       throw new UserHaveNotJoinedOrganizationException();
     }
 
-    return this.outputArray(MemberOutputDto, member);
+    const outputs = Promise.all(members.map((m) => this.mapToDto(m)));
+    return outputs;
   }
 
   async getMembers(
@@ -55,9 +76,50 @@ export class OrganizationMemberService extends AbstractService {
           in: dto?.statuses,
         },
       },
+      include: {
+        MemberRole: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
 
-    return this.outputArray(MemberOutputDto, members);
+    const outputs = Promise.all(members.map((m) => this.mapToDto(m)));
+
+    return outputs;
+  }
+
+  async getMemberById(
+    context: RequestContext,
+    organizationId: number,
+    memberId?: number,
+  ): Promise<MemberOutputDto> {
+    this.logCaller(context, this.getMemberById);
+
+    const member = await this.prisma.member.findUnique({
+      where: {
+        id: memberId,
+        organization: {
+          id: organizationId,
+        },
+      },
+      include: {
+        MemberRole: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (member == null) {
+      throw new UserHaveNotJoinedOrganizationException();
+    }
+
+    const output = this.mapToDto(member);
+
+    return output;
   }
 
   // status: pending
@@ -277,5 +339,110 @@ export class OrganizationMemberService extends AbstractService {
     });
 
     return this.output(MemberOutputDto, updated);
+  }
+
+  async grantMemberRole(
+    context: RequestContext,
+    organizationId: number,
+    memberId: number,
+    dto: GrantRoleInputDto,
+  ) {
+    this.logCaller(context, this.grantMemberRole);
+
+    const oldMember = (
+      await this.validateApprovedMember(organizationId, memberId)
+    ).member;
+
+    const role = await this.roleService.getRoleByNameOrThrow(dto.role);
+
+    await this.prisma.memberRole.upsert({
+      where: {
+        memberId_roleId: {
+          memberId: oldMember.id,
+          roleId: role.id,
+        },
+      },
+      create: {
+        memberId: oldMember.id,
+        roleId: role.id,
+        grantedBy: context.account.id,
+      },
+      update: {},
+    });
+
+    return this.getMemberById(context, organizationId, memberId);
+  }
+
+  async revokeMemberRole(
+    context: RequestContext,
+    organizationId: number,
+    memberId: number,
+    dto: RevokeRoleInputDto,
+  ) {
+    this.logCaller(context, this.revokeMemberRole);
+
+    const member = (await this.validateApprovedMember(organizationId, memberId))
+      .member;
+
+    const role = await this.roleService.getRoleByNameOrThrow(dto.role);
+
+    await this.prisma.memberRole.delete({
+      where: {
+        memberId_roleId: {
+          memberId: member.id,
+          roleId: role.id,
+        },
+      },
+    });
+
+    return this.getMemberById(context, organizationId, memberId);
+  }
+
+  async validateApprovedMember(organizationId: number, memberId: number) {
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+      },
+    });
+    if (organization == null) {
+      throw new OrganizationNotFoundException();
+    }
+
+    const member = await this.prisma.member.findFirst({
+      where: {
+        id: memberId,
+      },
+    });
+    if (member == null) {
+      throw new UserHaveNotJoinedOrganizationException();
+    }
+    if (member.status !== OrganizationMemberStatus.Approved) {
+      throw new UserStatusNotApprovedException();
+    }
+
+    return {
+      organization,
+      member,
+    };
+  }
+
+  private async mapToDto(raw: any): Promise<MemberOutputDto> {
+    const profileIds = raw.MemberRole.map((role) => role.grantedBy).filter(
+      (p) => p != null,
+    );
+    const profiles = await this.profileService.getProfiles(undefined, {
+      ids: profileIds,
+      select: getProfileBasicSelect,
+    });
+
+    const output = {
+      ...raw,
+      roles: raw.MemberRole.map((memberRole) => ({
+        name: memberRole.role.name,
+        createdAt: memberRole.createdAt ?? undefined,
+        grantedBy: profiles.find((p) => p.id == memberRole.grantedBy),
+      })),
+    };
+    return this.output(MemberOutputDto, output);
   }
 }

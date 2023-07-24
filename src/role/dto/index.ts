@@ -20,3 +20,17 @@ export class CreateRoleOutputDto {
   @Expose()
   description?: string;
 }
+
+export class RoleOutputDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  description?: string;
+
+  @Expose()
+  createdAt?: Date;
+}

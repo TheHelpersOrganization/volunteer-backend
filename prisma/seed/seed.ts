@@ -35,6 +35,7 @@ const seed = async () => {
     modAccounts,
     volunteerAccounts,
     defaultAccounts,
+    organizationMemberRoles,
   } = await runWithTimer(
     () =>
       seedAccountsAndRoles(prisma, {
@@ -67,6 +68,7 @@ const seed = async () => {
         adminAccounts,
         modAccounts,
         volunteerAccounts,
+        organizationMemberRoles,
         {
           runWithoutDb,
         },
