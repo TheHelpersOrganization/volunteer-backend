@@ -75,7 +75,7 @@ export class ProfileService extends AbstractService {
   }
 
   async getProfile(
-    ctx: RequestContext,
+    ctx: RequestContext | null | undefined,
     accountId: number,
     query?: GetProfileQueryDto,
   ): Promise<ProfileOutputDto | null> {

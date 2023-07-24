@@ -12,7 +12,7 @@ export class MemberOutputDto {
 
   @Expose()
   @Type(() => ProfileOutputDto)
-  accountProfile?: ProfileOutputDto;
+  profile?: ProfileOutputDto;
 
   @Expose()
   organizationId: number;

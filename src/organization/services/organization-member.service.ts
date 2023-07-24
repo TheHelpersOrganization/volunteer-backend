@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -8,6 +9,8 @@ import { ProfileService } from 'src/profile/services';
 import { RoleService } from 'src/role/services';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 import {
+  GetMemberByIdQueryDto,
+  GetMemberInclude,
   GetMemberQueryDto,
   GrantRoleInputDto,
   MemberOutputDto,
@@ -35,6 +38,7 @@ export class OrganizationMemberService extends AbstractService {
   async getMe(
     context: RequestContext,
     organizationId: number,
+    query?: GetMemberQueryDto,
   ): Promise<MemberOutputDto[]> {
     this.logCaller(context, this.getMe);
     const accountId = context.account.id;
@@ -44,26 +48,19 @@ export class OrganizationMemberService extends AbstractService {
         accountId: accountId,
         organizationId: organizationId,
       },
-      include: {
-        MemberRole: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getMemberInclude(query?.include),
     });
     if (members.length == 0) {
       throw new UserHaveNotJoinedOrganizationException();
     }
 
-    const outputs = Promise.all(members.map((m) => this.mapToDto(m)));
-    return outputs;
+    return this.mapManyToDto(members, query?.include);
   }
 
   async getMembers(
     context: RequestContext,
     organizationId: number,
-    dto?: GetMemberQueryDto,
+    query?: GetMemberQueryDto,
   ): Promise<MemberOutputDto[]> {
     this.logCaller(context, this.getMembers);
 
@@ -73,27 +70,22 @@ export class OrganizationMemberService extends AbstractService {
           id: organizationId,
         },
         status: {
-          in: dto?.statuses,
+          in: query?.statuses,
         },
       },
-      include: {
-        MemberRole: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getMemberInclude(query?.include),
+      take: query?.limit,
+      skip: query?.offset,
     });
 
-    const outputs = Promise.all(members.map((m) => this.mapToDto(m)));
-
-    return outputs;
+    return this.mapManyToDto(members, query?.include);
   }
 
   async getMemberById(
     context: RequestContext,
     organizationId: number,
     memberId?: number,
+    query?: GetMemberByIdQueryDto,
   ): Promise<MemberOutputDto> {
     this.logCaller(context, this.getMemberById);
 
@@ -104,20 +96,14 @@ export class OrganizationMemberService extends AbstractService {
           id: organizationId,
         },
       },
-      include: {
-        MemberRole: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getMemberInclude(query?.include),
     });
 
     if (member == null) {
       throw new UserHaveNotJoinedOrganizationException();
     }
 
-    const output = this.mapToDto(member);
+    const output = this.mapToDto(member, query?.include);
 
     return output;
   }
@@ -426,21 +412,87 @@ export class OrganizationMemberService extends AbstractService {
     };
   }
 
-  private async mapToDto(raw: any): Promise<MemberOutputDto> {
-    const profileIds = raw.MemberRole.map((role) => role.grantedBy).filter(
-      (p) => p != null,
-    );
-    const profiles = await this.profileService.getProfiles(undefined, {
-      ids: profileIds,
-      select: getProfileBasicSelect,
-    });
+  private getMemberInclude(include?: GetMemberInclude[]) {
+    if (include == null || include.length == 0) {
+      return undefined;
+    }
+
+    const res: Prisma.MemberInclude = {};
+
+    if (include?.includes(GetMemberInclude.Role)) {
+      res.MemberRole = {
+        include: {
+          role: true,
+        },
+      };
+    }
+
+    return res;
+  }
+
+  private async mapManyToDto(
+    raws: any[],
+    includes?: GetMemberInclude[],
+  ): Promise<MemberOutputDto[]> {
+    const memberProfileIds = includes?.includes(GetMemberInclude.Profile)
+      ? raws.map((raw) => raw.accountId)
+      : [];
+    const granterProfileIds = raws
+      .map((raw) => raw.MemberRole?.map((role) => role.grantedBy))
+      .flat()
+      .filter((p) => p != null);
+    const profileIds = [...memberProfileIds, ...granterProfileIds];
+    const profiles =
+      profileIds.length > 0
+        ? await this.profileService.getProfiles(undefined, {
+            ids: profileIds,
+            select: getProfileBasicSelect,
+          })
+        : undefined;
+
+    const outputs = raws.map((raw) => ({
+      ...raw,
+      profile: profiles?.find((p) => p.id == raw.accountId),
+      roles: raw.MemberRole?.map((memberRole) => ({
+        name: memberRole.role.name,
+        createdAt: memberRole.createdAt ?? undefined,
+        grantedBy: includes?.includes(GetMemberInclude.RoleGranter)
+          ? profiles?.find((p) => p.id == memberRole.grantedBy)
+          : undefined,
+      })),
+    }));
+
+    return this.outputArray(MemberOutputDto, outputs);
+  }
+
+  private async mapToDto(
+    raw: any,
+    includes?: GetMemberInclude[],
+  ): Promise<MemberOutputDto> {
+    const memberProfileIds =
+      raw.MemberRole?.map((role) => role.grantedBy).filter((p) => p != null) ??
+      [];
+    const accountMemberId = includes?.includes(GetMemberInclude.Profile)
+      ? raw.accountId
+      : [];
+    const profileIds = [...memberProfileIds, ...accountMemberId];
+    const profiles =
+      profileIds.length == 0
+        ? undefined
+        : await this.profileService.getProfiles(undefined, {
+            ids: profileIds,
+            select: getProfileBasicSelect,
+          });
 
     const output = {
       ...raw,
-      roles: raw.MemberRole.map((memberRole) => ({
+      profile: profiles?.find((p) => p.id == raw.accountId),
+      roles: raw.MemberRole?.map((memberRole) => ({
         name: memberRole.role.name,
         createdAt: memberRole.createdAt ?? undefined,
-        grantedBy: profiles.find((p) => p.id == memberRole.grantedBy),
+        grantedBy: includes?.includes(GetMemberInclude.RoleGranter)
+          ? profiles?.find((p) => p.id == memberRole.grantedBy)
+          : undefined,
       })),
     };
     return this.output(MemberOutputDto, output);

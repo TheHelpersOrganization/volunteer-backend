@@ -1,6 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
-import { GrantRoleInputDto, RevokeRoleInputDto } from '../dtos';
+import {
+  GetMemberByIdQueryDto,
+  GrantRoleInputDto,
+  RevokeRoleInputDto,
+} from '../dtos';
 import { MemberOutputDto } from '../dtos/member.output.dto';
 import {
   OrganizationMemberService,
@@ -18,8 +22,9 @@ export class OrganizationMemberController {
   async getMe(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
+    @Query() query?: GetMemberByIdQueryDto,
   ): Promise<MemberOutputDto[]> {
-    return this.organizationMemberService.getMe(context, organizationId);
+    return this.organizationMemberService.getMe(context, organizationId, query);
   }
 
   @Post('join')
