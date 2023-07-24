@@ -69,7 +69,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: OrganizationMemberRole.Owner,
-      description: ' Organization owner read, update and delete organization ',
+      description: 'Organization owner read, update and delete organization ',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
