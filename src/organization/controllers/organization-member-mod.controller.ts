@@ -27,6 +27,21 @@ export class OrganizationMemberModController {
     );
   }
 
+  @Get(':memberId')
+  async getMemberById(
+    @ReqContext() context: RequestContext,
+    @Param('organizationId') organizationId: number,
+    @Param('memberId') memberId: number,
+    @Query() dto: GetMemberQueryDto,
+  ) {
+    return this.organizationMemberService.getMemberById(
+      context,
+      organizationId,
+      memberId,
+      dto,
+    );
+  }
+
   @Post(':id/approve')
   async approveMember(
     @ReqContext() context: RequestContext,

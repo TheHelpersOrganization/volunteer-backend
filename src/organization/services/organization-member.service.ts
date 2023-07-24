@@ -84,9 +84,36 @@ export class OrganizationMemberService extends AbstractService {
   async getMemberById(
     context: RequestContext,
     organizationId: number,
+    memberId: number,
+    query?: GetMemberByIdQueryDto,
+  ) {
+    this.logCaller(context, this.getMemberById);
+
+    const member = await this.prisma.member.findUnique({
+      where: {
+        id: memberId,
+        organization: {
+          id: organizationId,
+        },
+      },
+      include: this.getMemberInclude(query?.include),
+    });
+
+    if (member == null) {
+      return null;
+    }
+
+    const output = this.mapToDto(member, query?.include);
+
+    return output;
+  }
+
+  async getMemberByIdOrThrow(
+    context: RequestContext,
+    organizationId: number,
     memberId?: number,
     query?: GetMemberByIdQueryDto,
-  ): Promise<MemberOutputDto> {
+  ) {
     this.logCaller(context, this.getMemberById);
 
     const member = await this.prisma.member.findUnique({
@@ -356,7 +383,7 @@ export class OrganizationMemberService extends AbstractService {
       update: {},
     });
 
-    return this.getMemberById(context, organizationId, memberId);
+    return this.getMemberByIdOrThrow(context, organizationId, memberId);
   }
 
   async revokeMemberRole(
@@ -381,7 +408,7 @@ export class OrganizationMemberService extends AbstractService {
       },
     });
 
-    return this.getMemberById(context, organizationId, memberId);
+    return this.getMemberByIdOrThrow(context, organizationId, memberId);
   }
 
   async validateApprovedMember(organizationId: number, memberId: number) {
@@ -473,7 +500,7 @@ export class OrganizationMemberService extends AbstractService {
       raw.MemberRole?.map((role) => role.grantedBy).filter((p) => p != null) ??
       [];
     const accountMemberId = includes?.includes(GetMemberInclude.Profile)
-      ? raw.accountId
+      ? [raw.accountId]
       : [];
     const profileIds = [...memberProfileIds, ...accountMemberId];
     const profiles =
