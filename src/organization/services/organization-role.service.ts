@@ -71,6 +71,15 @@ export class OrganizationRoleService extends AbstractService {
     return res;
   }
 
+  async validateAccountMemberHasRole(
+    organizationId: number,
+    accountId: number,
+    roleName: OrganizationMemberRole,
+  ) {
+    const member = await this.getMemberOrThrow(organizationId, accountId);
+    return this.validateMemberHasRole(member.id, roleName);
+  }
+
   async validateMemberHasRoles(
     memberId: number,
     roleNames: OrganizationMemberRole[],
@@ -205,5 +214,19 @@ export class OrganizationRoleService extends AbstractService {
     ) {
       throw new UnauthorizedException(`Forbidden`);
     }
+  }
+
+  async getMemberOrThrow(organizationId: number, accountId: number) {
+    const member = await this.prisma.member.findFirst({
+      where: {
+        organizationId: organizationId,
+        accountId: accountId,
+        status: OrganizationMemberStatus.Approved,
+      },
+    });
+    if (!member) {
+      throw new UnauthorizedException(`Forbidden`);
+    }
+    return member;
   }
 }

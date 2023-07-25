@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { requireNonNullish } from 'prisma/seed/utils';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -8,6 +9,7 @@ import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { RoleService } from 'src/role/services';
 import {
+  OrganizationMemberRole,
   OrganizationMemberRoleWeight,
   OrganizationMemberStatus,
   OrganizationStatus,
@@ -20,6 +22,7 @@ import {
   GrantRoleInputDto,
   MemberOutputDto,
   MemberRolesOutputDto,
+  OrganizationOutputDto,
   RevokeRoleInputDto,
 } from '../dtos';
 import {
@@ -437,22 +440,93 @@ export class OrganizationMemberService extends AbstractService {
 
     const role = await this.roleService.getRoleByNameOrThrow(dto.role);
 
-    await this.prisma.memberRole.upsert({
-      where: {
-        memberId_roleId: {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.memberRole.deleteMany({
+        where: {
+          memberId: oldMember.id,
+        },
+      });
+      await tx.memberRole.create({
+        data: {
           memberId: oldMember.id,
           roleId: role.id,
+          grantedBy: context.account.id,
         },
-      },
-      create: {
-        memberId: oldMember.id,
-        roleId: role.id,
-        grantedBy: context.account.id,
-      },
-      update: {},
+      });
     });
 
     return this.getMemberByIdOrThrow(context, organizationId, memberId);
+  }
+
+  async transferOwnership(
+    context: RequestContext,
+    organizationId: number,
+    memberId: number,
+  ) {
+    this.logCaller(context, this.transferOwnership);
+
+    const { organization, member } = await this.validateApprovedMember(
+      organizationId,
+      memberId,
+    );
+    const ownerMember = await this.prisma.member.findFirst({
+      where: {
+        accountId: organization.ownerId,
+        organizationId: organization.id,
+        status: OrganizationMemberStatus.Approved,
+      },
+    });
+    if (ownerMember == null) {
+      throw new UserStatusNotApprovedException();
+    }
+
+    const roles = await this.roleService.getRoleByNamesOrThrow([
+      OrganizationMemberRole.Owner,
+      OrganizationMemberRole.Manager,
+    ]);
+    const ownerRole = requireNonNullish(
+      roles.find((role) => role.name == OrganizationMemberRole.Owner),
+    );
+    const managerRole = requireNonNullish(
+      roles.find((role) => role.name == OrganizationMemberRole.Manager),
+    );
+
+    const newOrganization = await this.prisma.$transaction(async (tx) => {
+      await tx.memberRole.deleteMany({
+        where: {
+          memberId: ownerMember.id,
+        },
+      });
+      await tx.memberRole.create({
+        data: {
+          memberId: member.id,
+          roleId: managerRole.id,
+          grantedBy: context.account.id,
+        },
+      });
+      await tx.memberRole.deleteMany({
+        where: {
+          memberId: member.id,
+        },
+      });
+      await tx.memberRole.create({
+        data: {
+          memberId: member.id,
+          roleId: ownerRole.id,
+          grantedBy: context.account.id,
+        },
+      });
+      return tx.organization.update({
+        where: {
+          id: organization.id,
+        },
+        data: {
+          ownerId: member.accountId,
+        },
+      });
+    });
+
+    return this.output(OrganizationOutputDto, newOrganization);
   }
 
   async revokeMemberRole(

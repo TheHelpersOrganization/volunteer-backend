@@ -7,6 +7,7 @@ export * from './organization.output.dto';
 export * from './organizaton-files.input.dto';
 export * from './reject-organization.input.dto';
 export * from './role.dto';
+export * from './transfer-ownership.dto';
 export * from './update-member-status.input.dto';
 export * from './update-organization.input.dto';
 export * from './verify-organization.input.dto';
