@@ -26,7 +26,7 @@ import { skills } from './seed-skill';
 import {
   generateLocation,
   generateMember,
-  generateMemberRoles,
+  generateMemberRole,
   getNextContactId,
   getNextMemberId,
   getNextOrganizationId,
@@ -275,7 +275,7 @@ export const seedOrganizations = async (
       memberMappings,
       randomInt(0, Math.max(memberMappings.length, 15)),
     ).forEach((member) =>
-      memberRoles.push(...generateMemberRoles(member, roles, accounts)),
+      memberRoles.push(generateMemberRole(member, roles, accounts)),
     );
 
     return memberMappings;

@@ -1,12 +1,6 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
-import {
-  Account,
-  Member,
-  MemberRole,
-  Organization,
-  Role,
-} from '@prisma/client';
+import { Account, Member, Organization, Role } from '@prisma/client';
 import * as csv from 'csv-parse/sync';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -168,30 +162,25 @@ export const generateMember = (
   };
 };
 
-export const generateMemberRoles = (
+export const generateMemberRole = (
   member: Member,
   roles: Role[],
   granter: Account[],
 ) => {
-  const grantedRoles: MemberRole[] = [];
-  const roleNames = _.sampleSize(
-    [
+  const roleName = requireNonNullish(
+    _.sample([
       OrganizationMemberRole.Manager,
       OrganizationMemberRole.MemberManager,
       OrganizationMemberRole.ActivityManager,
-    ],
-    fakerEn.number.int({ min: 0, max: 3 }),
+    ]),
   );
-  for (const roleName of roleNames) {
-    grantedRoles.push({
-      memberId: member.id,
-      roleId: getOrganizationMemberRoleByName(roles, roleName).id,
-      grantedBy: _.sample(granter)?.id ?? null,
-      createdAt: member.createdAt,
-      updatedAt: new Date(),
-    });
-  }
-  return grantedRoles;
+  return {
+    memberId: member.id,
+    roleId: getOrganizationMemberRoleByName(roles, roleName).id,
+    grantedBy: _.sample(granter)?.id ?? null,
+    createdAt: member.createdAt,
+    updatedAt: new Date(),
+  };
 };
 
 export const generateViContact = () => ({

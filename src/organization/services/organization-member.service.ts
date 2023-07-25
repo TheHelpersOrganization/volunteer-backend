@@ -50,22 +50,23 @@ export class OrganizationMemberService extends AbstractService {
     context: RequestContext,
     organizationId: number,
     query?: GetMemberQueryDto,
-  ): Promise<MemberOutputDto[]> {
+  ): Promise<MemberOutputDto | null> {
     this.logCaller(context, this.getMe);
     const accountId = context.account.id;
 
-    const members = await this.prisma.member.findMany({
+    const member = await this.prisma.member.findFirst({
       where: {
         accountId: accountId,
         organizationId: organizationId,
       },
       include: this.getMemberInclude(query?.include),
     });
-    if (members.length == 0) {
-      throw new UserHaveNotJoinedOrganizationException();
+
+    if (member == null) {
+      return null;
     }
 
-    return this.mapManyToDto(members, query?.include);
+    return this.mapToDto(member, query?.include);
   }
 
   async getMembers(
@@ -168,25 +169,32 @@ export class OrganizationMemberService extends AbstractService {
       where: {
         accountId: accountId,
         organizationId: organizationId,
-        status: {
-          in: [
-            OrganizationMemberStatus.Pending,
-            OrganizationMemberStatus.Approved,
-          ],
-        },
       },
     });
-    if (member != null) {
+    if (
+      member != null &&
+      (member.status == OrganizationMemberStatus.Pending ||
+        member.status == OrganizationMemberStatus.Approved)
+    ) {
       throw new UserHaveAlreadyJoinedOrganizationException();
     }
 
-    const organizationMember = await this.prisma.member.create({
-      data: {
-        organizationId: organizationId,
-        accountId: accountId,
-        status: OrganizationMemberStatus.Pending,
-      },
-    });
+    const organizationMember = member?.id
+      ? await this.prisma.member.update({
+          where: {
+            id: member.id,
+          },
+          data: {
+            status: OrganizationMemberStatus.Pending,
+          },
+        })
+      : await this.prisma.member.create({
+          data: {
+            organizationId: organizationId,
+            accountId: accountId,
+            status: OrganizationMemberStatus.Pending,
+          },
+        });
 
     return this.output(MemberOutputDto, organizationMember);
   }

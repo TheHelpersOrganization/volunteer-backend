@@ -74,7 +74,8 @@ export const seedAccountsAndRoles = async (
       id: getNextRoleId(),
       name: OrganizationMemberRole.Owner,
       displayName: 'Owner',
-      description: 'Organization owner read, update and delete organization ',
+      description:
+        'Organization owner can update, delete organization and transfer organization ownership. Plus all the permissions of other roles',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -82,7 +83,8 @@ export const seedAccountsAndRoles = async (
       id: getNextRoleId(),
       name: OrganizationMemberRole.Manager,
       displayName: 'Manager',
-      description: 'Organization Manager can read, update organization',
+      description:
+        'Organization Manager can update organization. Plus all the permissions of Member Manager and Activity Manager',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -91,7 +93,7 @@ export const seedAccountsAndRoles = async (
       name: OrganizationMemberRole.MemberManager,
       displayName: 'Member Manager',
       description:
-        'Organization Member Manager can read, update and delete organization member',
+        'Organization Member Manager can manage organization member. Plus all the permissions of Activity Manager',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -100,7 +102,7 @@ export const seedAccountsAndRoles = async (
       name: OrganizationMemberRole.ActivityManager,
       displayName: 'Activity Manager',
       description:
-        'Organization Activity Manager can read, update and delete organization activity',
+        'Organization Activity Manager can create, update and delete organization activity',
       createdAt: new Date(),
       updatedAt: new Date(),
     },

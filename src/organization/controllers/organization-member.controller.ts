@@ -25,7 +25,7 @@ export class OrganizationMemberController {
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
     @Query() query?: GetMemberByIdQueryDto,
-  ): Promise<MemberOutputDto[]> {
+  ): Promise<MemberOutputDto | null> {
     return this.organizationMemberService.getMe(context, organizationId, query);
   }
 
