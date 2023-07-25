@@ -77,20 +77,65 @@ export class OrganizationMemberService extends AbstractService {
     this.logCaller(context, this.getMembers);
 
     const members = await this.prisma.member.findMany({
-      where: {
-        organization: {
-          id: organizationId,
-        },
-        status: {
-          in: query?.statuses,
-        },
-      },
+      where: this.getMemberWhere(organizationId, query),
       include: this.getMemberInclude(query?.include),
       take: query?.limit,
       skip: query?.offset,
     });
 
     return this.mapManyToDto(members, query?.include);
+  }
+
+  getMemberWhere(organizationId: number, query?: GetMemberQueryDto) {
+    const where: Prisma.MemberWhereInput = {
+      organizationId: organizationId,
+    };
+    if (!query) {
+      return where;
+    }
+    if (query.name) {
+      where.account = {
+        profile: {
+          OR: [
+            {
+              username: {
+                contains: query.name,
+                mode: 'insensitive',
+              },
+            },
+            {
+              firstName: {
+                contains: query.name,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: query.name,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      };
+    }
+    if (query.role) {
+      where.MemberRole = {
+        some: {
+          role: {
+            name: {
+              in: query.role,
+            },
+          },
+        },
+      };
+    }
+    if (query.statuses) {
+      where.status = {
+        in: query.statuses,
+      };
+    }
+    return where;
   }
 
   async getMemberById(

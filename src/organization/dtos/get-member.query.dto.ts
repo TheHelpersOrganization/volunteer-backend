@@ -5,9 +5,14 @@ import {
   IsArray,
   IsEnum,
   IsOptional,
+  IsString,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
-import { OrganizationMemberStatus } from '../constants';
+import {
+  OrganizationMemberRole,
+  OrganizationMemberStatus,
+  organizationMemberRoles,
+} from '../constants';
 
 export enum GetMemberInclude {
   Profile = 'profile',
@@ -28,6 +33,18 @@ export class GetMemberByIdQueryDto extends PaginationQueryDto {
 }
 
 export class GetMemberQueryDto extends GetMemberByIdQueryDto {
+  @IsOptional()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => value.split(',').map(String))
+  @IsEnum(OrganizationMemberRole, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(organizationMemberRoles.length)
+  role?: OrganizationMemberRole[];
+
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => value.split(',').map(String))

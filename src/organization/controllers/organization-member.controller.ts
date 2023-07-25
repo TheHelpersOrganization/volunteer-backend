@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
-  GetMemberByIdQueryDto,
   GetMemberQueryDto,
   GrantRoleInputDto,
   MemberRolesOutputDto,
@@ -24,7 +23,7 @@ export class OrganizationMemberController {
   async getMe(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
-    @Query() query?: GetMemberByIdQueryDto,
+    @Query() query?: GetMemberQueryDto,
   ): Promise<MemberOutputDto | null> {
     return this.organizationMemberService.getMe(context, organizationId, query);
   }
