@@ -633,6 +633,7 @@ export class OrganizationMemberService extends AbstractService {
       profile: profiles?.find((p) => p.id == raw.accountId),
       roles: raw.MemberRole?.map((memberRole) => ({
         name: memberRole.role.name,
+        displayName: memberRole.role.displayName,
         createdAt: memberRole.createdAt ?? undefined,
         grantedBy: includes?.includes(GetMemberInclude.RoleGranter)
           ? profiles?.find((p) => p.id == memberRole.grantedBy)
@@ -661,12 +662,12 @@ export class OrganizationMemberService extends AbstractService {
             ids: profileIds,
             select: getProfileBasicSelect,
           });
-
     const output = {
       ...raw,
       profile: profiles?.find((p) => p.id == raw.accountId),
       roles: raw.MemberRole?.map((memberRole) => ({
         name: memberRole.role.name,
+        displayName: memberRole.role.displayName,
         createdAt: memberRole.createdAt ?? undefined,
         grantedBy: includes?.includes(GetMemberInclude.RoleGranter)
           ? profiles?.find((p) => p.id == memberRole.grantedBy)
