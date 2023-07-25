@@ -8,6 +8,7 @@ import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { RoleService } from 'src/role/services';
 import {
+  OrganizationMemberRoleWeight,
   OrganizationMemberStatus,
   OrganizationStatus,
   nonOwnerOrganizationMemberRoles,
@@ -387,6 +388,9 @@ export class OrganizationMemberService extends AbstractService {
         role: true,
       },
     });
+    const maxAssignRoleWeight = Math.max(
+      ...assignedRoles.map((v) => OrganizationMemberRoleWeight[v.role.name]),
+    );
 
     const roles = await this.prisma.role.findMany({
       where: {
@@ -398,7 +402,8 @@ export class OrganizationMemberService extends AbstractService {
 
     const availableRoles = roles.filter(
       (role) =>
-        !assignedRoles.find((assignedRole) => assignedRole.roleId == role.id),
+        !assignedRoles.find((assignedRole) => assignedRole.roleId == role.id) &&
+        OrganizationMemberRoleWeight[role.name] > maxAssignRoleWeight,
     );
     const canGrantRoles = roles.filter((role) =>
       grantableRoles.find((grantableRole) => grantableRole == role.name),
