@@ -406,9 +406,15 @@ export class OrganizationMemberService extends AbstractService {
 
     return this.output(MemberRolesOutputDto, {
       assignedRoles: assignedRoles.map((v) => v.role),
-      availableRoles: availableRoles,
-      canGrantRoles: canGrantRoles,
-      canRevokeRoles: canGrantRoles,
+      availableRoles: availableRoles.map((v) => ({
+        ...v,
+        createdAt: undefined,
+      })),
+      canGrantRoles: canGrantRoles.map((v) => ({ ...v, createdAt: undefined })),
+      canRevokeRoles: canGrantRoles.map((v) => ({
+        ...v,
+        createdAt: undefined,
+      })),
     });
   }
 
