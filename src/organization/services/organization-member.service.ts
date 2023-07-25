@@ -7,13 +7,18 @@ import { PrismaService } from 'src/prisma';
 import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { RoleService } from 'src/role/services';
-import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
+import {
+  OrganizationMemberStatus,
+  OrganizationStatus,
+  nonOwnerOrganizationMemberRoles,
+} from '../constants';
 import {
   GetMemberByIdQueryDto,
   GetMemberInclude,
   GetMemberQueryDto,
   GrantRoleInputDto,
   MemberOutputDto,
+  MemberRolesOutputDto,
   RevokeRoleInputDto,
 } from '../dtos';
 import {
@@ -23,6 +28,7 @@ import {
   UserRegistrationStatusNotPendingException,
   UserStatusNotApprovedException,
 } from '../exceptions';
+import { OrganizationRoleService } from './organization-role.service';
 
 @Injectable()
 export class OrganizationMemberService extends AbstractService {
@@ -31,6 +37,7 @@ export class OrganizationMemberService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly roleService: RoleService,
     private readonly profileService: ProfileService,
+    private readonly organizationRoleService: OrganizationRoleService,
   ) {
     super(logger);
   }
@@ -352,6 +359,57 @@ export class OrganizationMemberService extends AbstractService {
     });
 
     return this.output(MemberOutputDto, updated);
+  }
+
+  async getMemberRoles(
+    context: RequestContext,
+    organizationId: number,
+    memberId: number,
+  ) {
+    this.logCaller(context, this.getMemberRoles);
+
+    const { member } = await this.validateApprovedMember(
+      organizationId,
+      memberId,
+    );
+    const grantableRoles =
+      await this.organizationRoleService.getAccountMemberCanGrantRoles(
+        organizationId,
+        context.account.id,
+        memberId,
+      );
+
+    const assignedRoles = await this.prisma.memberRole.findMany({
+      where: {
+        memberId: member.id,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    const roles = await this.prisma.role.findMany({
+      where: {
+        name: {
+          in: nonOwnerOrganizationMemberRoles,
+        },
+      },
+    });
+
+    const availableRoles = roles.filter(
+      (role) =>
+        !assignedRoles.find((assignedRole) => assignedRole.roleId == role.id),
+    );
+    const canGrantRoles = roles.filter((role) =>
+      grantableRoles.find((grantableRole) => grantableRole == role.name),
+    );
+
+    return this.output(MemberRolesOutputDto, {
+      assignedRoles: assignedRoles.map((v) => v.role),
+      availableRoles: availableRoles,
+      canGrantRoles: canGrantRoles,
+      canRevokeRoles: canGrantRoles,
+    });
   }
 
   async grantMemberRole(

@@ -4,6 +4,7 @@ import {
   GetMemberByIdQueryDto,
   GetMemberQueryDto,
   GrantRoleInputDto,
+  MemberRolesOutputDto,
   RevokeRoleInputDto,
 } from '../dtos';
 import { MemberOutputDto } from '../dtos/member.output.dto';
@@ -67,7 +68,20 @@ export class OrganizationMemberController {
     return this.organizationMemberService.leave(context, organizationId);
   }
 
-  @Post(':memberId/role/grant')
+  @Get(':memberId/roles')
+  async getMemberRoles(
+    @ReqContext() context: RequestContext,
+    @Param('organizationId') organizationId: number,
+    @Param('memberId') memberId: number,
+  ): Promise<MemberRolesOutputDto> {
+    return this.organizationMemberService.getMemberRoles(
+      context,
+      organizationId,
+      memberId,
+    );
+  }
+
+  @Post(':memberId/roles/grant')
   async grantRole(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,
@@ -88,7 +102,7 @@ export class OrganizationMemberController {
     );
   }
 
-  @Post(':memberId/role/revoke')
+  @Post(':memberId/roles/revoke')
   async revokeRole(
     @ReqContext() context: RequestContext,
     @Param('organizationId') organizationId: number,

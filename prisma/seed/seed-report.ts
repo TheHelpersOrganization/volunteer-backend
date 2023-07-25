@@ -45,7 +45,8 @@ export const seedReports = async (
     if (!options?.importantAccountIds?.includes(account.id)) {
       const numberOfReports = faker.helpers.weightedArrayElement([
         { weight: 30, value: 0 },
-        { weight: 1, value: 1 },
+        { weight: 10, value: 1 },
+        { weight: 1, value: 2 },
       ]);
       for (let i = 0; i < numberOfReports; i++) {
         const report = createReport({
@@ -77,7 +78,8 @@ export const seedReports = async (
     } else {
       reportStatuses.forEach((status) => {
         const numberOfAccountReports = faker.helpers.weightedArrayElement([
-          { weight: account.id, value: 0 },
+          { weight: 10, value: 0 },
+          { weight: 5, value: 1 },
           { weight: 1, value: 1 },
         ]);
         for (let i = 0; i < numberOfAccountReports; i++) {
@@ -165,11 +167,11 @@ export const seedReports = async (
       reportMessageFilesCount[reportMessage.id] =
         faker.helpers.weightedArrayElement([
           {
-            weight: 10000,
+            weight: 20,
             value: 0,
           },
           {
-            weight: 10,
+            weight: 5,
             value: 1,
           },
           {
@@ -196,7 +198,7 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 1000,
+              weight: 100,
               value: 0,
             },
             {
@@ -209,7 +211,7 @@ export const seedReports = async (
         reportMessageFilesCount[otherReportMessage.id] =
           faker.helpers.weightedArrayElement([
             {
-              weight: 10000,
+              weight: 50,
               value: 0,
             },
             {
@@ -220,6 +222,10 @@ export const seedReports = async (
       }
     }
   }
+
+  console.log(
+    Object.values(reportMessageFilesCount).reduce((a, b) => a + b, 0),
+  );
 
   const files = await seedFiles(
     prisma,

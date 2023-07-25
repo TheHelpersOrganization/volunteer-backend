@@ -39,6 +39,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: RoleEnum.Volunteer,
+      displayName: 'Volunteer',
       description: 'Volunteer',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -46,6 +47,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: RoleEnum.Moderator,
+      displayName: 'Moderator',
       description: 'Moderator',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -53,6 +55,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: RoleEnum.Admin,
+      displayName: 'Admin',
       description: 'Admin',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -60,15 +63,17 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: RoleEnum.Operator,
+      displayName: 'Operator',
       description: 'Operator',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   ];
-  const organizationMemberRoles = [
+  const organizationMemberRoles: Role[] = [
     {
       id: getNextRoleId(),
       name: OrganizationMemberRole.Owner,
+      displayName: 'Owner',
       description: 'Organization owner read, update and delete organization ',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -76,6 +81,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: OrganizationMemberRole.Manager,
+      displayName: 'Manager',
       description: 'Organization Manager can read, update organization',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -83,6 +89,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: OrganizationMemberRole.MemberManager,
+      displayName: 'Member Manager',
       description:
         'Organization Member Manager can read, update and delete organization member',
       createdAt: new Date(),
@@ -91,6 +98,7 @@ export const seedAccountsAndRoles = async (
     {
       id: getNextRoleId(),
       name: OrganizationMemberRole.ActivityManager,
+      displayName: 'Activity Manager',
       description:
         'Organization Activity Manager can read, update and delete organization activity',
       createdAt: new Date(),
@@ -315,6 +323,16 @@ export const seedAccountsAndRoles = async (
     });
   });
 
+  const nonDisabledAccounts = accounts.filter(
+    (account) => !account.isAccountDisabled,
+  );
+  const nonDisabledModAccounts = modAccounts.filter(
+    (account) => !account.isAccountDisabled,
+  );
+  const nonDisabledVolunteerAccounts = volunteerAccounts.filter(
+    (account) => !account.isAccountDisabled,
+  );
+
   if (options?.runWithoutDb) {
     return {
       roles,
@@ -355,6 +373,9 @@ export const seedAccountsAndRoles = async (
     adminAccounts,
     modAccounts,
     volunteerAccounts,
+    nonDisabledAccounts,
+    nonDisabledModAccounts,
+    nonDisabledVolunteerAccounts,
     defaultAccounts,
     accounts,
   };

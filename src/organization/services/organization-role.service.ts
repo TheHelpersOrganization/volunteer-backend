@@ -109,6 +109,32 @@ export class OrganizationRoleService extends AbstractService {
     return res;
   }
 
+  async getAccountMemberCanGrantRoles(
+    organizationId: number,
+    granterAccountId: number,
+    targetMemberId: number,
+  ) {
+    if (granterAccountId === targetMemberId) {
+      return [];
+    }
+    const memberRoles = (
+      await this.getAccountMemberRoles(organizationId, granterAccountId)
+    ).map((v) => {
+      const r = organizationMemberRoles.find((role) => role === v.name);
+      if (!r) {
+        throw new RoleNotFountException();
+      }
+      return r;
+    });
+    const maxRoleWeight = Math.max(
+      ...memberRoles.map((v) => OrganizationMemberRoleWeight[v]),
+    );
+    const grantableRoles = organizationMemberRoles.filter((role) => {
+      return OrganizationMemberRoleWeight[role] < maxRoleWeight;
+    });
+    return grantableRoles;
+  }
+
   async validateAccountMemberGrantRole(
     organizationId: number,
     granterAccountId: number,
@@ -136,6 +162,25 @@ export class OrganizationRoleService extends AbstractService {
     ) {
       throw new UnauthorizedException(`Forbidden`);
     }
+  }
+
+  async getMemberCanGrantRoles(granterMemberId: number) {
+    const memberRoles = (await this.getMemberRoles(granterMemberId)).map(
+      (v) => {
+        const r = organizationMemberRoles.find((role) => role === v.name);
+        if (!r) {
+          throw new RoleNotFountException();
+        }
+        return r;
+      },
+    );
+    const maxRoleWeight = Math.max(
+      ...memberRoles.map((v) => OrganizationMemberRoleWeight[v]),
+    );
+    const grantableRoles = organizationMemberRoles.filter((role) => {
+      return OrganizationMemberRoleWeight[role] < maxRoleWeight;
+    });
+    return grantableRoles;
   }
 
   async validateMemberCanGrantRole(

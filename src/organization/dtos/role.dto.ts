@@ -1,4 +1,4 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { IsEnum, IsIn } from 'class-validator';
 import { ProfileOutputDto } from 'src/profile/dtos';
 import {
@@ -18,11 +18,38 @@ export class RevokeRoleInputDto {
 
 export class MemberRoleOutputDto {
   @Expose()
+  id: number;
+
+  @Expose()
   name: string;
+
+  @Expose()
+  displayName?: string;
+
+  @Expose()
+  description?: string;
 
   @Expose()
   createdAt?: Date;
 
   @Expose()
   grantedBy?: ProfileOutputDto;
+}
+
+export class MemberRolesOutputDto {
+  @Expose()
+  @Type(() => MemberRoleOutputDto)
+  assignedRoles: MemberRoleOutputDto[];
+
+  @Expose()
+  @Type(() => MemberRoleOutputDto)
+  availableRoles: MemberRoleOutputDto[];
+
+  @Expose()
+  @Type(() => MemberRoleOutputDto)
+  canGrantRoles: MemberRoleOutputDto[];
+
+  @Expose()
+  @Type(() => MemberRoleOutputDto)
+  canRevokeRoles: MemberRoleOutputDto[];
 }

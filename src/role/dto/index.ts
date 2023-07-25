@@ -29,6 +29,9 @@ export class RoleOutputDto {
   name: string;
 
   @Expose()
+  displayName?: string;
+
+  @Expose()
   description?: string;
 
   @Expose()
