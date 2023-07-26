@@ -11,6 +11,9 @@ export class OrganizationOutputDto {
   id: number;
 
   @Expose()
+  ownerId: number;
+
+  @Expose()
   status: OrganizationStatus;
 
   @Expose()
