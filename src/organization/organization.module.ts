@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CommonModule } from 'src/common/common.module';
 
+import { AuthModule } from 'src/auth/auth.module';
 import { ProfileModule } from 'src/profile/profile.module';
 import { RoleModule } from 'src/role/role.module';
 import { ContactModule } from '../contact/contact.module';
@@ -27,6 +28,7 @@ import {
     ContactModule,
     RoleModule,
     ProfileModule,
+    AuthModule,
   ],
   controllers: [
     OrganizationController,

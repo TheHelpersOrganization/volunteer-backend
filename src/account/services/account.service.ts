@@ -5,6 +5,7 @@ import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.
 import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
 import { Role } from 'src/auth/constants';
+import { WrongPasswordException } from 'src/auth/exceptions';
 import { AbstractService } from 'src/common/services';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
@@ -229,6 +230,18 @@ export class AccountService extends AbstractService {
     return accounts.map((account) => {
       return this.mapToDto(account);
     });
+  }
+
+  async validateAccountPassword(accountId: number, password: string) {
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+    });
+    if (!account) throw new AccountNotFoundException();
+
+    const match = await compare(password, account.password);
+    if (!match) throw new WrongPasswordException();
+
+    return true;
   }
 
   mapToDto(account: any): AccountOutputDto {

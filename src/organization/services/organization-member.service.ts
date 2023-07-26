@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { requireNonNullish } from 'prisma/seed/utils';
+import { AuthService } from 'src/auth/services';
 import { AppLogger } from 'src/common/logger';
 import { RequestContext } from 'src/common/request-context';
 import { AbstractService } from 'src/common/services';
@@ -24,8 +25,10 @@ import {
   MemberRolesOutputDto,
   OrganizationOutputDto,
   RevokeRoleInputDto,
+  TransferOwnershipInputDto,
 } from '../dtos';
 import {
+  CannotTransferOwnershipToSelfException,
   OrganizationNotFoundException,
   UserHaveAlreadyJoinedOrganizationException,
   UserHaveNotJoinedOrganizationException,
@@ -42,6 +45,7 @@ export class OrganizationMemberService extends AbstractService {
     private readonly roleService: RoleService,
     private readonly profileService: ProfileService,
     private readonly organizationRoleService: OrganizationRoleService,
+    private readonly authService: AuthService,
   ) {
     super(logger);
   }
@@ -514,23 +518,28 @@ export class OrganizationMemberService extends AbstractService {
   async transferOwnership(
     context: RequestContext,
     organizationId: number,
-    memberId: number,
+    dto: TransferOwnershipInputDto,
   ) {
     this.logCaller(context, this.transferOwnership);
-
-    const { organization, member } = await this.validateApprovedMember(
-      organizationId,
-      memberId,
+    await this.authService.validateAccountPassword(
+      context.account.id,
+      dto.password,
     );
+    const { organization, member: targetMember } =
+      await this.validateApprovedMember(organizationId, dto.memberId);
     const ownerMember = await this.prisma.member.findFirst({
       where: {
-        accountId: organization.ownerId,
+        accountId: context.account.id,
         organizationId: organization.id,
         status: OrganizationMemberStatus.Approved,
       },
     });
     if (ownerMember == null) {
       throw new UserStatusNotApprovedException();
+    }
+
+    if (ownerMember.id == targetMember.id) {
+      throw new CannotTransferOwnershipToSelfException();
     }
 
     const roles = await this.roleService.getRoleByNamesOrThrow([
@@ -552,19 +561,19 @@ export class OrganizationMemberService extends AbstractService {
       });
       await tx.memberRole.create({
         data: {
-          memberId: member.id,
+          memberId: ownerMember.id,
           roleId: managerRole.id,
           grantedBy: context.account.id,
         },
       });
       await tx.memberRole.deleteMany({
         where: {
-          memberId: member.id,
+          memberId: targetMember.id,
         },
       });
       await tx.memberRole.create({
         data: {
-          memberId: member.id,
+          memberId: targetMember.id,
           roleId: ownerRole.id,
           grantedBy: context.account.id,
         },
@@ -574,7 +583,7 @@ export class OrganizationMemberService extends AbstractService {
           id: organization.id,
         },
         data: {
-          ownerId: member.accountId,
+          ownerId: targetMember.accountId,
         },
       });
     });
@@ -620,6 +629,7 @@ export class OrganizationMemberService extends AbstractService {
     const member = await this.prisma.member.findFirst({
       where: {
         id: memberId,
+        organizationId: organizationId,
       },
     });
     if (member == null) {

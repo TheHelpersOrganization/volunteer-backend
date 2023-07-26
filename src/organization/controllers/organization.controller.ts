@@ -63,10 +63,7 @@ export class OrganizationController {
       context.account.id,
       OrganizationMemberRole.Owner,
     );
-    return this.organizationMemberService.transferOwnership(
-      context,
-      id,
-      dto.memberId,
-    );
+
+    return this.organizationMemberService.transferOwnership(context, id, dto);
   }
 }

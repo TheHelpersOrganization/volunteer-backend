@@ -46,3 +46,9 @@ export class UserStatusNotApprovedException extends BaseApiException {
     super('User have not finished registration');
   }
 }
+
+export class CannotTransferOwnershipToSelfException extends BaseApiException {
+  constructor() {
+    super('Cannot transfer ownership to yourself');
+  }
+}

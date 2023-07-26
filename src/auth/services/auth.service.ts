@@ -84,6 +84,14 @@ export class AuthService {
     );
   }
 
+  async validateAccountPassword(accountId: number, password: string) {
+    const account = await this.accountService.validateAccountPassword(
+      accountId,
+      password,
+    );
+    return account;
+  }
+
   async register(
     ctx: RequestContext,
     input: RegisterInput,
