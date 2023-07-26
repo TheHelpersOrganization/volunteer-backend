@@ -358,6 +358,7 @@ export class ChatService extends AbstractService {
           ),
         ),
       description: message.message,
+      pushOnly: true,
     });
 
     return this.output(ChatMessageOutputDto, message);

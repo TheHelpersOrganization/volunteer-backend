@@ -82,6 +82,7 @@ export const seedNotifications = async (
         accountId: account.id,
         read: faker.datatype.boolean(),
         type: type,
+        pushOnly: type == NotificationType.Chat ? true : false,
         activityId: activityId,
         shiftId: shiftId,
         organizationId: organizationId,
