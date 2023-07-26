@@ -4,10 +4,12 @@ import {
   ArrayMinSize,
   IsArray,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
+import { stringToIntArrayTransform } from 'src/common/transformers';
 import {
   OrganizationMemberRole,
   OrganizationMemberStatus,
@@ -33,6 +35,20 @@ export class GetMemberByIdQueryDto extends PaginationQueryDto {
 }
 
 export class GetMemberQueryDto extends GetMemberByIdQueryDto {
+  @IsOptional()
+  @IsInt({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @Transform(stringToIntArrayTransform)
+  id: number[];
+
+  @IsOptional()
+  @IsInt({ each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @Transform(stringToIntArrayTransform)
+  notId: number[];
+
   @IsOptional()
   @IsString()
   name: string;

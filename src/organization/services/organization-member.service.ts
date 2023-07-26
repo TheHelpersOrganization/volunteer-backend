@@ -97,6 +97,12 @@ export class OrganizationMemberService extends AbstractService {
     if (!query) {
       return where;
     }
+    if (query.id || query.notId) {
+      where.id = {
+        in: query.id,
+        notIn: query.notId,
+      };
+    }
     if (query.name) {
       where.account = {
         profile: {
