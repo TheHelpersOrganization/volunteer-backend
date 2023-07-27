@@ -28,7 +28,7 @@ export class OrganizationModController {
     @ReqContext() context: RequestContext,
     @Query() query: OrganizationQueryDto,
   ) {
-    return this.organizationService.getOwnedOrganizations(context, query);
+    return this.organizationService.getMyOrganizations(context, query);
   }
 
   @Get(':id')
@@ -36,7 +36,7 @@ export class OrganizationModController {
     @ReqContext() context: RequestContext,
     @Param('id') id: number,
   ) {
-    return this.organizationService.getOwnedOrganizationById(context, id);
+    return this.organizationService.getMyOrganizationById(context, id);
   }
 
   @Put(':id')

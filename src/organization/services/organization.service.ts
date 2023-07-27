@@ -236,22 +236,22 @@ export class OrganizationService extends AbstractService {
     });
   }
 
-  async getOwnedOrganizations(
+  async getMyOrganizations(
     context: RequestContext,
     query: OrganizationQueryDto,
   ) {
-    this.logCaller(context, this.getOwnedOrganizations);
-    query.owner = true;
+    this.logCaller(context, this.getMyOrganizations);
+    query.memberStatus = OrganizationMemberStatus.Approved;
     return this.getOrganizations(context, query);
   }
 
-  async getOwnedOrganizationById(
+  async getMyOrganizationById(
     context: RequestContext,
     id: number,
   ): Promise<OrganizationOutputDto | null> {
-    this.logCaller(context, this.getOwnedOrganizationById);
+    this.logCaller(context, this.getMyOrganizationById);
     return this.getOrganizationById(context, id, {
-      owner: true,
+      memberStatus: OrganizationMemberStatus.Approved,
       limit: 1,
       offset: 0,
     });
