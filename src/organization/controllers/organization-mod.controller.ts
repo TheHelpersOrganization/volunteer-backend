@@ -1,6 +1,4 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { Role } from 'src/auth/constants';
-import { RequireRoles } from 'src/auth/decorators';
 import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateOrganizationInputDto,
@@ -10,7 +8,6 @@ import {
 } from '../dtos';
 import { OrganizationService } from '../services';
 
-@RequireRoles(Role.Moderator)
 @Controller('mod/organizations')
 export class OrganizationModController {
   constructor(private readonly organizationService: OrganizationService) {}
