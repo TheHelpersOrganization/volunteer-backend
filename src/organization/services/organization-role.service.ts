@@ -118,6 +118,31 @@ export class OrganizationRoleService extends AbstractService {
     return res;
   }
 
+  async checkMemberHasRole(memberId: number, roleName: OrganizationMemberRole) {
+    const role = await this.roleService.getRoleByNameOrThrow(roleName);
+    const res = await this.prisma.memberRole.findUnique({
+      where: {
+        memberId_roleId: {
+          memberId: memberId,
+          roleId: role.id,
+        },
+      },
+    });
+    if (!res) {
+      return false;
+    }
+    return true;
+  }
+
+  async checkAccountMemberHasRole(
+    organizationId: number,
+    accountId: number,
+    roleName: OrganizationMemberRole,
+  ) {
+    const member = await this.getMemberOrThrow(organizationId, accountId);
+    return this.checkMemberHasRole(member.id, roleName);
+  }
+
   async getAccountMemberCanGrantRoles(
     organizationId: number,
     granterAccountId: number,
