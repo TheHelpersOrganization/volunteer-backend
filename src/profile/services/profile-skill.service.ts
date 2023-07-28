@@ -19,7 +19,8 @@ export class ProfileSkillService extends AbstractService {
     this.logCaller(context, this.onShiftVolunteerReviewed);
     // TODO: When shift time is updated, we may need to update profile skill
     const duration = dayjs(event.shift.endTime).diff(
-      dayjs(event.shift.startTime, 'hour'),
+      dayjs(event.shift.startTime),
+      'hour',
     );
     const shiftVolunteer = event.next;
     const previousShiftVolunteer = event.previous;
