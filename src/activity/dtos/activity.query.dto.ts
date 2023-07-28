@@ -44,6 +44,11 @@ export class BaseGetActivityQueryDto extends PaginationQueryDto {
   @IsString()
   name?: string;
 
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isDisabled?: boolean;
+
   // Start date range
   @IsOptional()
   @IsArray()

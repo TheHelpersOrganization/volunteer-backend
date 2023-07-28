@@ -46,6 +46,8 @@ model Account {
   BlockedChat                      Chat[]                  @relation(name: "blockedByAccount")
   ActivitySearchHistory            ActivitySearchHistory[]
   GrantMemberRole                  MemberRole[]            @relation(name: "memberRoleGrantedBy")
+  DisableOrganization              Organization[]          @relation(name: "organizationBannedBy")
+  DisableActivity                  Activity[]              @relation(name: "activityBannedBy")
 }
 
 model Role {
@@ -148,6 +150,8 @@ model Organization {
   website                String?
   status                 String                 @default("pending")
   isDisabled             Boolean                @default(false)
+  disabledBy             Int?
+  disabledByAccount      Account?               @relation(name: "organizationBannedBy", fields: [disabledBy], references: [id], onDelete: SetNull)
   logo                   Int?                   @unique
   logoRelation           File?                  @relation(name: "logo", fields: [logo], references: [id], onDelete: SetNull)
   banner                 Int?                   @unique
@@ -189,6 +193,8 @@ model Activity {
   name              String
   description       String?
   isDisabled        Boolean            @default(false)
+  disabledBy        Int?
+  disabledByAccount Account?           @relation(name: "activityBannedBy", fields: [disabledBy], references: [id], onDelete: SetNull)
   status            String             @default("pending")
   startTime         DateTime?
   endTime           DateTime?

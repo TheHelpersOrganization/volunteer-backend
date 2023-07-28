@@ -108,6 +108,12 @@ export const getActivityFilter = (
       },
     };
   }
+  if (query.isDisabled != null) {
+    activityQuery = {
+      ...activityQuery,
+      isDisabled: query.isDisabled,
+    };
+  }
   if (query.startTime) {
     activityQuery = {
       ...activityQuery,

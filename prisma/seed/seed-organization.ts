@@ -110,6 +110,7 @@ export const seedOrganizations = async (
         website: fakerVi.internet.url(),
         status: value,
         isDisabled: false,
+        disabledBy: null,
         logo: hasLogo[index] ? organizationLogos[logoIndex]?.id ?? null : null,
         banner: hasLogo[index]
           ? organizationBanner[logoIndex]?.id ?? null
@@ -137,6 +138,7 @@ export const seedOrganizations = async (
         website: fakerVi.internet.url(),
         status: value.organizationStatus,
         isDisabled: fakerVi.datatype.boolean(),
+        disabledBy: _.sample(adminAccounts)?.id ?? null,
         logo: hasLogo[realIndex]
           ? organizationLogos[logoIndex]?.id ?? null
           : null,

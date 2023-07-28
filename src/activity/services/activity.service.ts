@@ -344,6 +344,40 @@ export class ActivityService extends AbstractService {
     return this.mapToDto(res);
   }
 
+  async banActivity(
+    context: RequestContext,
+    id: number,
+  ): Promise<ActivityOutputDto> {
+    this.logCaller(context, this.banActivity);
+    const res = await this.prisma.activity.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isDisabled: true,
+        disabledBy: context.account.id,
+      },
+    });
+    return this.mapToDto(res);
+  }
+
+  async unbanActivity(
+    context: RequestContext,
+    id: number,
+  ): Promise<ActivityOutputDto> {
+    this.logCaller(context, this.unbanActivity);
+    const res = await this.prisma.activity.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isDisabled: false,
+        disabledBy: null,
+      },
+    });
+    return this.mapToDto(res);
+  }
+
   async refreshActivitiesStatus(context?: RequestContext) {
     this.logCaller(context, this.refreshActivitiesStatus);
     const where: Prisma.ActivityWhereInput = {
@@ -829,6 +863,7 @@ export class ActivityService extends AbstractService {
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
+      isDisabled: activity.isDisabled,
       status: activity.status,
       description: activity.description,
       thumbnail: activity.thumbnail,

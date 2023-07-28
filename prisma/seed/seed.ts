@@ -88,6 +88,7 @@ const seed = async () => {
           skills,
           volunteerAccounts,
           modAccounts,
+          adminAccounts,
           defaultAccounts,
           {
             runWithoutDb,

@@ -28,6 +28,14 @@ export class OrganizationModController {
     return this.organizationService.getMyOrganizations(context, query);
   }
 
+  // @Get('me/count')
+  // async count(
+  //   @ReqContext() context: RequestContext,
+  //   @Query() query: OrganizationQueryDto,
+  // ) {
+  //   return this.organizationService.getMyOrganizations(context, query);
+  // }
+
   @Get(':id')
   async getOrganizationById(
     @ReqContext() context: RequestContext,

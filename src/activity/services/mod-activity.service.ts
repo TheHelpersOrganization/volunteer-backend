@@ -256,6 +256,7 @@ export class ModActivityService extends AbstractService {
     return this.output(ActivityOutputDto, {
       id: activity.id,
       name: activity.name,
+      isDisabled: activity.isDisabled,
       status: activity.status,
       description: activity.description,
       thumbnail: activity.thumbnail,

@@ -54,6 +54,7 @@ export const seedActivities = async (
   skills: Skill[],
   volunteerAccounts: Account[],
   modAccounts: Account[],
+  adminAccounts: Account[],
   defaultAccounts: Account[],
   options?: {
     runWithoutDb?: boolean;
@@ -111,6 +112,7 @@ export const seedActivities = async (
         activities.push({
           id: id,
           isDisabled: fakerEn.datatype.boolean(),
+          disabledBy: _.sample(adminAccounts)?.id ?? null,
           status: ActivityStatus.Pending,
           organizationId: organization.id,
           // name: capitalizeWords(fakerEn.lorem.words()),

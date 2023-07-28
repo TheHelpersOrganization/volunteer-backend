@@ -22,6 +22,9 @@ export class ActivityOutputDto {
   name: string;
 
   @Expose()
+  isDisabled: boolean;
+
+  @Expose()
   status: ActivityStatus;
 
   @Expose()

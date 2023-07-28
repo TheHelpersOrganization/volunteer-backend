@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
@@ -80,5 +81,23 @@ export class ActivityController {
     @Param('id') id: number,
   ): Promise<ActivityOutputDto> {
     return this.activityService.deleteActivity(context, id);
+  }
+
+  @RequireRoles(Role.Admin)
+  @Post(':id/disable')
+  async banActivity(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ActivityOutputDto> {
+    return this.activityService.banActivity(context, id);
+  }
+
+  @RequireRoles(Role.Admin)
+  @Post(':id/enable')
+  async unbanActivity(
+    @ReqContext() context: RequestContext,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ActivityOutputDto> {
+    return this.activityService.unbanActivity(context, id);
   }
 }

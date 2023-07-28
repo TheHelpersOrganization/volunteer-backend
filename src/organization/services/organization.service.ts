@@ -245,6 +245,15 @@ export class OrganizationService extends AbstractService {
     return this.getOrganizations(context, query);
   }
 
+  async countMyOrganizations(
+    context: RequestContext,
+    query: OrganizationQueryDto,
+  ) {
+    this.logCaller(context, this.countMyOrganizations);
+    query.memberStatus = OrganizationMemberStatus.Approved;
+    return this.getOrganizations(context, query);
+  }
+
   async getMyOrganizationById(
     context: RequestContext,
     id: number,
@@ -460,6 +469,7 @@ export class OrganizationService extends AbstractService {
       where: { id: id },
       data: {
         isDisabled: dto.isDisabled,
+        disabledBy: dto.isDisabled ? context.account.id : null,
       },
     });
     return this.output(OrganizationOutputDto, org);
