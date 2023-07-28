@@ -21,6 +21,7 @@ export class ProfileSkillService extends AbstractService {
     const duration = dayjs(event.shift.endTime).diff(
       dayjs(event.shift.startTime),
       'hour',
+      true,
     );
     const shiftVolunteer = event.next;
     const previousShiftVolunteer = event.previous;
