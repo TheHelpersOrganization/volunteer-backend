@@ -15,6 +15,7 @@ model Account {
   password                         String
   isAccountDisabled                Boolean                 @default(false)
   isAccountVerified                Boolean                 @default(false)
+  isEmailVerified                  Boolean                 @default(false)
   createdAt                        DateTime?               @default(now())
   updatedAt                        DateTime?               @default(now()) @updatedAt
   files                            File[]

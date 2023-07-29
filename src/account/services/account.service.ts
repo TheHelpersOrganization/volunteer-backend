@@ -177,7 +177,7 @@ export class AccountService extends AbstractService {
 
     const verifiedAccount = {
       ...account,
-      isAccountVerified: true,
+      isEmailVerified: true,
     };
 
     await this.prisma.account.update({

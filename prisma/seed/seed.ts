@@ -138,6 +138,11 @@ const seed = async () => {
     '- Seeding reports...',
   );
 
+  const { chats } = await runWithTimer(
+    () => seedChats(prisma, accounts, { runWithoutDb }),
+    '- Seeding chats...',
+  );
+
   await runWithTimer(
     () =>
       seedNotifications(
@@ -147,16 +152,12 @@ const seed = async () => {
         shifts,
         organizations,
         reports,
+        chats,
         {
           runWithoutDb,
         },
       ),
     '- Seeding notifications...',
-  );
-
-  await runWithTimer(
-    () => seedChats(prisma, accounts, { runWithoutDb }),
-    '- Seeding chats...',
   );
 
   if (runWithoutDb) {

@@ -7,7 +7,6 @@ import { LoginInput } from '../../src/auth/dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../../src/auth/dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../../src/auth/dtos/auth-register-input.dto';
 import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
-import { closeDBAfterTest, seedAdminAccount } from '../utils';
 import { AppModule } from './../../src/app.module';
 
 describe('AuthController (e2e)', () => {
@@ -21,8 +20,6 @@ describe('AuthController (e2e)', () => {
 
     app = moduleRef.createNestApplication();
     await app.init();
-
-    ({ authTokenForAdmin } = await seedAdminAccount(app));
   });
 
   describe('Admin User Auth Tokens', () => {
@@ -65,25 +62,11 @@ describe('AuthController (e2e)', () => {
         .post('/auth/register')
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('register fails when incorrect username format', () => {
-      registerInput.username = 12345 as any;
-      return request(app.getHttpServer())
-        .post('/auth/register')
-        .expect(HttpStatus.BAD_REQUEST)
-        .send(registerInput)
-        .expect((res) => {
-          const resp = res.body;
-          expect(resp.error.details.message).toContain(
-            'username must be a string',
-          );
-        });
-    });
   });
 
   describe('login the registered user', () => {
     const loginInput: LoginInput = {
-      username: 'e2etester',
+      email: 'e2etester',
       password: '12345678',
     };
 
@@ -111,7 +94,7 @@ describe('AuthController (e2e)', () => {
 
   describe('refreshing jwt token', () => {
     const loginInput: LoginInput = {
-      username: 'e2etester',
+      email: 'e2etester',
       password: '12345678',
     };
 
@@ -122,7 +105,7 @@ describe('AuthController (e2e)', () => {
 
       const token: AccountTokenOutputDto = loginResponse.body.data;
       const refreshTokenInput: RefreshTokenInput = {
-        refreshToken: token.refreshToken,
+        refreshToken: token.token.refreshToken,
       };
 
       return request(app.getHttpServer())
@@ -139,6 +122,5 @@ describe('AuthController (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-    await closeDBAfterTest();
   });
 });

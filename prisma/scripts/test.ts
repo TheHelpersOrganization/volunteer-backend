@@ -12,7 +12,7 @@ async function main() {
 }
 
 async function test() {
-  prisma.notification.updateMany({
+  await prisma.notification.updateMany({
     where: {
       type: NotificationType.Chat,
     },

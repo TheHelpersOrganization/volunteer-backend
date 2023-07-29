@@ -26,6 +26,9 @@ export class AccountOutputDto {
   isAccountVerified: boolean;
 
   @Expose()
+  isEmailVerified: boolean;
+
+  @Expose()
   @ApiProperty()
   createdAt?: Date;
 

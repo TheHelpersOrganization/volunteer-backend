@@ -120,10 +120,8 @@ describe('AuthService Integration', () => {
     });
 
     it('should return valid token', async () => {
-      const accountToken = await authService.login({
-        ...context,
-        account: account,
-      });
+      context.account = account;
+      const accountToken = await authService.login(context);
 
       expect(accountToken).toBeDefined();
       expect(accountToken.account).toMatchObject({
@@ -136,10 +134,8 @@ describe('AuthService Integration', () => {
     });
 
     it('should return valid token when refresh token', async () => {
-      const accountToken = await authService.refreshToken({
-        ...context,
-        account: account,
-      });
+      context.account = account;
+      const accountToken = await authService.refreshToken(context);
 
       expect(accountToken).toBeDefined();
       expect(accountToken.account).toMatchObject({
@@ -156,19 +152,18 @@ describe('AuthService Integration', () => {
     let token: string;
 
     it('should create token successfully', async () => {
-      token = await authService.createVerifyAccountToken(
-        { ...context, ...account },
-        account.id,
-      );
+      context.account = account;
+      token = await authService.createVerifyAccountToken(context, account.id);
 
       expect(token).toBeDefined();
     });
 
     it('should verify email successfully', async () => {
-      const verifiedAccount = await authService.verifyAccount(
-        { ...context, ...account },
-        { email: account.email, token: token },
-      );
+      context.account = account;
+      const verifiedAccount = await authService.verifyAccount(context, {
+        email: account.email,
+        token: token,
+      });
 
       expect(verifiedAccount).toBeDefined();
       expect(verifiedAccount.id).toBe(account.id);

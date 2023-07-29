@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import {
   Account,
   Activity,
+  Chat,
   Organization,
   Prisma,
   PrismaClient,
@@ -22,6 +23,7 @@ export const seedNotifications = async (
   shifts: Shift[],
   organizations: Organization[],
   reports: Report[],
+  chat: Chat[],
   options?: {
     runWithoutDb?: boolean;
   },
@@ -54,6 +56,7 @@ export const seedNotifications = async (
       let shiftId: number | undefined = undefined;
       let organizationId: number | undefined = undefined;
       let reportId: number | undefined = undefined;
+      let chatId: number | undefined = undefined;
       switch (type) {
         case NotificationType.Activity:
           activityId = _.sample(activities)?.id;
@@ -69,6 +72,9 @@ export const seedNotifications = async (
           break;
         case NotificationType.Report:
           reportId = _.sample(reports)?.id;
+          break;
+        case NotificationType.Chat:
+          chatId = _.sample(chat)?.id;
           break;
       }
       const createdAt = faker.date.past();

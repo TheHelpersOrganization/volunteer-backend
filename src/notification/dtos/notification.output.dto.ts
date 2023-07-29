@@ -31,6 +31,9 @@ export class NotificationOutputDto {
   read: boolean;
 
   @Expose()
+  pushOnly: boolean;
+
+  @Expose()
   createdAt?: Date;
 
   @Expose()

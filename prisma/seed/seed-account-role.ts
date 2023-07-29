@@ -120,11 +120,12 @@ export const seedAccountsAndRoles = async (
 
   const defaultAccounts: Account[] = [];
   if (options?.defaultAccountOptions?.include === true) {
-    const acc1 = {
+    const acc1: Account = {
       id: getNextAccountId(),
       email: 'hquan310@gmail.com',
       password: hashedPassword,
       isAccountVerified: false,
+      isEmailVerified: false,
       isAccountDisabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -139,6 +140,7 @@ export const seedAccountsAndRoles = async (
     email: `op${index}@thehelpers.me`,
     password: hashedPassword,
     isAccountVerified: false,
+    isEmailVerified: false,
     isAccountDisabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -151,6 +153,7 @@ export const seedAccountsAndRoles = async (
     email: `mod${index}@thehelpers.me`,
     password: hashedPassword,
     isAccountVerified: false,
+    isEmailVerified: true,
     isAccountDisabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -163,6 +166,7 @@ export const seedAccountsAndRoles = async (
     email: `admin${index}@a.com`,
     password: hashedPassword,
     isAccountVerified: false,
+    isEmailVerified: true,
     isAccountDisabled: false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -264,6 +268,7 @@ export const seedAccountsAndRoles = async (
       id: accountId,
       email: `volunteer${accountId}@thehelpers.me`,
       password: hashedPassword,
+      isEmailVerified: fakerVi.datatype.boolean(),
       isAccountVerified: fakerVi.datatype.boolean(),
       isAccountDisabled: fakerVi.datatype.boolean(),
       createdAt: createdAt,
