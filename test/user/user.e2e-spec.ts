@@ -5,12 +5,6 @@ import * as request from 'supertest';
 import { AccountOutputDto } from '../../src/account/dtos/account-output.dto';
 import { AppModule } from '../../src/app.module';
 import { AccountTokenOutputDto } from '../../src/auth/dtos/auth-token-output.dto';
-import {
-  closeDBAfterTest,
-  createDBEntities,
-  resetDBBeforeTest,
-  seedAdminAccount,
-} from '../utils';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
@@ -18,9 +12,6 @@ describe('UserController (e2e)', () => {
   let authTokenForAdmin: AccountTokenOutputDto;
 
   beforeAll(async () => {
-    await resetDBBeforeTest();
-    await createDBEntities();
-
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -28,15 +19,13 @@ describe('UserController (e2e)', () => {
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
-
-    ({ adminUser, authTokenForAdmin } = await seedAdminAccount(app));
   });
 
   describe('Get user me', () => {
     it('gets user me', async () => {
       return request(app.getHttpServer())
         .get('/users/me')
-        .set('Authorization', 'Bearer ' + authTokenForAdmin.accessToken)
+        .set('Authorization', 'Bearer ' + authTokenForAdmin.token.accessToken)
         .expect(HttpStatus.OK);
     });
 
@@ -59,8 +48,8 @@ describe('UserController (e2e)', () => {
       const expectedOutput = [adminUser];
 
       return request(app.getHttpServer())
-        .get('/users')
-        .set('Authorization', 'Bearer ' + authTokenForAdmin.accessToken)
+        .get('/accounts')
+        .set('Authorization', 'Bearer ' + authTokenForAdmin.token.accessToken)
         .expect(HttpStatus.OK)
         .expect({ data: expectedOutput, meta: { count: 1 } });
     });
@@ -71,14 +60,14 @@ describe('UserController (e2e)', () => {
       const expectedOutput = adminUser;
 
       return request(app.getHttpServer())
-        .get('/users/1')
+        .get('/accounts/1')
         .expect(HttpStatus.OK)
         .expect({ data: expectedOutput, meta: {} });
     });
 
     it('throws NOT_FOUND when user doesnt exist', () => {
       return request(app.getHttpServer())
-        .get('/users/99')
+        .get('/accounts/99')
         .expect(HttpStatus.NOT_FOUND);
     });
   });
@@ -130,6 +119,5 @@ describe('UserController (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-    await closeDBAfterTest();
   });
 });
