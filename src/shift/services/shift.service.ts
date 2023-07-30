@@ -13,6 +13,7 @@ import { getProfileBasicSelect } from 'src/profile/dtos';
 import { ProfileService } from 'src/profile/services';
 import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftVolunteerService } from 'src/shift-volunteer/services';
+import { ShiftStatus } from '../constants';
 import {
   CreateShiftInputDto,
   GetShiftInclude,
@@ -158,6 +159,8 @@ export class ShiftService extends AbstractService {
             availableSlots: dto.numberOfParticipants,
             startTime: dto.startTime,
             endTime: dto.endTime,
+            status:
+              dto.endTime < new Date() ? ShiftStatus.Completed : undefined,
             shiftLocations: {
               createMany: {
                 data: locationIds ?? [],

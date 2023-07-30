@@ -57,6 +57,9 @@ export class OtpService extends AbstractService {
     ctx: RequestContext,
     accountId: number,
     type: OtpType,
+    options?: {
+      noEarlyRenewalCheck?: boolean;
+    },
   ): Promise<string> {
     this.logCaller(ctx, this.createOtp);
 
@@ -72,6 +75,7 @@ export class OtpService extends AbstractService {
       },
     });
     if (
+      options?.noEarlyRenewalCheck != true &&
       exist &&
       dayjs(exist.createdAt).add(renewSec, 'second').isAfter(dayjs())
     ) {

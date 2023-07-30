@@ -58,7 +58,14 @@ export class AccountService extends AbstractService {
       },
     });
 
-    return plainToInstance(AccountOutputDto, res, {
+    const output: AccountOutputDto = {
+      ...res,
+      roles: [Role.Volunteer],
+      createdAt: res.createdAt ?? undefined,
+      updatedAt: res.updatedAt ?? undefined,
+    };
+
+    return plainToInstance(AccountOutputDto, output, {
       excludeExtraneousValues: true,
     });
   }

@@ -202,7 +202,11 @@ export class AuthService {
 
     const otp = await this.createVerifyAccountToken(ctx, account.id);
 
-    this.emailService.sendEmailVerification(ctx, account.email, otp);
+    this.emailService
+      .sendEmailVerification(ctx, account.email, otp)
+      .catch((err) => {
+        this.logger.error(ctx, err);
+      });
 
     return {
       successful: true,
@@ -212,6 +216,9 @@ export class AuthService {
   async createVerifyAccountToken(
     ctx: RequestContext,
     accountId: number,
+    options?: {
+      noEarlyRenewalCheck?: boolean;
+    },
   ): Promise<string> {
     this.logger.log(ctx, `${this.createVerifyAccountToken.name} was called`);
 
@@ -219,6 +226,7 @@ export class AuthService {
       ctx,
       accountId,
       OtpType.EmailVerification,
+      options,
     );
 
     return otp;

@@ -42,6 +42,7 @@ export const seedOrganizations = async (
   roles: Role[],
   options?: {
     runWithoutDb?: boolean;
+    numberOfOrganizationsPerMod?: number;
   },
 ) => {
   const account1OrganizationTemplate = [

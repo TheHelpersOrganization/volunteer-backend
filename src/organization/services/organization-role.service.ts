@@ -11,6 +11,7 @@ import {
   OrganizationMemberStatus,
   organizationMemberRoles,
 } from '../constants';
+import { OrganizationNotFoundException } from '../exceptions';
 
 @Injectable()
 export class OrganizationRoleService extends AbstractService {
@@ -56,19 +57,15 @@ export class OrganizationRoleService extends AbstractService {
     memberId: number,
     roleName: OrganizationMemberRole,
   ) {
-    const role = await this.roleService.getRoleByNameOrThrow(roleName);
-    const res = await this.prisma.memberRole.findUnique({
-      where: {
-        memberId_roleId: {
-          memberId: memberId,
-          roleId: role.id,
-        },
-      },
-    });
-    if (!res) {
+    const memberRoles = await this.getMemberRoles(memberId);
+    if (!memberRoles) {
       throw new UnauthorizedException(`Forbidden`);
     }
-    return res;
+    const currentRoleWeight = OrganizationMemberRoleWeight[roleName];
+    const maxRoleWeight = Math.max(
+      ...memberRoles.map((v) => OrganizationMemberRoleWeight[v.name]),
+    );
+    return currentRoleWeight <= maxRoleWeight;
   }
 
   async validateAccountMemberHasRole(
@@ -76,6 +73,7 @@ export class OrganizationRoleService extends AbstractService {
     accountId: number,
     roleName: OrganizationMemberRole,
   ) {
+    await this.validateOrganization(organizationId);
     const member = await this.getMemberOrThrow(organizationId, accountId);
     return this.validateMemberHasRole(member.id, roleName);
   }
@@ -253,5 +251,16 @@ export class OrganizationRoleService extends AbstractService {
       throw new UnauthorizedException(`Forbidden`);
     }
     return member;
+  }
+
+  async validateOrganization(organizationId: number) {
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+      },
+    });
+    if (!organization) {
+      throw new OrganizationNotFoundException();
+    }
   }
 }

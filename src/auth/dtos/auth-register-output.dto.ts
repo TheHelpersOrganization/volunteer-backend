@@ -8,13 +8,13 @@ export class RegisterOutput {
   @ApiProperty()
   id: number;
 
-  @Expose()
-  @ApiProperty()
-  name: string;
+  // @Expose()
+  // @ApiProperty()
+  // name: string;
 
-  @Expose()
-  @ApiProperty()
-  username: string;
+  // @Expose()
+  // @ApiProperty()
+  // username: string;
 
   @Expose()
   @ApiProperty({ example: [Role.Volunteer] })
