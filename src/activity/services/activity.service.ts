@@ -288,11 +288,11 @@ export class ActivityService extends AbstractService {
             ? undefined
             : {
                 deleteMany: {},
-                create: dto.contacts?.map((d) => ({
-                  contact: {
-                    create: d,
-                  },
-                })),
+                createMany: {
+                  data: dto.contacts.map((id) => ({
+                    contactId: id,
+                  })),
+                },
               },
         activitySkills:
           dto.skillIds === undefined

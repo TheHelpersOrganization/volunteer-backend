@@ -414,3 +414,14 @@ export const getOrganizationMemberRoleByName = (
   }
   return role;
 };
+
+export const getOrganizationRoleNameById = (
+  roles: Role[],
+  roleId: number,
+): OrganizationMemberRole => {
+  const role = roles.find((r) => r.id == roleId);
+  if (!role) {
+    throw new Error('Role not found');
+  }
+  return role.name as OrganizationMemberRole;
+};

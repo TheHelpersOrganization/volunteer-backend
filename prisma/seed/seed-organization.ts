@@ -27,10 +27,10 @@ import {
   generateLocation,
   generateMember,
   generateMemberRole,
-  getNextContactId,
   getNextMemberId,
   getNextOrganizationId,
   getOrganizationMemberRoleByName,
+  getOrganizationRoleNameById,
 } from './utils';
 
 export const seedOrganizations = async (
@@ -40,6 +40,7 @@ export const seedOrganizations = async (
   modAccounts: Account[],
   volunteerAccounts: Account[],
   roles: Role[],
+  contacts: Contact[],
   options?: {
     runWithoutDb?: boolean;
     numberOfOrganizationsPerMod?: number;
@@ -57,6 +58,9 @@ export const seedOrganizations = async (
   );
   const organizationCount =
     account1OrganizationTemplate.length + modAccounts.length;
+
+  const organizationContactIds: number[] = [];
+  const organizationContactsRel: OrganizationContact[] = [];
 
   const hasLogo: boolean[] = [];
 
@@ -177,20 +181,14 @@ export const seedOrganizations = async (
     });
   });
 
-  const organizationContacts: Contact[] = Array.from({
-    length: organizations.length,
-  }).map(() => ({
-    id: getNextContactId(),
-    name: fakerVi.person.fullName(),
-    email: fakerVi.internet.exampleEmail(),
-    phoneNumber: fakerVi.phone.number('+84#########'),
-  }));
-
-  const organizationContactsRel: OrganizationContact[] =
-    organizationContacts.map((contact, i) => ({
-      organizationId: organizations[i].id,
-      contactId: contact.id,
-    }));
+  // const organizationContacts: Contact[] = Array.from({
+  //   length: organizations.length,
+  // }).map(() => ({
+  //   id: getNextContactId(),
+  //   name: fakerVi.person.fullName(),
+  //   email: fakerVi.internet.exampleEmail(),
+  //   phoneNumber: fakerVi.phone.number('+84#########'),
+  // }));
 
   const organizationSkills: OrganizationSkill[] = organizations.flatMap(
     (organization) =>
@@ -277,9 +275,27 @@ export const seedOrganizations = async (
     _.sampleSize(
       memberMappings,
       randomInt(0, Math.max(memberMappings.length, 15)),
-    ).forEach((member) =>
-      memberRoles.push(generateMemberRole(member, roles, accounts)),
-    );
+    ).forEach((member) => {
+      const role = generateMemberRole(member, roles, accounts);
+      if (
+        getOrganizationRoleNameById(roles, role.roleId) ==
+        OrganizationMemberRole.Manager
+      ) {
+        const accountContacts = _.sampleSize(
+          contacts.filter((c) => c.accountId === member.accountId),
+          randomInt(0, 2),
+        );
+        organizationContactIds.push(...accountContacts.map((c) => c.id));
+        organizationContactsRel.push(
+          ...accountContacts.map((c) => ({
+            organizationId: organization.id,
+            contactId: c.id,
+          })),
+        );
+      }
+
+      return memberRoles.push(role);
+    });
 
     return memberMappings;
   });
@@ -295,7 +311,6 @@ export const seedOrganizations = async (
       organizations,
       organizationLocations,
       organizationLocationsRel,
-      organizationContacts,
       organizationContactsRel,
       organizationSkills,
       members,
@@ -310,9 +325,9 @@ export const seedOrganizations = async (
     data: organizationLocations,
   });
 
-  await prisma.contact.createMany({
-    data: organizationContacts,
-  });
+  // await prisma.contact.createMany({
+  //   data: organizationContacts,
+  // });
 
   await prisma.organizationLocation.createMany({
     data: organizationLocationsRel,
@@ -342,7 +357,6 @@ export const seedOrganizations = async (
     organizations,
     organizationLocations,
     organizationLocationsRel,
-    organizationContacts,
     organizationContactsRel,
     organizationSkills,
     members,

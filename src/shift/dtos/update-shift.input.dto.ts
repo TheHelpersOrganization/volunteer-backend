@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,7 +11,6 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 import { CreateShiftManagerInputDto } from '.';
 
@@ -52,11 +52,16 @@ export class UpdateShiftInputDto {
   @ValidateNested({ each: true })
   locations?: CreateLocationInputDto[];
 
+  // @IsOptional()
+  // @Type(() => CreateContactInputDto)
+  // @ValidateNested({ each: true })
+  // @ArrayNotEmpty()
+  // contacts?: CreateContactInputDto[];
+
   @IsOptional()
-  @Type(() => CreateContactInputDto)
-  @ValidateNested({ each: true })
-  @ArrayNotEmpty()
-  contacts?: CreateContactInputDto[];
+  @IsInt({ each: true })
+  @IsArray()
+  contacts?: number[];
 
   @IsOptional()
   @Type(() => CreateShiftSkillInputDto)

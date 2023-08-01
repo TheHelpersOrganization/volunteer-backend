@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEmail,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -12,10 +12,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import {
-  UpdateContactInputDto,
-  UpdateContactInputWithIdDto,
-} from '../../contact/dtos';
 import { IsFileId } from '../../file/validators';
 import {
   UpdateLocationInputDto,
@@ -68,9 +64,14 @@ export class UpdateOrganizationInputDto {
   @IsFileId({ each: true })
   files: number[];
 
+  // @IsOptional()
+  // @Type(() => UpdateContactInputDto)
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // contacts: UpdateContactInputWithIdDto[];
+
   @IsOptional()
-  @Type(() => UpdateContactInputDto)
   @IsArray()
-  @ValidateNested({ each: true })
-  contacts: UpdateContactInputWithIdDto[];
+  @IsInt({ each: true })
+  contacts: number[];
 }

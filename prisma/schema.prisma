@@ -49,6 +49,7 @@ model Account {
   GrantMemberRole                  MemberRole[]            @relation(name: "memberRoleGrantedBy")
   DisableOrganization              Organization[]          @relation(name: "organizationBannedBy")
   DisableActivity                  Activity[]              @relation(name: "activityBannedBy")
+  Contact                          Contact[]
 }
 
 model Role {
@@ -133,12 +134,14 @@ model Location {
 }
 
 model Contact {
-  id                  Int                  @id @default(autoincrement())
-  name                String
+  id                  Int                   @id @default(autoincrement())
+  name                String?
   phoneNumber         String?
   email               String?
-  organizationContact OrganizationContact?
-  shiftContact        ShiftContact?
+  accountId           Int
+  account             Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  organizationContact OrganizationContact[]
+  shiftContact        ShiftContact[]
   activityContact     ActivityContact[]
 }
 
@@ -459,9 +462,11 @@ model OrganizationLocation {
 
 model OrganizationContact {
   organizationId Int
-  contactId      Int          @id @unique
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contactId      Int
   contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, contactId])
 }
 
 model OrganizationSkill {
@@ -568,11 +573,13 @@ model ShiftLocation {
 
 model ShiftContact {
   shiftId   Int
-  contactId Int       @id @unique
+  contactId Int
   shift     Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
   contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
   createdAt DateTime? @default(now())
   updatedAt DateTime? @default(now()) @updatedAt
+
+  @@id([shiftId, contactId])
 }
 
 model ShiftSkill {

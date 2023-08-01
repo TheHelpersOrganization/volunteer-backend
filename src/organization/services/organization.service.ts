@@ -386,11 +386,11 @@ export class OrganizationService extends AbstractService {
             },
             organizationContacts: {
               deleteMany: {},
-              create: dto.contacts.map((d) => ({
-                contact: {
-                  create: d,
-                },
-              })),
+              createMany: {
+                data: dto.contacts.map((d) => ({
+                  contactId: d,
+                })),
+              },
             },
           },
           include: {

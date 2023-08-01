@@ -1,6 +1,7 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dtos';
+import { stringToBooleanTransform } from 'src/common/transformers';
 import { AccountVerificationStatus } from '../constants';
 
 export enum GetAccountVerificationInclude {
@@ -26,6 +27,11 @@ export class GetAccountVerificationsQueryDto extends GetAccountVerificationQuery
   @IsInt()
   @Transform(({ value }) => parseInt(value))
   accountId?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isVerified?: boolean;
 
   @IsOptional()
   @IsEnum(AccountVerificationStatus, { each: true })

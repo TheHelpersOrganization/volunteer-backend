@@ -11,7 +11,6 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { CreateContactInputDto } from 'src/contact/dtos';
 import { CreateLocationInputDto } from 'src/location/dtos';
 
 import { IsOnTheSameDay } from 'src/common/validators';
@@ -54,11 +53,16 @@ export class CreateShiftInputDto {
   @ValidateNested({ each: true })
   locations?: CreateLocationInputDto[];
 
+  // @IsOptional()
+  // @Type(() => CreateContactInputDto)
+  // @ValidateNested({ each: true })
+  // @ArrayNotEmpty()
+  // contacts?: CreateContactInputDto[];
+
   @IsOptional()
-  @Type(() => CreateContactInputDto)
-  @ValidateNested({ each: true })
-  @ArrayNotEmpty()
-  contacts?: CreateContactInputDto[];
+  @IsInt({ each: true })
+  @IsArray()
+  contacts?: number[];
 
   @IsOptional()
   @Type(() => CreateShiftSkillInputDto)

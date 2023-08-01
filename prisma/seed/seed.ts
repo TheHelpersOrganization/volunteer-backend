@@ -4,6 +4,7 @@ import { AppPrismaClient } from 'src/prisma';
 import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
 import { seedChats } from './seed-chat';
+import { seedContacts } from './seed-contacts';
 import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
@@ -49,6 +50,11 @@ const seed = async () => {
   );
   const defaultAccountIds = defaultAccounts.map((a) => a.id);
 
+  const { contacts } = await runWithTimer(
+    () => seedContacts(prisma, { accounts, runWithoutDb }),
+    '- Seeding contacts...',
+  );
+
   const { skills } = await runWithTimer(
     () => seedSkills(prisma, { runWithoutDb }),
     '- Seeding skills...',
@@ -63,7 +69,7 @@ const seed = async () => {
     '- Seeding profiles...',
   );
 
-  const { organizations } = await runWithTimer(
+  const { organizations, members } = await runWithTimer(
     () =>
       seedOrganizations(
         prisma,
@@ -72,6 +78,7 @@ const seed = async () => {
         modAccounts,
         volunteerAccounts,
         organizationMemberRoles,
+        contacts,
         {
           runWithoutDb,
         },
@@ -85,11 +92,13 @@ const seed = async () => {
         seedActivities(
           prisma,
           organizations,
+          members,
           skills,
           volunteerAccounts,
           modAccounts,
           adminAccounts,
           defaultAccounts,
+          contacts,
           {
             runWithoutDb,
             joinIfMatchAccountPreferences: true,

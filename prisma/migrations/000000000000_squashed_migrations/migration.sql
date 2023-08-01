@@ -5,6 +5,7 @@ CREATE TABLE "Account" (
     "password" TEXT NOT NULL,
     "isAccountDisabled" BOOLEAN NOT NULL DEFAULT false,
     "isAccountVerified" BOOLEAN NOT NULL DEFAULT false,
+    "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
@@ -15,6 +16,7 @@ CREATE TABLE "Account" (
 CREATE TABLE "Role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "displayName" TEXT,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
@@ -87,9 +89,10 @@ CREATE TABLE "Location" (
 -- CreateTable
 CREATE TABLE "Contact" (
     "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" TEXT,
     "phoneNumber" TEXT,
     "email" TEXT,
+    "accountId" INTEGER NOT NULL,
 
     CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
@@ -104,6 +107,7 @@ CREATE TABLE "Organization" (
     "website" TEXT,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "isDisabled" BOOLEAN NOT NULL DEFAULT false,
+    "disabledBy" INTEGER,
     "logo" INTEGER,
     "banner" INTEGER,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
@@ -132,6 +136,7 @@ CREATE TABLE "Activity" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "isDisabled" BOOLEAN NOT NULL DEFAULT false,
+    "disabledBy" INTEGER,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "startTime" TIMESTAMP(3),
     "endTime" TIMESTAMP(3),
@@ -185,6 +190,7 @@ CREATE TABLE "Notification" (
     "description" TEXT NOT NULL,
     "shortDescription" TEXT,
     "read" BOOLEAN NOT NULL DEFAULT false,
+    "pushOnly" BOOLEAN NOT NULL DEFAULT false,
     "activityId" INTEGER,
     "shiftId" INTEGER,
     "organizationId" INTEGER,
@@ -383,7 +389,7 @@ CREATE TABLE "OrganizationContact" (
     "organizationId" INTEGER NOT NULL,
     "contactId" INTEGER NOT NULL,
 
-    CONSTRAINT "OrganizationContact_pkey" PRIMARY KEY ("contactId")
+    CONSTRAINT "OrganizationContact_pkey" PRIMARY KEY ("organizationId","contactId")
 );
 
 -- CreateTable
@@ -408,6 +414,17 @@ CREATE TABLE "Member" (
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Member_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MemberRole" (
+    "memberId" INTEGER NOT NULL,
+    "roleId" INTEGER NOT NULL,
+    "grantedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MemberRole_pkey" PRIMARY KEY ("memberId","roleId")
 );
 
 -- CreateTable
@@ -478,7 +495,7 @@ CREATE TABLE "ShiftContact" (
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "ShiftContact_pkey" PRIMARY KEY ("contactId")
+    CONSTRAINT "ShiftContact_pkey" PRIMARY KEY ("shiftId","contactId")
 );
 
 -- CreateTable
@@ -541,6 +558,17 @@ CREATE TABLE "ShiftManager" (
     CONSTRAINT "ShiftManager_pkey" PRIMARY KEY ("shiftId","accountId")
 );
 
+-- CreateTable
+CREATE TABLE "ActivitySearchHistory" (
+    "id" SERIAL NOT NULL,
+    "accountId" INTEGER NOT NULL,
+    "query" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ActivitySearchHistory_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
 
@@ -593,16 +621,10 @@ CREATE UNIQUE INDEX "OrganizationFile_fileId_key" ON "OrganizationFile"("fileId"
 CREATE UNIQUE INDEX "OrganizationLocation_locationId_key" ON "OrganizationLocation"("locationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OrganizationContact_contactId_key" ON "OrganizationContact"("contactId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "ActivityLocation_locationId_key" ON "ActivityLocation"("locationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ShiftLocation_locationId_key" ON "ShiftLocation"("locationId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ShiftContact_contactId_key" ON "ShiftContact"("contactId");
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -620,6 +642,12 @@ ALTER TABLE "Token" ADD CONSTRAINT "Token_accountId_fkey" FOREIGN KEY ("accountI
 ALTER TABLE "File" ADD CONSTRAINT "File_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Contact" ADD CONSTRAINT "Contact_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Organization" ADD CONSTRAINT "Organization_disabledBy_fkey" FOREIGN KEY ("disabledBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Organization" ADD CONSTRAINT "Organization_logo_fkey" FOREIGN KEY ("logo") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -630,6 +658,9 @@ ALTER TABLE "Organization" ADD CONSTRAINT "Organization_ownerId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "Organization" ADD CONSTRAINT "Organization_verifierId_fkey" FOREIGN KEY ("verifierId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Activity" ADD CONSTRAINT "Activity_disabledBy_fkey" FOREIGN KEY ("disabledBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Activity" ADD CONSTRAINT "Activity_thumbnail_fkey" FOREIGN KEY ("thumbnail") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -782,6 +813,15 @@ ALTER TABLE "Member" ADD CONSTRAINT "Member_organizationId_fkey" FOREIGN KEY ("o
 ALTER TABLE "Member" ADD CONSTRAINT "Member_censorId_fkey" FOREIGN KEY ("censorId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "MemberRole" ADD CONSTRAINT "MemberRole_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Member"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MemberRole" ADD CONSTRAINT "MemberRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MemberRole" ADD CONSTRAINT "MemberRole_grantedBy_fkey" FOREIGN KEY ("grantedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ActivitySkill" ADD CONSTRAINT "ActivitySkill_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -855,4 +895,7 @@ ALTER TABLE "ShiftManager" ADD CONSTRAINT "ShiftManager_shiftId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "ShiftManager" ADD CONSTRAINT "ShiftManager_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ActivitySearchHistory" ADD CONSTRAINT "ActivitySearchHistory_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

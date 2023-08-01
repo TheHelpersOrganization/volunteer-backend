@@ -127,17 +127,11 @@ export class ModActivityService extends AbstractService {
           },
         },
         activityContacts: {
-          create:
-            dto.contacts &&
-            dto.contacts.map((contact) => ({
-              contact: {
-                create: {
-                  name: contact.name,
-                  email: contact.email,
-                  phone: contact.phoneNumber,
-                },
-              },
+          createMany: {
+            data: dto.contacts.map((id) => ({
+              contactId: id,
             })),
+          },
         },
         ActivityLocation: {
           create: {

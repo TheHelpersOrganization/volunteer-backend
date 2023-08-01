@@ -142,13 +142,9 @@ export class ShiftService extends AbstractService {
               }),
             )
           : undefined;
-        const contactIds = dto.contacts
-          ? (await this.contactService.createMany(context, dto.contacts)).map(
-              (d) => ({
-                contactId: d.id,
-              }),
-            )
-          : undefined;
+        const contactIds = dto.contacts?.map((c) => ({
+          contactId: c,
+        }));
 
         const res = await this.prisma.shift.create({
           data: {
@@ -271,11 +267,11 @@ export class ShiftService extends AbstractService {
                 ? undefined
                 : {
                     deleteMany: {},
-                    create: dto.contacts?.map((d) => ({
-                      contact: {
-                        create: d,
-                      },
-                    })),
+                    createMany: {
+                      data: dto.contacts?.map((d) => ({
+                        contactId: d,
+                      })),
+                    },
                   },
             shiftSkills:
               dto.shiftSkills === undefined

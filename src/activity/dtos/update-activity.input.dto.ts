@@ -1,13 +1,12 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsArray,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { CreateContactInputDto } from 'src/contact/dtos';
 import { IsFileId } from 'src/file/validators';
 import { CreateLocationInputDto } from 'src/location/dtos';
 
@@ -34,11 +33,16 @@ export class UpdateActivityInputDto {
   @IsArray()
   activityManagerIds?: number[];
 
+  // @IsOptional()
+  // @Type(() => CreateContactInputDto)
+  // @ValidateNested({ each: true })
+  // @ArrayNotEmpty()
+  // contacts?: CreateContactInputDto[];
+
   @IsOptional()
-  @Type(() => CreateContactInputDto)
-  @ValidateNested({ each: true })
-  @ArrayNotEmpty()
-  contacts?: CreateContactInputDto[];
+  @IsArray()
+  @IsInt({ each: true })
+  contacts: number[];
 
   @IsOptional()
   @Type(() => CreateLocationInputDto)

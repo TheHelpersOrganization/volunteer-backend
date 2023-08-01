@@ -179,8 +179,11 @@ export class AccountVerificationService extends AbstractService {
         in: query.id,
       };
     }
-    if (query.accountId) {
+    if (query.accountId != null) {
       filter.accountId = query.accountId;
+    }
+    if (query.isVerified != null) {
+      filter.isVerified = query.isVerified;
     }
     if (query.status) {
       filter.status = {

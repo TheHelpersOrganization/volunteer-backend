@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '@prisma/client';
+import { OrganizationMemberStatus } from 'src/organization/constants';
 import { AppLogger } from '../../common/logger';
 import { RequestContext } from '../../common/request-context';
 import { AbstractService } from '../../common/services';
 import { PrismaService } from '../../prisma';
 import {
   ContactOutputDto,
+  ContactQueryDto,
   CreateContactInputDto,
   UpdateContactInputDto,
 } from '../dtos';
@@ -14,6 +17,37 @@ import {
 export class ContactService extends AbstractService {
   constructor(logger: AppLogger, private readonly prisma: PrismaService) {
     super(logger);
+  }
+
+  async getContacts(context: RequestContext, query: ContactQueryDto) {
+    this.logCaller(context, this.getById);
+    const contacts = await this.prisma.contact.findMany({
+      where: this.getContactWhereInput(context, query),
+    });
+    return this.output(ContactOutputDto, contacts);
+  }
+
+  getContactWhereInput(context: RequestContext, query: ContactQueryDto) {
+    const where: Prisma.ContactWhereInput = {};
+
+    if (query.id) {
+      where.id = {
+        in: query.id,
+      };
+    }
+
+    if (query.organizationId) {
+      where.account = {
+        members: {
+          some: {
+            organizationId: query.organizationId,
+            status: OrganizationMemberStatus.Approved,
+          },
+        },
+      };
+    }
+
+    return where;
   }
 
   async getById(context: RequestContext, id: number) {
@@ -31,7 +65,9 @@ export class ContactService extends AbstractService {
     dto: CreateContactInputDto,
   ): Promise<ContactOutputDto> {
     this.logCaller(context, this.create);
-    const contact = await this.prisma.contact.create({ data: dto });
+    const contact = await this.prisma.contact.create({
+      data: { ...dto, accountId: context.account.id },
+    });
     return this.output(ContactOutputDto, contact);
   }
 
@@ -41,7 +77,11 @@ export class ContactService extends AbstractService {
   ): Promise<ContactOutputDto[]> {
     this.logCaller(context, this.createMany);
     const contacts = await this.prisma.$transaction(
-      dtos.map((dto) => this.prisma.contact.create({ data: dto })),
+      dtos.map((dto) =>
+        this.prisma.contact.create({
+          data: { ...dto, accountId: context.account.id },
+        }),
+      ),
     );
     return this.outputArray(ContactOutputDto, contacts);
   }
@@ -58,7 +98,9 @@ export class ContactService extends AbstractService {
 
     const contacts: any[] = [];
     for (const dto of dtos) {
-      const contact = await transaction.contact.create({ data: dto });
+      const contact = await transaction.contact.create({
+        data: { ...dto, accountId: context.account.id },
+      });
       contacts.push(contact);
     }
 
