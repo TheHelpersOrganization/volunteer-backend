@@ -23,6 +23,8 @@ export class ContactService extends AbstractService {
     this.logCaller(context, this.getById);
     const contacts = await this.prisma.contact.findMany({
       where: this.getContactWhereInput(context, query),
+      take: query.limit,
+      skip: query.offset,
     });
     return this.output(ContactOutputDto, contacts);
   }
@@ -34,6 +36,10 @@ export class ContactService extends AbstractService {
       where.id = {
         in: query.id,
       };
+    }
+
+    if (query.accountId) {
+      where.accountId = query.accountId;
     }
 
     if (query.organizationId) {
