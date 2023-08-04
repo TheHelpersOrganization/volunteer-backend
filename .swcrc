@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "module": {
+    "type": "commonjs"
+  },
+  "sourceMaps": true,
+  "jsc": {
+    "target": "es2022",
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true,
+      "dynamicImport": true
+    },
+    "loose": true,
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "keepClassNames": true,
+    "baseUrl": "./"
+  },
+  "minify": false
+}
