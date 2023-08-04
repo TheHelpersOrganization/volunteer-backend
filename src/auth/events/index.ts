@@ -1,6 +1,6 @@
-import { AccountOutputDto } from 'src/account/dtos';
-import { AbstractEvent } from 'src/common/events';
-import { RequestContext } from 'src/common/request-context';
+import { AccountOutputDto } from '@app/account/dtos';
+import { AbstractEvent } from '@app/common/events';
+import { RequestContext } from '@app/common/request-context';
 
 export class AccountRegisteredEvent extends AbstractEvent {
   static eventName = 'account.registered';

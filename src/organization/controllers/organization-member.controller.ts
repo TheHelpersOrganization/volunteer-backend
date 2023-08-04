@@ -1,5 +1,5 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   GetMemberQueryDto,
   GrantRoleInputDto,

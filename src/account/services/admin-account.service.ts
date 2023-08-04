@@ -1,18 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { plainToInstance } from 'class-transformer';
-import { AccountVerificationStatus } from 'src/account-verification/constants';
+import { AccountVerificationStatus } from '@app/account-verification/constants';
 import {
   AccountVerificationIsBlockedException,
   NoPendingAccountVerificationException,
   UnableToVerifySelfAccountException,
-} from 'src/account-verification/exceptions';
-import { Role } from 'src/auth/constants';
-import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
+} from '@app/account-verification/exceptions';
+import { Role } from '@app/auth/constants';
+import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
 import {
   AccountOutputDto,
   AdminAccountBanInputDto,
@@ -26,7 +26,10 @@ import { RawExtendedAccount } from '../types';
 
 @Injectable()
 export class AdminAccountService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

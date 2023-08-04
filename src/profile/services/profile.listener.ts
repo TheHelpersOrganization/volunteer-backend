@@ -1,8 +1,8 @@
+import { AccountRegisteredEvent } from '@app/auth/events';
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { AccountRegisteredEvent } from 'src/auth/events';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
 import { ProfileService } from './profile.service';
 
 @Injectable()

@@ -1,6 +1,6 @@
+import { ContactOutputDto } from '@app/contact/dtos';
+import { ShortLocationOutputDto } from '@app/location/dtos';
 import { Expose, Type } from 'class-transformer';
-import { ContactOutputDto } from 'src/contact/dtos';
-import { ShortLocationOutputDto } from 'src/location/dtos';
 import { ActivityStatus } from '../constants';
 
 export class ActivityMeOutputDto {

@@ -1,10 +1,10 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { RoleOutputDto } from '@app/role/dto';
+import { RoleNotFountException } from '@app/role/exceptions';
+import { RoleService } from '@app/role/services';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { RoleOutputDto } from 'src/role/dto';
-import { RoleNotFountException } from 'src/role/exceptions';
-import { RoleService } from 'src/role/services';
 import {
   OrganizationMemberRole,
   OrganizationMemberRoleWeight,

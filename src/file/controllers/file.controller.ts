@@ -1,3 +1,4 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import {
   ClassSerializerInterceptor,
   Controller,
@@ -11,7 +12,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 
 import { Public } from '../../auth/decorators';
 import { FileQueryDto } from '../dtos';

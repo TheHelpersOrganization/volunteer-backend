@@ -1,7 +1,7 @@
+import { Role } from '@app/auth/constants';
+import { RequireRoles } from '@app/auth/decorators';
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { Role } from 'src/auth/constants';
-import { RequireRoles } from 'src/auth/decorators';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import { OrganizationStatus } from '../constants';
 import {
   OrganizationOutputDto,

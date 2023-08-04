@@ -1,9 +1,9 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { OrganizationMemberRole } from '@app/organization/constants';
+import { OrganizationRoleService } from '@app/organization/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { OrganizationMemberRole } from 'src/organization/constants';
-import { OrganizationRoleService } from 'src/organization/services';
-import { PrismaService } from 'src/prisma';
 
 @Injectable()
 export class ActivityRoleService extends AbstractService {

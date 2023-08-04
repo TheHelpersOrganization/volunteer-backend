@@ -1,12 +1,15 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
 
 @Injectable()
 export class ShiftVolunteerTaskService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

@@ -6,7 +6,7 @@ import {
   ChatParticipant,
   PrismaClient,
 } from '@prisma/client';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import {
   getNextChatId,
   getNextChatMessageId,

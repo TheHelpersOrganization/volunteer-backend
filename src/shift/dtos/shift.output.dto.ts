@@ -1,11 +1,11 @@
+import { ContactOutputDto } from '@app/contact/dtos';
+import { LocationOutputDto } from '@app/location/dtos';
 import { Expose, Type } from 'class-transformer';
-import { ContactOutputDto } from 'src/contact/dtos';
-import { LocationOutputDto } from 'src/location/dtos';
 import { ShiftManagerOutputDto } from './shift-manager.output.dto';
 
-import { ActivityOutputDto } from 'src/activity/dtos';
-import { ShiftSkillOutputDto } from 'src/shift-skill/dtos';
-import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
+import { ActivityOutputDto } from '@app/activity/dtos';
+import { ShiftSkillOutputDto } from '@app/shift-skill/dtos';
+import { ShiftVolunteerOutputDto } from '@app/shift-volunteer/dtos';
 import { ShiftStatus } from '../constants';
 
 export class ShiftMeOutputDto {

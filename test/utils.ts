@@ -1,4 +1,4 @@
-import { AppPrismaClient } from 'src/prisma';
+import { AppPrismaClient } from '@app/prisma';
 
 export const deleteAllDatabaseData = async () => {
   const prisma = new AppPrismaClient();

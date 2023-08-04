@@ -1,8 +1,8 @@
+import { ActivityOutputDto } from '@app/activity/dtos';
+import { FileOutputDto } from '@app/file/dtos';
+import { OrganizationOutputDto } from '@app/organization/dtos';
+import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose, Type } from 'class-transformer';
-import { ActivityOutputDto } from 'src/activity/dtos';
-import { FileOutputDto } from 'src/file/dtos';
-import { OrganizationOutputDto } from 'src/organization/dtos';
-import { ProfileOutputDto } from 'src/profile/dtos';
 import { ReportStatus, ReportType } from '../constants';
 
 export class ReportMessageOutputDto {

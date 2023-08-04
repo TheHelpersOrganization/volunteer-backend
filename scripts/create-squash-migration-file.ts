@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'fs';
 
 const migrationPath =
   process.argv[2] ?? 'prisma/migrations/000000000000_squashed_migrations';

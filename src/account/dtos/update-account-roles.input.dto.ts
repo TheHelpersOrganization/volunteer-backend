@@ -1,5 +1,5 @@
+import { Role } from '@app/auth/constants';
 import { IsArray, IsEnum } from 'class-validator';
-import { Role } from 'src/auth/constants';
 
 export class UpdateAccountRolesInputDto {
   @IsEnum(Role, { each: true })

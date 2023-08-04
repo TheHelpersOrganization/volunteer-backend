@@ -1,10 +1,10 @@
+import authConfig from '@app/common/configs/subconfigs/auth.config';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { WsException } from '@nestjs/websockets';
 import { JwtPayload } from 'jsonwebtoken';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import authConfig from 'src/common/configs/subconfigs/auth.config';
 import { STRATEGY_JWT_AUTH_WEBSOCKET } from '../constants';
 
 @Injectable()

@@ -1,6 +1,6 @@
+import { SkillOutputDto } from '@app/skill/dtos';
 import { Expose, Transform } from 'class-transformer';
-import * as _ from 'lodash';
-import { SkillOutputDto } from 'src/skill/dtos';
+import _ from 'lodash';
 
 export class ProfileSkillOutputDto extends SkillOutputDto {
   @Expose()

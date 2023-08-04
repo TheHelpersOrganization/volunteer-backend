@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import * as _ from 'lodash';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { NotificationType } from 'src/notification/constants';
-import { NotificationService } from 'src/notification/services';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { NotificationType } from '@app/notification/constants';
+import { NotificationService } from '@app/notification/services';
 import {
   OrganizationMemberStatus,
   OrganizationStatus,
-} from 'src/organization/constants';
-import { OrganizationNotFoundException } from 'src/organization/exceptions';
-import { PrismaService } from 'src/prisma';
+} from '@app/organization/constants';
+import { OrganizationNotFoundException } from '@app/organization/exceptions';
+import { PrismaService } from '@app/prisma';
+import { Injectable } from '@nestjs/common';
+import _ from 'lodash';
 import {
   ActivityOutputDto,
   CreateActivityInputDto,

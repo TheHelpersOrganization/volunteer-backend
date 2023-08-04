@@ -1,8 +1,8 @@
+import { CommonModule } from '@app/common/common.module';
 import { Module } from '@nestjs/common';
-import { CommonModule } from 'src/common/common.module';
 
-import { NotificationModule } from 'src/notification/notification.module';
-import { OrganizationModule } from 'src/organization/organization.module';
+import { NotificationModule } from '@app/notification/notification.module';
+import { OrganizationModule } from '@app/organization/organization.module';
 import { ActivityController, ModActivityController } from './controllers';
 import {
   ActivityRoleService,

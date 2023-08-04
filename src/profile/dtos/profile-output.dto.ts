@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 
-import { SkillOutputDto } from 'src/skill/dtos';
+import { SkillOutputDto } from '@app/skill/dtos';
 import { LocationOutputDto } from '../../location/dtos';
 import { Gender } from '../constants/profile.constant';
 import { ProfileSkillOutputDto } from './profile-skill.output.dto';

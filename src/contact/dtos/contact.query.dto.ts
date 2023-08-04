@@ -1,10 +1,10 @@
-import { Transform } from 'class-transformer';
-import { IsArray, IsInt, IsOptional } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
+import { PaginationQueryDto } from '@app/common/dtos';
 import {
   stringToIntArrayTransform,
   stringToIntTransform,
-} from 'src/common/transformers';
+} from '@app/common/transformers';
+import { Transform } from 'class-transformer';
+import { IsArray, IsInt, IsOptional } from 'class-validator';
 
 export class ContactQueryDto extends PaginationQueryDto {
   @IsOptional()

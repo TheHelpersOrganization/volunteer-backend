@@ -1,21 +1,21 @@
+import { ActivityModule } from '@app/activity/activity.module';
+import { ActivityService, ModActivityService } from '@app/activity/services';
+import { Role } from '@app/auth/constants';
+import { CommonModule } from '@app/common/common.module';
+import { RequestContext } from '@app/common/request-context';
+import { ContactModule } from '@app/contact/contact.module';
+import { LocationModule } from '@app/location/location.module';
+import { OrganizationOutputDto } from '@app/organization/dtos';
+import { OrganizationModule } from '@app/organization/organization.module';
+import { OrganizationService } from '@app/organization/services';
+import { AppPrismaClient } from '@app/prisma';
+import { ShiftSkillModule } from '@app/shift-skill/shift-skill.module';
+import { ShiftOutputDto } from '@app/shift/dtos';
 import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Account } from '@prisma/client';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { seedAccountsAndRoles } from 'prisma/seed/seed-account-role';
-import { ActivityModule } from 'src/activity/activity.module';
-import { ActivityService, ModActivityService } from 'src/activity/services';
-import { Role } from 'src/auth/constants';
-import { CommonModule } from 'src/common/common.module';
-import { RequestContext } from 'src/common/request-context';
-import { ContactModule } from 'src/contact/contact.module';
-import { LocationModule } from 'src/location/location.module';
-import { OrganizationOutputDto } from 'src/organization/dtos';
-import { OrganizationModule } from 'src/organization/organization.module';
-import { OrganizationService } from 'src/organization/services';
-import { AppPrismaClient } from 'src/prisma';
-import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
-import { ShiftOutputDto } from 'src/shift/dtos';
 import { ShiftService } from '../shift.service';
 
 describe('ShiftService Integration', () => {

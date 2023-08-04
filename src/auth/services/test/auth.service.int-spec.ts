@@ -1,17 +1,17 @@
+import { AccountModule } from '@app/account/account.module';
+import { Role } from '@app/auth/constants';
+import { RegisterOutput } from '@app/auth/dtos';
+import { EmailAlreadyInUseException } from '@app/auth/exceptions';
+import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { CommonModule } from '@app/common/common.module';
+import { RequestContext } from '@app/common/request-context';
+import { EmailModule } from '@app/email/email.module';
+import { OtpModule } from '@app/otp/otp.module';
+import { RoleModule } from '@app/role/role.module';
+import { RoleService } from '@app/role/services';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { AccountModule } from 'src/account/account.module';
-import { Role } from 'src/auth/constants';
-import { RegisterOutput } from 'src/auth/dtos';
-import { EmailAlreadyInUseException } from 'src/auth/exceptions';
-import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { CommonModule } from 'src/common/common.module';
-import { RequestContext } from 'src/common/request-context';
-import { EmailModule } from 'src/email/email.module';
-import { OtpModule } from 'src/otp/otp.module';
-import { RoleModule } from 'src/role/role.module';
-import { RoleService } from 'src/role/services';
 import { AuthService } from '../auth.service';
 
 describe('AuthService Integration', () => {

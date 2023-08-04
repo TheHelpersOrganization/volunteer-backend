@@ -1,12 +1,22 @@
-import * as dayjs from 'dayjs';
-import * as tz from 'dayjs/plugin/timezone';
-import * as utc from 'dayjs/plugin/utc';
-import * as path from 'path';
-import { FileSizeUnit } from 'src/file/constants';
-import { ProfileOutputDto } from 'src/profile/dtos';
+import { FileSizeUnit } from '@app/file/constants';
+import { ProfileOutputDto } from '@app/profile/dtos';
+import dayjs from 'dayjs';
+import tz from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import path from 'path';
 
 dayjs.extend(utc);
 dayjs.extend(tz);
+
+export const requireNonNull = <T>(
+  value: T | null | undefined,
+  message = 'Value is null',
+) => {
+  if (value == null) {
+    throw new Error(message);
+  }
+  return value;
+};
 
 export function createExceptionErrorCode(str) {
   const raw = toKebabCase(str);

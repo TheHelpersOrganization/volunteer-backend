@@ -1,3 +1,5 @@
+import { PaginationQueryDto } from '@app/common/dtos';
+import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -10,8 +12,6 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBooleanTransform } from 'src/common/transformers';
 import { NotificationType } from '../constants';
 
 export enum GetNotificationSort {

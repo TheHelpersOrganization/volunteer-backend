@@ -1,5 +1,5 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import { Controller, Get, Param } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import { ShiftVolunteerOutputDto } from '../dtos';
 import { ShiftVolunteerService } from '../services';
 

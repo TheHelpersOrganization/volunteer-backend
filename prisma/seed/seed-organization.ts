@@ -15,7 +15,7 @@ import {
   Role,
 } from '@prisma/client';
 import { randomInt } from 'crypto';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import {
   OrganizationMemberRole,
   OrganizationMemberStatus,

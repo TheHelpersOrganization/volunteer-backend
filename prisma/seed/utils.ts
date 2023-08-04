@@ -1,10 +1,10 @@
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
 import { Account, Member, Organization, Role } from '@prisma/client';
-import * as csv from 'csv-parse/sync';
-import * as fs from 'fs';
-import * as _ from 'lodash';
-import * as path from 'path';
+import csv from 'csv-parse/sync';
+import fs from 'fs';
+import _ from 'lodash';
+import path from 'path';
 import {
   OrganizationMemberRole,
   OrganizationMemberStatus,

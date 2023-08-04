@@ -1,10 +1,10 @@
+import { ActivityOutputDto, CreateActivityInputDto } from '@app/activity/dtos';
+import { CommonModule } from '@app/common/common.module';
+import { RequestContext } from '@app/common/request-context';
+import { AppPrismaClient } from '@app/prisma';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Account, Organization } from '@prisma/client';
 import { seedAccountsAndRoles } from 'prisma/seed/seed-account-role';
-import { ActivityOutputDto, CreateActivityInputDto } from 'src/activity/dtos';
-import { CommonModule } from 'src/common/common.module';
-import { RequestContext } from 'src/common/request-context';
-import { AppPrismaClient } from 'src/prisma';
 import { ModActivityService } from '..';
 
 describe('ModActivityService', () => {

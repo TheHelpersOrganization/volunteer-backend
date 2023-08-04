@@ -1,3 +1,5 @@
+import { AccountVerificationStatus } from '@app/account-verification/constants';
+import { OrganizationMemberRole } from '@app/organization/constants';
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
 import {
@@ -9,8 +11,6 @@ import {
   Role,
 } from '@prisma/client';
 import { hashSync } from 'bcrypt';
-import { AccountVerificationStatus } from 'src/account-verification/constants';
-import { OrganizationMemberRole } from 'src/organization/constants';
 import { Role as RoleEnum } from '../../src/auth/constants';
 import {
   getNextAccountBanId,

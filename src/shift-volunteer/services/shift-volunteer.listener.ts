@@ -1,10 +1,10 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { ShiftVolunteerReviewedEvent } from '@app/shift-volunteer/events';
+import { ShiftStatus } from '@app/shift/constants';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { ShiftVolunteerReviewedEvent } from 'src/shift-volunteer/events';
-import { ShiftStatus } from 'src/shift/constants';
 import { ShiftVolunteerStatus } from '../constants';
 
 @Injectable()

@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 
-import { RoleService } from 'src/role/services';
+import { RoleService } from '@app/role/services';
 import { ReqContext, RequestContext } from '../../common/request-context';
 import { OrganizationMemberRole, organizationMemberRoles } from '../constants';
 import {

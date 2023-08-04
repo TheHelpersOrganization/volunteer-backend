@@ -1,11 +1,11 @@
+import { InvalidInputException } from '@app/common/exceptions';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { FirebaseService } from '@app/firebase/firebase.service';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { InvalidInputException } from 'src/common/exceptions';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { FirebaseService } from 'src/firebase/firebase.service';
-import { PrismaService } from 'src/prisma';
 import { NotificationType, accountNotificationPrefix } from '../constants';
 import {
   CreateNotificationInputDto,

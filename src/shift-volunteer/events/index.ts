@@ -1,6 +1,6 @@
-import { AbstractEvent } from 'src/common/events';
-import { RequestContext } from 'src/common/request-context';
-import { ShiftOutputDto } from 'src/shift/dtos';
+import { AbstractEvent } from '@app/common/events';
+import { RequestContext } from '@app/common/request-context';
+import { ShiftOutputDto } from '@app/shift/dtos';
 import { ShiftVolunteerOutputDto } from '../dtos';
 
 export class ShiftVolunteerReviewedEvent extends AbstractEvent {

@@ -1,5 +1,5 @@
+import { ShortLocationOutputDto } from '@app/location/dtos';
 import { TransformFnParams } from 'class-transformer';
-import { ShortLocationOutputDto } from 'src/location/dtos';
 
 export const separatedCommaNumberArrayTransform = (
   params: TransformFnParams,

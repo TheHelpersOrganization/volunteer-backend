@@ -1,16 +1,19 @@
+import { ActivityStatus } from '@app/activity/constants';
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { Injectable } from '@nestjs/common';
 import { ShiftSkill, Skill } from '@prisma/client';
 import { round } from 'lodash';
-import { ActivityStatus } from 'src/activity/constants';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftSkillOutputDto } from '../dtos';
 
 @Injectable()
 export class ShiftSkillService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

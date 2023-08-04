@@ -1,4 +1,4 @@
-import { BaseApiException } from 'src/common/exceptions/base-api.exception';
+import { BaseApiException } from '@app/common/exceptions/base-api.exception';
 
 export class EmailAlreadyInUseException extends BaseApiException {
   constructor() {

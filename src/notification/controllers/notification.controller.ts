@@ -1,3 +1,4 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import {
   Body,
   Controller,
@@ -9,7 +10,6 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   CreateNotificationInputDto,
   GetNotificationByIdQueryDto,

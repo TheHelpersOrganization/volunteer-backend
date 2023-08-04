@@ -1,15 +1,15 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
 
+import { LocationOutputDto } from '@app/location/dtos';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
+import { ShiftStatus } from '@app/shift/constants';
 import { Prisma } from '@prisma/client';
-import * as dayjs from 'dayjs';
-import * as geolib from 'geolib';
-import { LocationOutputDto } from 'src/location/dtos';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { ShiftStatus } from 'src/shift/constants';
+import dayjs from 'dayjs';
+import geolib from 'geolib';
 import { ActivityStatus } from '../constants';
 import {
   ActivityOutputDto,
@@ -32,7 +32,10 @@ import {
 
 @Injectable()
 export class ActivityService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

@@ -1,9 +1,9 @@
+import { EmailModule } from '@app/email/email.module';
+import { OtpModule } from '@app/otp/otp.module';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { EmailModule } from 'src/email/email.module';
-import { OtpModule } from 'src/otp/otp.module';
 
 import { CaslModule } from 'nest-casl';
 import { AccountModule } from '../account/account.module';

@@ -1,7 +1,7 @@
+import { RequestContext } from '@app/common/request-context';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { Prisma } from '@prisma/client';
 import { isPointWithinRadius } from 'geolib';
-import { RequestContext } from 'src/common/request-context';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import {
   BaseGetActivityQueryDto,
   GetActivitiesQueryDto,
@@ -249,8 +249,8 @@ export const extendActivity = (
   //   ? unionLocationsTransform(locations)
   //   : undefined;
 
-  const skillIds = activity.shifts?.flatMap((shift) =>
-    shift.shiftSkills?.map((sk) => sk.skillId),
+  const skillIds = activity.shifts?.flatMap(
+    (shift) => shift.shiftSkills?.map((sk) => sk.skillId),
   );
   const filteredSkillIds: number[] = [];
   skillIds?.forEach((skillId) => {

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
-import { AccountVerificationOutputDto } from 'src/account-verification/dtos';
+import { AccountVerificationOutputDto } from '@app/account-verification/dtos';
 import { Role } from '../../auth/constants/role.constant';
 
 export class AccountOutputDto {

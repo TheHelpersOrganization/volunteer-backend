@@ -1,5 +1,5 @@
+import { AccountOutputDto } from '@app/account/dtos';
 import { Expose, Type } from 'class-transformer';
-import { AccountOutputDto } from 'src/account/dtos';
 
 import { Role } from '../constants/role.constant';
 import { TokenOutputDto } from './token-output.dto';

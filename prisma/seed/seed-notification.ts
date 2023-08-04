@@ -1,3 +1,7 @@
+import {
+  NotificationType,
+  notificationTypes,
+} from '@app/notification/constants';
 import { faker } from '@faker-js/faker';
 import {
   Account,
@@ -9,11 +13,7 @@ import {
   Report,
   Shift,
 } from '@prisma/client';
-import * as _ from 'lodash';
-import {
-  NotificationType,
-  notificationTypes,
-} from 'src/notification/constants';
+import _ from 'lodash';
 import { getNextNotificationId, requireNonNullish } from './utils';
 
 export const seedNotifications = async (
@@ -63,9 +63,8 @@ export const seedNotifications = async (
           break;
         case NotificationType.Shift:
           activityId = _.sample(activities)?.id;
-          shiftId = _.sample(
-            shifts.filter((s) => s.activityId === activityId),
-          )?.id;
+          shiftId = _.sample(shifts.filter((s) => s.activityId === activityId))
+            ?.id;
           break;
         case NotificationType.Organization:
           organizationId = _.sample(organizations)?.id;

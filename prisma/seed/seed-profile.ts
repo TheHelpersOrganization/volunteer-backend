@@ -9,7 +9,7 @@ import {
   Skill,
 } from '@prisma/client';
 import { randomInt } from 'crypto';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { Gender } from '../../src/profile/constants';
 import { seedFiles } from './seed-file';
 import { generateLocation, generateViName } from './utils';

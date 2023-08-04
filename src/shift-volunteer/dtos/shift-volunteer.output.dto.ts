@@ -1,7 +1,7 @@
+import { ErrorObject } from '@app/common/dtos';
+import { ProfileOutputDto } from '@app/profile/dtos';
+import { ShiftOutputDto } from '@app/shift/dtos';
 import { Expose, Transform, Type } from 'class-transformer';
-import { ErrorObject } from 'src/common/dtos';
-import { ProfileOutputDto } from 'src/profile/dtos';
-import { ShiftOutputDto } from 'src/shift/dtos';
 import { ShiftVolunteerStatus } from '../constants';
 
 export class ShiftVolunteerOutputDto {

@@ -1,5 +1,5 @@
+import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose, Type } from 'class-transformer';
-import { ProfileOutputDto } from 'src/profile/dtos';
 import { OrganizationMemberStatus } from '../constants';
 import { MemberRoleOutputDto } from './role.dto';
 

@@ -1,9 +1,9 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { ProfileService } from '@app/profile/services';
 import { Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { ProfileService } from 'src/profile/services';
 import { shiftVolunteerStatuses } from '../constants';
 import { GetShiftVolunteerQueryDto } from '../dtos';
 import { ShiftVolunteerService } from './shift-volunteer.service';

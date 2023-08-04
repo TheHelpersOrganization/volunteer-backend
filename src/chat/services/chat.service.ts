@@ -1,16 +1,19 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import {
+  getProfileName,
+  getProfileNameOrNull,
+  requireNonNull,
+} from '@app/common/utils';
+import { NotificationType } from '@app/notification/constants';
+import { NotificationService } from '@app/notification/services';
+import { PrismaService } from '@app/prisma';
+import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileService } from '@app/profile/services';
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
-import { requireNonNullish } from 'prisma/seed/utils';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { getProfileName, getProfileNameOrNull } from 'src/common/utils';
-import { NotificationType } from 'src/notification/constants';
-import { NotificationService } from 'src/notification/services';
-import { PrismaService } from 'src/prisma';
-import { getProfileBasicSelect } from 'src/profile/dtos';
-import { ProfileService } from 'src/profile/services';
 import {
   ChatMessagesQueryDto,
   ChatQueryDto,
@@ -353,7 +356,7 @@ export class ChatService extends AbstractService {
       title:
         chat.name ??
         getProfileName(
-          requireNonNullish(
+          requireNonNull(
             chat.participants.find((p) => p.id !== context.account.id),
           ),
         ),
@@ -456,7 +459,7 @@ export class ChatService extends AbstractService {
       new ChatReadEvent(
         context,
         output,
-        requireNonNullish(
+        requireNonNull(
           output.participants.find((p) => p.id === context.account.id),
         ),
       ),

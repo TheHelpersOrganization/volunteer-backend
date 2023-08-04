@@ -1,5 +1,5 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import { Body, Controller, Param, Post, Put } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import { ShiftVolunteerStatus } from '../constants';
 import {
   ApproveManyShiftVolunteer,

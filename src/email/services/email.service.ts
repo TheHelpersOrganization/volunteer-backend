@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
 import { MailerService } from '@nestjs-modules/mailer';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class EmailService extends AbstractService {

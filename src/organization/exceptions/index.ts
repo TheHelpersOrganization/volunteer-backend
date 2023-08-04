@@ -1,5 +1,5 @@
+import { BaseApiException } from '@app/common/exceptions';
 import { HttpStatus } from '@nestjs/common';
-import { BaseApiException } from 'src/common/exceptions';
 
 export class InvalidOrganizationStatusException extends BaseApiException {
   constructor() {

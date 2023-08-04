@@ -1,4 +1,4 @@
-import { Role } from 'src/auth/constants';
+import { Role } from '@app/auth/constants';
 import { AccountAccessTokenClaims } from '../../auth/dtos/auth-token-output.dto';
 
 export class RequestContext {
@@ -21,8 +21,4 @@ export class RequestContext {
   get isAdmin() {
     return this.account.roles.includes(Role.Admin);
   }
-}
-
-export class IdentifiedRequestContext extends RequestContext {
-  public override account: AccountAccessTokenClaims;
 }

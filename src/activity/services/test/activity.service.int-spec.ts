@@ -1,12 +1,12 @@
+import { Role } from '@app/auth/constants';
+import { CommonModule } from '@app/common/common.module';
+import { RequestContext } from '@app/common/request-context';
+import { AppPrismaClient } from '@app/prisma';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
+import { ShiftService } from '@app/shift/services';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Activity, Organization } from '@prisma/client';
 import { nanoid } from 'nanoid';
-import { Role } from 'src/auth/constants';
-import { CommonModule } from 'src/common/common.module';
-import { RequestContext } from 'src/common/request-context';
-import { AppPrismaClient } from 'src/prisma';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { ShiftService } from 'src/shift/services';
 import { ActivityService } from '../activity.service';
 
 describe('ActivityService', () => {

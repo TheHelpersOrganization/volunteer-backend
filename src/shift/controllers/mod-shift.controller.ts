@@ -1,5 +1,5 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import { ShiftOutputDto } from '../dtos';
 import { GetShiftsQueryDto } from '../dtos/get-shift.query.dto';
 import { ModShiftService } from '../services';

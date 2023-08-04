@@ -1,3 +1,5 @@
+import { PaginationQueryDto } from '@app/common/dtos';
+import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -7,8 +9,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBooleanTransform } from 'src/common/transformers';
 import { ShiftVolunteerStatus } from '../constants';
 
 export enum ShiftVolunteerInclude {

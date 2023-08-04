@@ -11,6 +11,7 @@
     "strictFunctionTypes": true,
     "noImplicitOverride": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
     "target": "es2022",
     "sourceMap": true,
     "outDir": "./dist",

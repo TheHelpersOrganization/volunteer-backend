@@ -1,3 +1,15 @@
+import { LoginSessionExpiredException } from '@app/auth/exceptions';
+import { WsAuthGuard } from '@app/auth/guards/jwt-auth-ws.guard';
+import { AllExceptionsFilter, toErrorObject } from '@app/common/filters';
+import {
+  LoggingInterceptor,
+  ResponseInterceptor,
+} from '@app/common/interceptors';
+import { RequestIdInterceptor } from '@app/common/interceptors/request-id.interceptor';
+import { AppLogger } from '@app/common/logger';
+import { VALIDATION_PIPE_OPTIONS } from '@app/common/pipes';
+import { ReqContext, RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
 import {
   ParseIntPipe,
   UnauthorizedException,
@@ -20,18 +32,6 @@ import {
 } from '@nestjs/websockets';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
-import { LoginSessionExpiredException } from 'src/auth/exceptions';
-import { WsAuthGuard } from 'src/auth/guards/jwt-auth-ws.guard';
-import { AllExceptionsFilter, toErrorObject } from 'src/common/filters';
-import {
-  LoggingInterceptor,
-  ResponseInterceptor,
-} from 'src/common/interceptors';
-import { RequestIdInterceptor } from 'src/common/interceptors/request-id.interceptor';
-import { AppLogger } from 'src/common/logger';
-import { VALIDATION_PIPE_OPTIONS } from 'src/common/pipes';
-import { ReqContext, RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
 import { CreateChatInputDto, CreateMessageInputDto } from '../dtos';
 import {
   ChatBlockedEvent,

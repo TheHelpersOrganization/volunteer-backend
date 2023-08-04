@@ -1,14 +1,14 @@
+import { AuthService } from '@app/auth/services';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { requireNonNull } from '@app/common/utils';
+import { PrismaService } from '@app/prisma';
+import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileService } from '@app/profile/services';
+import { RoleService } from '@app/role/services';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { requireNonNullish } from 'prisma/seed/utils';
-import { AuthService } from 'src/auth/services';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { getProfileBasicSelect } from 'src/profile/dtos';
-import { ProfileService } from 'src/profile/services';
-import { RoleService } from 'src/role/services';
 import {
   OrganizationMemberRole,
   OrganizationMemberRoleWeight,
@@ -552,10 +552,10 @@ export class OrganizationMemberService extends AbstractService {
       OrganizationMemberRole.Owner,
       OrganizationMemberRole.Manager,
     ]);
-    const ownerRole = requireNonNullish(
+    const ownerRole = requireNonNull(
       roles.find((role) => role.name == OrganizationMemberRole.Owner),
     );
-    const managerRole = requireNonNullish(
+    const managerRole = requireNonNull(
       roles.find((role) => role.name == OrganizationMemberRole.Manager),
     );
 

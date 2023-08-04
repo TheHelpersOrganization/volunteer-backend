@@ -1,3 +1,4 @@
+import { CreateLocationInputDto } from '@app/location/dtos';
 import { Transform, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -11,10 +12,9 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { CreateLocationInputDto } from 'src/location/dtos';
 
-import { IsOnTheSameDay } from 'src/common/validators';
-import { CreateShiftSkillInputDto } from 'src/shift-skill/dtos';
+import { IsOnTheSameDay } from '@app/common/validators';
+import { CreateShiftSkillInputDto } from '@app/shift-skill/dtos';
 import { CreateShiftManagerInputDto } from '.';
 import {
   SHIFT_DESCRIPTION_MAX_LENGTH,

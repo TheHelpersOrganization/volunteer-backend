@@ -1,3 +1,6 @@
+import { PaginationQueryDto } from '@app/common/dtos';
+import { stringToBooleanTransform } from '@app/common/transformers';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -10,9 +13,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBooleanTransform } from 'src/common/transformers';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ShiftStatus } from '../constants';
 
 export enum GetShiftInclude {

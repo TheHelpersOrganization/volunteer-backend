@@ -1,12 +1,12 @@
+import { OtpType } from '@app/otp/constants';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { OtpType } from 'src/otp/constants';
 
+import { EmailService } from '@app/email/services';
+import { OtpService } from '@app/otp/services';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EmailService } from 'src/email/services';
-import { OtpService } from 'src/otp/services';
 import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';

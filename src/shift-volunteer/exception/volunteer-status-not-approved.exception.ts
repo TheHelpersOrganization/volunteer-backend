@@ -1,4 +1,4 @@
-import { BaseApiException } from 'src/common/exceptions';
+import { BaseApiException } from '@app/common/exceptions';
 
 export class VolunteerStatusNotApprovedException extends BaseApiException {
   constructor() {

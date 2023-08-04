@@ -2,10 +2,10 @@ import { S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { File, PrismaClient } from '@prisma/client';
 import { Axios } from 'axios';
-import * as mimeTypes from 'mime-types';
+import mimeTypes from 'mime-types';
 import { nanoid } from 'nanoid';
-import * as fs from 'node:fs';
-import * as path from 'path';
+import fs from 'node:fs';
+import path from 'path';
 import { getNextFileId, normalizeFileSize, requireNonNullish } from './utils';
 
 type FileOutput = { path: string; name: string; mimetype?: string };

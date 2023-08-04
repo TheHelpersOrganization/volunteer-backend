@@ -1,3 +1,11 @@
+import { PaginationQueryDto } from '@app/common/dtos';
+import {
+  separatedCommaNumberArrayTransform,
+  stringToBooleanTransform,
+  stringToFloatTransform,
+  stringToIntTransform,
+} from '@app/common/transformers';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -15,14 +23,6 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
-import {
-  separatedCommaNumberArrayTransform,
-  stringToBooleanTransform,
-  stringToFloatTransform,
-  stringToIntTransform,
-} from 'src/common/transformers';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
 import { ActivityStatus } from '../constants';
 
 export enum GetActivityInclude {

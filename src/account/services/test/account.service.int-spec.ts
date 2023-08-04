@@ -1,6 +1,6 @@
+import { CommonModule } from '@app/common/common.module';
+import { PrismaModule } from '@app/prisma';
 import { Test } from '@nestjs/testing';
-import { CommonModule } from 'src/common/common.module';
-import { PrismaModule } from 'src/prisma';
 import { AccountService } from '..';
 
 describe('AccountService', () => {

@@ -1,9 +1,9 @@
+import { CommonModule } from '@app/common/common.module';
 import { Module } from '@nestjs/common';
-import { CommonModule } from 'src/common/common.module';
 
-import { AuthModule } from 'src/auth/auth.module';
-import { ProfileModule } from 'src/profile/profile.module';
-import { RoleModule } from 'src/role/role.module';
+import { AuthModule } from '@app/auth/auth.module';
+import { ProfileModule } from '@app/profile/profile.module';
+import { RoleModule } from '@app/role/role.module';
 import { ContactModule } from '../contact/contact.module';
 import { FileModule } from '../file/file.module';
 import { LocationModule } from '../location/location.module';

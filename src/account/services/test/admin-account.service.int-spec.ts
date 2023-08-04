@@ -1,17 +1,17 @@
-import { Test } from '@nestjs/testing';
-import { Account } from '@prisma/client';
-import { nanoid } from 'nanoid';
-import { GetAccountIncludes } from 'src/account/dtos';
+import { GetAccountIncludes } from '@app/account/dtos';
 import {
   UnableToBanSelfAccountException,
   UnableToVerifySelfAccountException,
-} from 'src/account/exceptions';
-import { Role } from 'src/auth/constants';
-import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { CommonModule } from 'src/common/common.module';
-import { RequestContext } from 'src/common/request-context';
-import { throwIfNullish } from 'src/common/utils';
-import { AppPrismaClient, PrismaModule } from 'src/prisma';
+} from '@app/account/exceptions';
+import { Role } from '@app/auth/constants';
+import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { CommonModule } from '@app/common/common.module';
+import { RequestContext } from '@app/common/request-context';
+import { throwIfNullish } from '@app/common/utils';
+import { AppPrismaClient, PrismaModule } from '@app/prisma';
+import { Test } from '@nestjs/testing';
+import { Account } from '@prisma/client';
+import { nanoid } from 'nanoid';
 import { AccountService } from '../account.service';
 import { AdminAccountService } from '../admin-account.service';
 

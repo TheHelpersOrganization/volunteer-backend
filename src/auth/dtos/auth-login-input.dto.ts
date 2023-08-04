@@ -1,6 +1,6 @@
+import { EMAIL_MAX_LENGTH } from '@app/account/constants/account.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { EMAIL_MAX_LENGTH } from 'src/account/constants/account.constant';
 
 export class LoginInput {
   @IsNotEmpty()

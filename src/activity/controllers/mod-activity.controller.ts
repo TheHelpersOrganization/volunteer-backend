@@ -1,3 +1,6 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
+import { OrganizationMemberRole } from '@app/organization/constants';
+import { OrganizationRoleService } from '@app/organization/services';
 import {
   Body,
   Controller,
@@ -8,9 +11,6 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
-import { OrganizationMemberRole } from 'src/organization/constants';
-import { OrganizationRoleService } from 'src/organization/services';
 import {
   ActivityOutputDto,
   CreateActivityInputDto,

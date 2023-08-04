@@ -1,5 +1,5 @@
+import { IsFileId } from '@app/file/validators';
 import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
-import { IsFileId } from 'src/file/validators';
 
 export class CreateAccountVerificationInputDto {
   @IsOptional()

@@ -1,12 +1,12 @@
+import otpConfig from '@app/common/configs/subconfigs/otp.config';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { gen } from 'n-digit-token';
-import otpConfig from 'src/common/configs/subconfigs/otp.config';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { OtpType } from '../constants';

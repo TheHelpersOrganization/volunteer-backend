@@ -9,11 +9,11 @@ import {
   IsString,
 } from 'class-validator';
 
-import { Transform } from 'class-transformer';
 import {
   stringToBooleanTransform,
   stringToIntArrayTransform,
-} from 'src/common/transformers';
+} from '@app/common/transformers';
+import { Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dtos';
 import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 

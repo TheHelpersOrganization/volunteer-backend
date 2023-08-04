@@ -1,5 +1,5 @@
-import { BaseApiException } from 'src/common/exceptions';
-import { getHumanReadableFileSize } from 'src/common/utils';
+import { BaseApiException } from '@app/common/exceptions';
+import { getHumanReadableFileSize } from '@app/common/utils';
 
 export class FileTooLargeException extends BaseApiException {
   constructor(fileSize: number, maxFileSize: string) {

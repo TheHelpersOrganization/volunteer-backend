@@ -1,9 +1,9 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { ShiftVolunteerReviewedEvent } from '@app/shift-volunteer/events';
 import { Injectable } from '@nestjs/common';
-import * as dayjs from 'dayjs';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { ShiftVolunteerReviewedEvent } from 'src/shift-volunteer/events';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class ProfileSkillService extends AbstractService {

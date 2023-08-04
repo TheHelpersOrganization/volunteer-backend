@@ -1,8 +1,8 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
 
 import { Prisma } from '@prisma/client';
 import {
@@ -14,7 +14,10 @@ import {
 
 @Injectable()
 export class SkillService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

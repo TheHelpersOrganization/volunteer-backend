@@ -1,3 +1,4 @@
+import { stringToIntArrayTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -8,7 +9,6 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { stringToIntArrayTransform } from 'src/common/transformers';
 import { PaginationQueryDto } from '../../common/dtos';
 
 export class SkillQueryDto extends PaginationQueryDto {

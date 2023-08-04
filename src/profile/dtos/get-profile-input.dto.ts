@@ -1,6 +1,6 @@
+import { PaginationQueryDto } from '@app/common/dtos';
 import { Transform } from 'class-transformer';
 import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
 
 export enum GetProfileInclude {
   INTERESTED_SKILLS = 'interested-skills',

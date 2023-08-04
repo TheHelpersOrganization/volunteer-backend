@@ -1,5 +1,5 @@
+import { CommonModule } from '@app/common/common.module';
 import { Module } from '@nestjs/common';
-import { CommonModule } from 'src/common/common.module';
 
 import { ContactController } from './controllers';
 import { ContactService } from './services';

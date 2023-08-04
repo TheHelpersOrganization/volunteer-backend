@@ -1,3 +1,9 @@
+import {
+  ReportStatus,
+  ReportType,
+  reportStatuses,
+  reportTypes,
+} from '@app/report/constants';
 import { faker } from '@faker-js/faker';
 import {
   Account,
@@ -11,12 +17,6 @@ import {
   ReportMessageFile,
   ReportOrganization,
 } from '@prisma/client';
-import {
-  ReportStatus,
-  ReportType,
-  reportStatuses,
-  reportTypes,
-} from 'src/report/constants';
 import { seedFiles } from './seed-file';
 import { getNextReportId } from './utils';
 

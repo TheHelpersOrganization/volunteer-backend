@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { OrganizationMemberStatus } from '@app/organization/constants';
 import { Prisma } from '@prisma/client';
-import { OrganizationMemberStatus } from 'src/organization/constants';
 import { AppLogger } from '../../common/logger';
 import { RequestContext } from '../../common/request-context';
 import { AbstractService } from '../../common/services';
@@ -15,7 +15,10 @@ import {
 
 @Injectable()
 export class ContactService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

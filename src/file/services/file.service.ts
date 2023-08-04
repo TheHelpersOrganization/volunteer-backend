@@ -1,16 +1,16 @@
+import fileConfig from '@app/common/configs/subconfigs/file.config';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
 import { BucketAlreadyExists, NoSuchKey, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { File, Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
-import fileConfig from 'src/common/configs/subconfigs/file.config';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
 import { Readable } from 'stream';
 
-import { normalizeFileSize } from 'src/common/utils';
+import { normalizeFileSize } from '@app/common/utils';
 import { PrismaService } from '../../prisma';
 import { FileQueryDto } from '../dtos';
 import { DownloadFileQueryDto } from '../dtos/download-file.query.dto';

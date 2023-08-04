@@ -1,9 +1,9 @@
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
 import { Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
 
+import { RoleService } from '@app/role/services';
 import { Prisma } from '@prisma/client';
-import { RoleService } from 'src/role/services';
 import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';

@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 
-import { FileOutputDto } from 'src/file/dtos';
+import { FileOutputDto } from '@app/file/dtos';
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
 import { OrganizationStatus } from '../constants';

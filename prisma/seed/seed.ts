@@ -1,6 +1,6 @@
+import { AppPrismaClient } from '@app/prisma';
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { faker as fakerVi } from '@faker-js/faker/locale/vi';
-import { AppPrismaClient } from 'src/prisma';
 import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
 import { seedChats } from './seed-chat';

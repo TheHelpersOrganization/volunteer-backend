@@ -1,3 +1,5 @@
+import { IsFileId } from '@app/file/validators';
+import { CreateLocationInputDto } from '@app/location/dtos';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -7,8 +9,6 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { IsFileId } from 'src/file/validators';
-import { CreateLocationInputDto } from 'src/location/dtos';
 
 export class CreateActivityInputDto {
   @IsString()

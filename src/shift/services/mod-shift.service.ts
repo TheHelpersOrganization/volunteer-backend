@@ -1,3 +1,10 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { ContactService } from '@app/contact/services';
+import { LocationService } from '@app/location/services';
+import { PrismaService } from '@app/prisma';
+import { ProfileService } from '@app/profile/services';
 import { Injectable } from '@nestjs/common';
 import {
   Contact,
@@ -7,13 +14,6 @@ import {
   ShiftLocation,
   ShiftSkill,
 } from '@prisma/client';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { ContactService } from 'src/contact/services';
-import { LocationService } from 'src/location/services';
-import { PrismaService } from 'src/prisma';
-import { ProfileService } from 'src/profile/services';
 import { GetShiftInclude, GetShiftsQueryDto, ShiftOutputDto } from '../dtos';
 import { ShiftService } from './shift.service';
 

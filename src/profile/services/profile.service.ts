@@ -1,11 +1,11 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context/request-context.dto';
+import { AbstractService } from '@app/common/services';
 import { Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context/request-context.dto';
-import { AbstractService } from 'src/common/services';
 
+import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { ShiftSkillService } from '@app/shift-skill/services';
 import { Prisma } from '@prisma/client';
-import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { ShiftSkillService } from 'src/shift-skill/services';
 import { LocationOutputDto } from '../../location/dtos';
 import { LocationService } from '../../location/services';
 import { PrismaService } from '../../prisma';

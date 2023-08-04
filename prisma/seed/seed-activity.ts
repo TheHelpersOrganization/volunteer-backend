@@ -1,3 +1,6 @@
+import { ActivityStatus } from '@app/activity/constants';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
+import { ShiftStatus } from '@app/shift/constants';
 import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import {
   Account,
@@ -17,11 +20,8 @@ import {
   Skill,
   VolunteerShift,
 } from '@prisma/client';
-import * as dayjs from 'dayjs';
-import * as _ from 'lodash';
-import { ActivityStatus } from 'src/activity/constants';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { ShiftStatus } from 'src/shift/constants';
+import dayjs from 'dayjs';
+import _ from 'lodash';
 import {
   OrganizationMemberStatus,
   OrganizationStatus,

@@ -1,5 +1,5 @@
+import { PrismaService } from '@app/prisma';
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
-import { PrismaService } from 'src/prisma';
 import { OrganizationNotFoundException } from '../exceptions';
 
 @Injectable()

@@ -1,3 +1,4 @@
+import { IsFileId } from '@app/file/validators';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -9,7 +10,6 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { IsFileId } from 'src/file/validators';
 import { ReportType } from '../constants';
 
 export class CreateReportMessageInputDto {

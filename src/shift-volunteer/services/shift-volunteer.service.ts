@@ -1,17 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma, Shift, VolunteerShift } from '@prisma/client';
-import * as dayjs from 'dayjs';
-import { toErrorObject } from 'src/common/filters';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
-import { getProfileBasicSelect } from 'src/profile/dtos';
-import { ProfileService, ProfileSkillService } from 'src/profile/services';
-import { ShiftSkillService } from 'src/shift-skill/services';
-import { ShiftStatus } from 'src/shift/constants';
-import { ShiftOutputDto } from 'src/shift/dtos';
+import { toErrorObject } from '@app/common/filters';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
+import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileService, ProfileSkillService } from '@app/profile/services';
+import { ShiftSkillService } from '@app/shift-skill/services';
+import { ShiftStatus } from '@app/shift/constants';
+import { ShiftOutputDto } from '@app/shift/dtos';
 import {
   InvalidStatusException,
   ShiftCheckInTimeLimitExceededException,
@@ -22,7 +18,11 @@ import {
   ShiftHasStartedException,
   ShiftIsFullException,
   ShiftNotFoundException,
-} from 'src/shift/exceptions';
+} from '@app/shift/exceptions';
+import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma, Shift, VolunteerShift } from '@prisma/client';
+import dayjs from 'dayjs';
 import { ShiftVolunteerStatus } from '../constants';
 import {
   ApproveManyShiftVolunteer,

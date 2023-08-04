@@ -1,3 +1,5 @@
+import { AccountOutputDto } from '@app/account/dtos';
+import { OtpService } from '@app/otp/services';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -9,8 +11,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AccountOutputDto } from 'src/account/dtos';
-import { OtpService } from 'src/otp/services';
 
 import {
   BaseApiErrorResponse,

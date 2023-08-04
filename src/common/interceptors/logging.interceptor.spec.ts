@@ -1,7 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
 
 import { AppLogger } from '../logger/logger.service';
-import * as utils from '../request-context/util';
+import utils from '../request-context/util';
 import { LoggingInterceptor } from './logging.interceptor';
 
 describe('LoggingInterceptor', () => {
@@ -13,10 +13,10 @@ describe('LoggingInterceptor', () => {
     header: jest.fn(),
   };
 
-  const mockExecutionContext = ({
+  const mockExecutionContext = {
     switchToHttp: jest.fn().mockReturnThis(),
     getRequest: jest.fn().mockReturnThis(),
-  } as unknown) as ExecutionContext;
+  } as unknown as ExecutionContext;
 
   const mockCallHandler = {
     handle: jest.fn(),
@@ -33,10 +33,9 @@ describe('LoggingInterceptor', () => {
 
   describe('intercept', () => {
     it('intercept', async () => {
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock<
-        any,
-        any
-      >).mockReturnValueOnce(mockRequest);
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock<any, any>
+      ).mockReturnValueOnce(mockRequest);
       mockCallHandler.handle.mockReturnValueOnce({
         pipe: jest.fn(),
       });

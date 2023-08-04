@@ -1,8 +1,8 @@
+import { ActivityOutputDto } from '@app/activity/dtos';
+import { OrganizationOutputDto } from '@app/organization/dtos';
+import { ReportOutputDto } from '@app/report/dtos';
+import { ShiftOutputDto } from '@app/shift/dtos';
 import { Expose } from 'class-transformer';
-import { ActivityOutputDto } from 'src/activity/dtos';
-import { OrganizationOutputDto } from 'src/organization/dtos';
-import { ReportOutputDto } from 'src/report/dtos';
-import { ShiftOutputDto } from 'src/shift/dtos';
 import { NotificationType } from '../constants';
 
 export class NotificationOutputDto {

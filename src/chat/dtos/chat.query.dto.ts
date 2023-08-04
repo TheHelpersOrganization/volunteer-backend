@@ -1,3 +1,5 @@
+import { PaginationQueryDto } from '@app/common/dtos';
+import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
@@ -9,8 +11,6 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
-import { stringToBooleanTransform } from 'src/common/transformers';
 
 // export enum ChatQueryInclude {
 //   Message = 'message',

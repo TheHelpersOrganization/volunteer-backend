@@ -1,6 +1,6 @@
+import { PaginationQueryDto } from '@app/common/dtos';
 import { Transform } from 'class-transformer';
 import { IsArray, IsInt, IsOptional } from 'class-validator';
-import { PaginationQueryDto } from 'src/common/dtos';
 
 export class FileQueryDto extends PaginationQueryDto {
   @IsOptional()

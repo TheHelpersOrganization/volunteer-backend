@@ -6,7 +6,7 @@ import {
   ValidatorConstraintInterface,
   registerDecorator,
 } from 'class-validator';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 @ValidatorConstraint({ name: 'IsOnTheSameDay', async: true })
 @Injectable()

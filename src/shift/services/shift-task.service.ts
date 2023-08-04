@@ -1,10 +1,10 @@
+import { ActivityService } from '@app/activity/services';
+import { AppLogger } from '@app/common/logger';
+import { AbstractService } from '@app/common/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
-import { ActivityService } from 'src/activity/services';
-import { AppLogger } from 'src/common/logger';
-import { AbstractService } from 'src/common/services';
-import { PrismaService } from 'src/prisma';
 import { ShiftStatus } from '../constants';
 
 @Injectable()

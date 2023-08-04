@@ -1,6 +1,6 @@
+import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose, Type } from 'class-transformer';
 import { IsEnum, IsIn } from 'class-validator';
-import { ProfileOutputDto } from 'src/profile/dtos';
 import {
   OrganizationMemberRole,
   nonOwnerOrganizationMemberRoles,

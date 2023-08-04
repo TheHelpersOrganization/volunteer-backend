@@ -1,5 +1,5 @@
+import { Action, Role } from '@app/auth/constants';
 import { InferSubjects, Permissions } from 'nest-casl';
-import { Action, Role } from 'src/auth/constants';
 import { CreateOrganizationInputDto } from '../dtos';
 
 export type Subjects = InferSubjects<typeof CreateOrganizationInputDto>;

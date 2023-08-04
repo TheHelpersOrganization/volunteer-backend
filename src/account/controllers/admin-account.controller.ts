@@ -1,3 +1,8 @@
+import { Role } from '@app/auth/constants';
+import { RequireRoles } from '@app/auth/decorators';
+import { JwtAuthGuard, RolesGuard } from '@app/auth/guards';
+import { BaseApiErrorResponse, SwaggerBaseApiResponse } from '@app/common/dtos';
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -11,11 +16,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Role } from 'src/auth/constants';
-import { RequireRoles } from 'src/auth/decorators';
-import { JwtAuthGuard, RolesGuard } from 'src/auth/guards';
-import { BaseApiErrorResponse, SwaggerBaseApiResponse } from 'src/common/dtos';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   AccountOutputDto,
   AdminAccountBanInputDto,

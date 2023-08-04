@@ -1,6 +1,6 @@
+import { FileOutputDto } from '@app/file/dtos';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { FileOutputDto } from 'src/file/dtos';
 import { AccountVerificationStatus } from '../constants';
 
 export class AccountVerificationOutputDto {

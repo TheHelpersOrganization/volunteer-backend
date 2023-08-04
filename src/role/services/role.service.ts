@@ -1,16 +1,19 @@
+import { Role } from '@app/auth/constants';
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { OrganizationMemberRole } from '@app/organization/constants';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
-import { Role } from 'src/auth/constants';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { OrganizationMemberRole } from 'src/organization/constants';
-import { PrismaService } from 'src/prisma';
 import { CreateRoleInputDto, CreateRoleOutputDto, RoleOutputDto } from '../dto';
 import { RoleNotFountException } from '../exceptions';
 
 @Injectable()
 export class RoleService extends AbstractService {
-  constructor(logger: AppLogger, private readonly prisma: PrismaService) {
+  constructor(
+    logger: AppLogger,
+    private readonly prisma: PrismaService,
+  ) {
     super(logger);
   }
 

@@ -1,4 +1,4 @@
-import { AbstractEvent } from 'src/common/events';
+import { AbstractEvent } from '@app/common/events';
 import {
   ChatMessageOutputDto,
   ChatOutputDto,
@@ -8,7 +8,10 @@ import {
 export class ChatCreatedEvent extends AbstractEvent {
   static readonly eventName = 'chat.created';
 
-  constructor(context, public readonly chat: ChatOutputDto) {
+  constructor(
+    context,
+    public readonly chat: ChatOutputDto,
+  ) {
     super(context);
   }
 }

@@ -1,12 +1,12 @@
+import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { EmailAlreadyInUseException } from '@app/auth/exceptions/email-already-in-use.exception';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
-import { AccountNotFoundException } from 'src/auth/exceptions/account-not-found.exception';
-import { EmailAlreadyInUseException } from 'src/auth/exceptions/email-already-in-use.exception';
 
-import { Role } from 'src/auth/constants';
-import { WrongPasswordException } from 'src/auth/exceptions';
-import { AbstractService } from 'src/common/services';
+import { Role } from '@app/auth/constants';
+import { WrongPasswordException } from '@app/auth/exceptions';
+import { AbstractService } from '@app/common/services';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -18,7 +18,10 @@ import { Account } from '../entities/account.entity';
 
 @Injectable()
 export class AccountService extends AbstractService {
-  constructor(private prisma: PrismaService, logger: AppLogger) {
+  constructor(
+    private prisma: PrismaService,
+    logger: AppLogger,
+  ) {
     super(logger);
   }
 

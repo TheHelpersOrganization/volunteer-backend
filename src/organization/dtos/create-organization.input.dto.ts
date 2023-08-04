@@ -1,3 +1,5 @@
+import { IsFileId } from '@app/file/validators';
+import { NAME_MAX_LENGTH, NAME_REGEX } from '@app/profile/constants';
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -11,8 +13,6 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { IsFileId } from 'src/file/validators';
-import { NAME_MAX_LENGTH, NAME_REGEX } from 'src/profile/constants';
 
 import { CreateContactInputDto } from '../../contact/dtos';
 import { CreateLocationInputDto } from '../../location/dtos';

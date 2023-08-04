@@ -1,18 +1,18 @@
+import { AppLogger } from '@app/common/logger';
+import { RequestContext } from '@app/common/request-context';
+import { AbstractService } from '@app/common/services';
+import { ContactService } from '@app/contact/services';
+import { LocationService } from '@app/location/services';
+import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma, VolunteerShift } from '@prisma/client';
-import { AppLogger } from 'src/common/logger';
-import { RequestContext } from 'src/common/request-context';
-import { AbstractService } from 'src/common/services';
-import { ContactService } from 'src/contact/services';
-import { LocationService } from 'src/location/services';
-import { PrismaService } from 'src/prisma';
 
+import { ActivityNotFoundException } from '@app/activity/exceptions';
+import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileService } from '@app/profile/services';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
+import { ShiftVolunteerService } from '@app/shift-volunteer/services';
 import { max, min } from 'lodash';
-import { ActivityNotFoundException } from 'src/activity/exceptions';
-import { getProfileBasicSelect } from 'src/profile/dtos';
-import { ProfileService } from 'src/profile/services';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
-import { ShiftVolunteerService } from 'src/shift-volunteer/services';
 import { ShiftStatus } from '../constants';
 import {
   CreateShiftInputDto,

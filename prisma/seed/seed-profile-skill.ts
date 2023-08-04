@@ -1,3 +1,4 @@
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import {
   PrismaClient,
   ProfileSkill,
@@ -5,8 +6,7 @@ import {
   ShiftSkill,
   VolunteerShift,
 } from '@prisma/client';
-import * as dayjs from 'dayjs';
-import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import dayjs from 'dayjs';
 
 export const seedProfileSkills = async (
   prisma: PrismaClient,

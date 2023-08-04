@@ -1,4 +1,4 @@
-import { BaseApiException } from 'src/common/exceptions';
+import { BaseApiException } from '@app/common/exceptions';
 
 export * from './volunteer-has-already-join-shift.exception';
 export * from './volunteer-has-not-join-shift.exception';

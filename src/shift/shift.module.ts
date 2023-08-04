@@ -1,12 +1,12 @@
+import { CommonModule } from '@app/common/common.module';
+import { ContactModule } from '@app/contact/contact.module';
+import { LocationModule } from '@app/location/location.module';
 import { Module } from '@nestjs/common';
-import { CommonModule } from 'src/common/common.module';
-import { ContactModule } from 'src/contact/contact.module';
-import { LocationModule } from 'src/location/location.module';
 
-import { ActivityModule } from 'src/activity/activity.module';
-import { ProfileModule } from 'src/profile/profile.module';
-import { ShiftSkillModule } from 'src/shift-skill/shift-skill.module';
-import { ShiftVolunteerModule } from 'src/shift-volunteer/shift-volunteer.module';
+import { ActivityModule } from '@app/activity/activity.module';
+import { ProfileModule } from '@app/profile/profile.module';
+import { ShiftSkillModule } from '@app/shift-skill/shift-skill.module';
+import { ShiftVolunteerModule } from '@app/shift-volunteer/shift-volunteer.module';
 import {
   ActivityShiftController,
   ModShiftController,

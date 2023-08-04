@@ -1,9 +1,9 @@
+import firebaseConfig from '@app/common/configs/subconfigs/firebase.config';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { credential } from 'firebase-admin';
 import { App, initializeApp } from 'firebase-admin/app';
 import { Messaging, getMessaging } from 'firebase-admin/messaging';
-import firebaseConfig from 'src/common/configs/subconfigs/firebase.config';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {

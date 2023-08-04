@@ -1,3 +1,4 @@
+import { ReqContext, RequestContext } from '@app/common/request-context';
 import {
   Body,
   Controller,
@@ -7,7 +8,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ReqContext, RequestContext } from 'src/common/request-context';
 import {
   ChatMessagesQueryDto,
   ChatQueryDto,

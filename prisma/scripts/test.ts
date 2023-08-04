@@ -1,5 +1,5 @@
-import { NotificationType } from 'src/notification/constants';
-import { AppPrismaClient } from 'src/prisma';
+import { NotificationType } from '@app/notification/constants';
+import { AppPrismaClient } from '@app/prisma';
 
 const prisma = new AppPrismaClient();
 

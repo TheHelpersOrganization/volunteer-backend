@@ -1,3 +1,4 @@
+import { LocationOutputDto, ShortLocationOutputDto } from '@app/location/dtos';
 import {
   Activity,
   ActivityContact,
@@ -13,7 +14,6 @@ import {
   ShiftSkill,
   VolunteerShift,
 } from '@prisma/client';
-import { LocationOutputDto, ShortLocationOutputDto } from 'src/location/dtos';
 
 export type ExtendedActivityInput = Activity & {
   activitySkills?: ActivitySkill[];

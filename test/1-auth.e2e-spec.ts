@@ -1,13 +1,13 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 
+import { AccountOutputDto } from '@app/account/dtos';
+import { AuthService } from '@app/auth/services';
+import { RequestContext } from '@app/common/request-context';
+import { PrismaService } from '@app/prisma';
+import { RoleService } from '@app/role/services';
 import { hashSync } from 'bcrypt';
-import { AccountOutputDto } from 'src/account/dtos';
-import { AuthService } from 'src/auth/services';
-import { RequestContext } from 'src/common/request-context';
-import { PrismaService } from 'src/prisma';
-import { RoleService } from 'src/role/services';
 import { AppModule } from '../src/app.module';
 import { Role } from '../src/auth/constants/role.constant';
 import { LoginInput } from '../src/auth/dtos/auth-login-input.dto';
