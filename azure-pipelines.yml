@@ -44,6 +44,7 @@ stages:
       env:
         DOCKER_BUILDKIT: 1
         CI: true
+        HUSKY: 0
     - task: SSH@0
       name: 'DeployToVM'
       displayName: 'Deploy to VM'
