@@ -83,48 +83,24 @@ export class AccountService extends AbstractService {
     this.logger.log(ctx, `find account`);
     const account = await this.prisma.account.findUnique({
       where: { email: email },
-      include: {
-        accountRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getAccountInclude(),
     });
     if (!account) throw new AccountNotFoundException();
 
     const match = await compare(pass, account.password);
     if (!match) throw new AccountNotFoundException();
 
-    const res = {
-      ...account,
-      roles: account.accountRoles.map((r) => r.role.name),
-    };
-    return plainToInstance(AccountOutputDto, res, {
-      excludeExtraneousValues: true,
-    });
+    return this.mapToDto(account);
   }
 
   async findById(ctx: RequestContext, id: number): Promise<AccountOutputDto> {
     this.logger.log(ctx, `${this.findById.name} was called`);
     const account = await this.prisma.account.findUnique({
       where: { id: id },
-      include: {
-        accountRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getAccountInclude(),
     });
-    const res = {
-      ...account,
-      roles: account?.accountRoles.map((r) => r.role.name),
-    };
 
-    return plainToInstance(AccountOutputDto, res, {
-      excludeExtraneousValues: true,
-    });
+    return this.mapToDto(account);
   }
 
   async findByEmail(
@@ -134,11 +110,10 @@ export class AccountService extends AbstractService {
     this.logger.log(ctx, `${this.findByEmail.name} was called`);
     const account = await this.prisma.account.findUnique({
       where: { email: email },
+      include: this.getAccountInclude(),
     });
 
-    return plainToInstance(AccountOutputDto, account, {
-      excludeExtraneousValues: true,
-    });
+    return this.mapToDto(account);
   }
 
   async updateAccount(
@@ -165,14 +140,13 @@ export class AccountService extends AbstractService {
     };
 
     this.logger.log(ctx, `update account`);
-    await this.prisma.account.update({
+    const updated = await this.prisma.account.update({
       where: { id: updatedUser.id },
       data: updatedUser,
+      include: this.getAccountInclude(),
     });
 
-    return plainToInstance(AccountOutputDto, updatedUser, {
-      excludeExtraneousValues: true,
-    });
+    return this.mapToDto(updated);
   }
 
   async markAccountAsVerified(ctx: RequestContext, id: number) {
@@ -185,19 +159,15 @@ export class AccountService extends AbstractService {
       throw new AccountNotFoundException();
     }
 
-    const verifiedAccount = {
-      ...account,
-      isEmailVerified: true,
-    };
-
-    await this.prisma.account.update({
+    const updated = await this.prisma.account.update({
       where: { id: id },
-      data: verifiedAccount,
+      data: {
+        isEmailVerified: true,
+      },
+      include: this.getAccountInclude(),
     });
 
-    return plainToInstance(AccountOutputDto, verifiedAccount, {
-      excludeExtraneousValues: true,
-    });
+    return this.mapToDto(updated);
   }
 
   async updateAccountRoles(
@@ -228,13 +198,7 @@ export class AccountService extends AbstractService {
 
     const accounts = await this.prisma.account.findMany({
       where: { id: { in: ids } },
-      include: {
-        accountRoles: {
-          include: {
-            role: true,
-          },
-        },
-      },
+      include: this.getAccountInclude(),
     });
 
     return accounts.map((account) => {
@@ -252,6 +216,16 @@ export class AccountService extends AbstractService {
     if (!match) throw new WrongPasswordException();
 
     return true;
+  }
+
+  private getAccountInclude() {
+    return {
+      accountRoles: {
+        include: {
+          role: true,
+        },
+      },
+    };
   }
 
   mapToDto(account: any): AccountOutputDto {
