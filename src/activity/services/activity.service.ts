@@ -9,7 +9,7 @@ import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { ShiftStatus } from '@app/shift/constants';
 import { Prisma } from '@prisma/client';
 import dayjs from 'dayjs';
-import geolib from 'geolib';
+import { getDistance } from 'geolib';
 import { ActivityStatus } from '../constants';
 import {
   ActivityOutputDto,
@@ -726,7 +726,7 @@ export class ActivityService extends AbstractService {
                 return;
               }
               // 10km traveling is acceptable
-              const dist = geolib.getDistance(
+              const dist = getDistance(
                 { lat: lat2, lng: lng2 },
                 { lat: lat1, lng: lng1 },
                 1000,
