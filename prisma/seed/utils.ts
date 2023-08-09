@@ -29,6 +29,7 @@ let reportMessageId = 1;
 let chatId = 1;
 let chatParticipantId = 1;
 let chatMessageId = 1;
+let newsId = 1;
 
 export const getNextAccountId = () => accountId++;
 export const getNextOrganizationId = () => organizationId++;
@@ -49,6 +50,7 @@ export const getNextReportMessageId = () => reportMessageId++;
 export const getNextChatId = () => chatId++;
 export const getNextChatParticipantId = () => chatParticipantId++;
 export const getNextChatMessageId = () => chatMessageId++;
+export const getNextNewsId = () => newsId++;
 
 export enum SkillType {
   Health = 'Health',

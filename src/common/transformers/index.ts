@@ -67,6 +67,13 @@ export const unionLocationsTransform = (
   return dto;
 };
 
+export const stringToStringArrayTransform = (params: TransformFnParams) => {
+  if (!params.value) {
+    return undefined;
+  }
+  return params.value.split(',');
+};
+
 export const stringToBooleanTransform = (params: TransformFnParams) => {
   if (params.value === 'true') {
     return true;
@@ -75,6 +82,21 @@ export const stringToBooleanTransform = (params: TransformFnParams) => {
     return false;
   }
   return params;
+};
+
+export const stringToBooleanArrayTransform = (params: TransformFnParams) => {
+  if (!params.value) {
+    return undefined;
+  }
+  return params.value.split(',').map((v) => {
+    if (v === 'true') {
+      return true;
+    }
+    if (v === 'false') {
+      return false;
+    }
+    return v;
+  });
 };
 
 export const stringToIntTransform = (params: TransformFnParams) => {

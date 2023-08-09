@@ -50,6 +50,7 @@ model Account {
   DisableOrganization              Organization[]          @relation(name: "organizationBannedBy")
   DisableActivity                  Activity[]              @relation(name: "activityBannedBy")
   Contact                          Contact[]
+  News                             News[]
 }
 
 model Role {
@@ -114,6 +115,7 @@ model File {
   activityThumbnail       Activity?
   accountVerificationFile AccountVerificationFile?
   reportMessageFile       ReportMessageFile?
+  News                    News[]
 }
 
 model Location {
@@ -175,6 +177,7 @@ model Organization {
   organizationSkills     OrganizationSkill[]
   reportedOrganization   ReportOrganization[]   @relation(name: "reportedOrganization")
   Notification           Notification[]
+  News                   News[]
 }
 
 model Skill {
@@ -274,6 +277,23 @@ model Notification {
   report           Report?       @relation(fields: [reportId], references: [id], onDelete: Cascade)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @default(now()) @updatedAt
+}
+
+model News {
+  id             Int          @id @default(autoincrement())
+  title          String       @db.VarChar(255)
+  thumbnail      Int?
+  thumbnailFile  File?        @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
+  content        String
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authorId       Int
+  author         Account      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isPublished    Boolean      @default(false)
+  publishedAt    DateTime     @default(now())
+  views          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
 }
 
 model Chat {

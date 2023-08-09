@@ -68,10 +68,10 @@ export const seedFiles = async (
   count: number,
   generateUrl: () => string,
   options?: {
-    runWithoutDb?: boolean;
+    skipInsertIntoDatabase?: boolean;
   },
 ) => {
-  if (options?.runWithoutDb) {
+  if (options?.skipInsertIntoDatabase) {
     const files: File[] = [];
     for (let i = 0; i < count; i++) {
       files.push({

@@ -237,7 +237,7 @@ export const seedReports = async (
         height: 128,
       }),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
 

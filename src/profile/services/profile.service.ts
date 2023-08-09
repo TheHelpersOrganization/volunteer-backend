@@ -45,7 +45,7 @@ export class ProfileService extends AbstractService {
     }
     const profiles: any[] = await this.prisma.profile.findMany({
       where: where,
-      select: this.parseProfileSelect(query),
+      select: this.parseProfileSelect(query.select, query.includes),
       take: query.limit,
       skip: query.offset,
     });
@@ -92,7 +92,7 @@ export class ProfileService extends AbstractService {
 
     const profile: any | null = await this.prisma.profile.findUnique({
       where: { accountId: accountId },
-      select: this.parseProfileSelect(query),
+      select: this.parseProfileSelect(query?.select, query?.includes),
     });
 
     if (!profile) {
@@ -119,7 +119,6 @@ export class ProfileService extends AbstractService {
           },
         })
       : undefined;
-    console.log(this.parseProfileSelect(query));
     const res = {
       ...profile,
       id: profile.accountId,
@@ -195,8 +194,10 @@ export class ProfileService extends AbstractService {
     return this.output(ProfileOutputDto, res);
   }
 
-  parseProfileSelect(query?: GetProfileQueryDto) {
-    const select = query?.select;
+  parseProfileSelect(
+    select?: GetProfileSelect[],
+    includes?: GetProfileInclude[],
+  ) {
     const defaultSelect = select == null || select?.length === 0;
 
     const res: Prisma.ProfileSelect = {
@@ -219,7 +220,7 @@ export class ProfileService extends AbstractService {
           },
         }),
       accountId: true,
-      profileInterestedSkills: query?.includes?.includes(
+      profileInterestedSkills: includes?.includes(
         GetProfileInclude.INTERESTED_SKILLS,
       )
         ? { include: { skill: true } }

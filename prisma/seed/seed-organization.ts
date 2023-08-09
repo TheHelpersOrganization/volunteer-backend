@@ -83,7 +83,7 @@ export const seedOrganizations = async (
         category: 'logo',
       }),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
 
@@ -98,7 +98,7 @@ export const seedOrganizations = async (
         category: 'background',
       }),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
 
@@ -214,7 +214,7 @@ export const seedOrganizations = async (
         height: 128,
       }),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
   let organizationFileIndex = 0;

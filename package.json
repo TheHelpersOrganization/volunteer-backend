@@ -28,10 +28,7 @@
     "migrate:deploy": "pnpx prisma migrate deploy --preview-feature",
     "migrate:status": "pnpx prisma migrate status --preview-feature",
     "migrate:resolve": "pnpx prisma migrate resolve --preview-feature",
-    "migrate:squash": "pnpx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script > ./prisma/migrations/000000000000_squashed_migrations/migration.sql && pnpx prisma migrate resolve --applied 000000000000_squashed_migrations",
-    "migrate:squash:no-apply": "pnpx prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script > ./prisma/migrations/000000000000_squashed_migrations/migration.sql",
-    "migrate:squash:clean": "rimraf prisma/migrations && ts-node scripts/create-squash-migration-file && pnpm run migrate:squash",
-    "migrate:squash:clean:no-apply": "rimraf prisma/migrations && ts-node scripts/create-squash-migration-file && pnpm run migrate:squash:no-apply",
+    "migrate:squash": "ts-node scripts/squash-migrations",
     "migrate:reset": "prisma migrate reset --preview-feature",
     "migrate:reset:force": "prisma migrate reset --preview-feature --force",
     "prisma:studio": "pnpx prisma studio",
@@ -43,7 +40,8 @@
     "doc:serve": "pnpx compodoc -p tsconfig.json -w -s -r 8001",
     "doc:generate": "pnpx compodoc -p tsconfig.json",
     "prepare": "is-ci || husky install",
-    "pre-commit": "lint-staged"
+    "pre-commit": "lint-staged",
+    "testa": "ts-node scripts/test.ts"
   },
   "lint-staged": {
     "**/*.ts": [

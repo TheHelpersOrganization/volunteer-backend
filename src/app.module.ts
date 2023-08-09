@@ -15,12 +15,17 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { ChatModule } from './chat/chat.module';
 import { CommonModule } from './common/common.module';
 import { AllExceptionsFilter } from './common/filters';
-import { LoggingInterceptor, ResponseInterceptor } from './common/interceptors';
+import {
+  InjectRequestContextInterceptor,
+  LoggingInterceptor,
+  ResponseInterceptor,
+} from './common/interceptors';
 import { RequestIdMiddleware } from './common/middlewares';
 import { VALIDATION_PIPE_OPTIONS } from './common/pipes';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
 import { LocationModule } from './location/location.module';
+import { NewsModule } from './news/news.module';
 import { NotificationModule } from './notification/notification.module';
 import { OrganizationModule } from './organization/organization.module';
 import { OtpModule } from './otp/otp.module';
@@ -51,6 +56,7 @@ import { SkillModule } from './skill/skill.module';
     NotificationModule,
     ReportModule,
     ChatModule,
+    NewsModule,
   ],
   providers: [
     {
@@ -64,6 +70,10 @@ import { SkillModule } from './skill/skill.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: InjectRequestContextInterceptor,
     },
     {
       provide: APP_PIPE,

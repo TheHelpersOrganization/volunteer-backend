@@ -696,7 +696,7 @@ export const seedActivities = async (
         category: 'volunteer',
       }),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
   activities.forEach((activity, index) => {

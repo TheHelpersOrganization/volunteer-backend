@@ -19,6 +19,7 @@ import {
   OrganizationRoleService,
   OrganizationService,
 } from './services';
+import { ClientIsMemberOfOrganizationValidator } from './validators';
 
 @Module({
   imports: [
@@ -41,11 +42,13 @@ import {
     OrganizationService,
     OrganizationMemberService,
     OrganizationRoleService,
+    ClientIsMemberOfOrganizationValidator,
   ],
   exports: [
     OrganizationService,
     OrganizationMemberService,
     OrganizationRoleService,
+    ClientIsMemberOfOrganizationValidator,
   ],
 })
 export class OrganizationModule {}

@@ -37,6 +37,10 @@ import {
 } from '../exceptions';
 import { OrganizationRoleService } from './organization-role.service';
 
+export type ValidationOptions = {
+  useOrganization?: OrganizationOutputDto;
+};
+
 @Injectable()
 export class OrganizationMemberService extends AbstractService {
   constructor(
@@ -622,12 +626,48 @@ export class OrganizationMemberService extends AbstractService {
     return this.getMemberByIdOrThrow(context, organizationId, memberId);
   }
 
-  async validateApprovedMember(organizationId: number, memberId: number) {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        id: organizationId,
-      },
-    });
+  async checkApprovedMember(
+    organizationId: number,
+    memberId: number,
+    options?: ValidationOptions,
+  ): Promise<boolean> {
+    try {
+      await this.validateApprovedMember(organizationId, memberId, options);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async checkApproveMemberAccount(
+    organizationId: number,
+    accountId: number,
+    options?: ValidationOptions,
+  ): Promise<boolean> {
+    try {
+      await this.validateApprovedMemberAccount(
+        organizationId,
+        accountId,
+        options,
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async validateApprovedMember(
+    organizationId: number,
+    memberId: number,
+    options?: ValidationOptions,
+  ) {
+    const organization = options?.useOrganization
+      ? options.useOrganization
+      : await this.prisma.organization.findUnique({
+          where: {
+            id: organizationId,
+          },
+        });
     if (organization == null) {
       throw new OrganizationNotFoundException();
     }
@@ -635,6 +675,41 @@ export class OrganizationMemberService extends AbstractService {
     const member = await this.prisma.member.findFirst({
       where: {
         id: memberId,
+        organizationId: organizationId,
+      },
+    });
+    if (member == null) {
+      throw new UserHaveNotJoinedOrganizationException();
+    }
+    if (member.status !== OrganizationMemberStatus.Approved) {
+      throw new UserStatusNotApprovedException();
+    }
+
+    return {
+      organization,
+      member,
+    };
+  }
+
+  async validateApprovedMemberAccount(
+    organizationId: number,
+    accountId: number,
+    options?: ValidationOptions,
+  ) {
+    const organization = options?.useOrganization
+      ? options.useOrganization
+      : await this.prisma.organization.findUnique({
+          where: {
+            id: organizationId,
+          },
+        });
+    if (organization == null) {
+      throw new OrganizationNotFoundException();
+    }
+
+    const member = await this.prisma.member.findFirst({
+      where: {
+        accountId: accountId,
         organizationId: organizationId,
       },
     });

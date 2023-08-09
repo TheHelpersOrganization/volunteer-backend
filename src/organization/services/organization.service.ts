@@ -475,6 +475,18 @@ export class OrganizationService extends AbstractService {
     return this.output(OrganizationOutputDto, org);
   }
 
+  async validateApprovedOrganization(organizationId: number) {
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+      },
+    });
+    if (organization == null) {
+      throw new OrganizationNotFoundException();
+    }
+    return this.output(OrganizationOutputDto, organization);
+  }
+
   private mapRawToDto(
     context: RequestContext,
     raw: any,

@@ -5,6 +5,7 @@ import { seedAccountsAndRoles } from './seed-account-role';
 import { seedActivities } from './seed-activity';
 import { seedChats } from './seed-chat';
 import { seedContacts } from './seed-contacts';
+import { seedNews } from './seed-news';
 import { seedNotifications } from './seed-notification';
 import { seedOrganizations } from './seed-organization';
 import { seedProfiles } from './seed-profile';
@@ -169,6 +170,22 @@ const seed = async () => {
     '- Seeding notifications...',
   );
 
+  const { news } = await runWithTimer(
+    () =>
+      seedNews(
+        prisma,
+        {
+          organizations: organizations,
+          members: members,
+          defaultAccounts: defaultAccounts,
+        },
+        {
+          skipInsertIntoDatabase: runWithoutDb,
+        },
+      ),
+    '- Seeding news...',
+  );
+
   if (runWithoutDb) {
     return;
   }
@@ -194,6 +211,7 @@ const seed = async () => {
     await prisma.$executeRaw`SELECT setval('"Chat_id_seq"', (SELECT MAX(id) from "Chat"));`;
     await prisma.$executeRaw`SELECT setval('"ChatParticipant_id_seq"', (SELECT MAX(id) from "ChatParticipant"));`;
     await prisma.$executeRaw`SELECT setval('"ChatMessage_id_seq"', (SELECT MAX(id) from "ChatMessage"));`;
+    await prisma.$executeRaw`SELECT setval('"News_id_seq"', (SELECT MAX(id) from "News"));`;
   }, 'Fixing sequences...');
 };
 

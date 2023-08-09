@@ -39,7 +39,7 @@ export const seedProfiles = async (
     profileAvatars.reduce((acc, cur) => acc + (cur ? 1 : 0), 0),
     () => fakerEn.image.avatar(),
     {
-      runWithoutDb: options?.runWithoutDb,
+      skipInsertIntoDatabase: options?.runWithoutDb,
     },
   );
 
