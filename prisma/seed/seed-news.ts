@@ -78,8 +78,8 @@ export const seedNews = async (
 
     // Default organizations will have variety of news
     const numberOfNewsCreatedByDefaultMembers = faker.number.int({
-      min: 5,
-      max: 10,
+      min: 1,
+      max: 5,
     });
 
     for (let i = 0; i < numberOfNewsCreatedByDefaultMembers; i++) {
@@ -94,7 +94,7 @@ export const seedNews = async (
 
     const numberOfNewsCreatedByNonDefaultMembers = faker.number.int({
       min: 0,
-      max: 10,
+      max: 3,
     });
 
     for (let i = 0; i < numberOfNewsCreatedByNonDefaultMembers; i++) {
@@ -164,7 +164,7 @@ const generateNews = (data: { orgId: number; authorId: number }) => {
 
   return {
     id: getNextNewsId(),
-    title: faker.lorem.words({ min: 3, max: 10 }),
+    title: faker.lorem.lines(1),
     content: faker.lorem.paragraphs({
       min: 3,
       max: 10,

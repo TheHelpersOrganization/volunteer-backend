@@ -1,6 +1,7 @@
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { organizationMinimalSelect } from '@app/organization/constants';
 import { PrismaService } from '@app/prisma';
 import { getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService } from '@app/profile/services';
@@ -108,6 +109,11 @@ export class NewsService extends AbstractService {
             ),
           },
         },
+      };
+    }
+    if (includes?.includes(NewsInclude.Organization)) {
+      include.organization = {
+        select: organizationMinimalSelect,
       };
     }
 

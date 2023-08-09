@@ -108,7 +108,7 @@ export const seedOrganizations = async (
     ...account1OrganizationTemplate.map((value, index) => {
       const res = {
         id: getNextOrganizationId(),
-        name: `The Helpers ${index === 0 ? '' : index}`,
+        name: `The Helpers${index === 0 ? '' : ` ${index}`}`,
         phoneNumber: fakerVi.phone.number('+84#########'),
         email: fakerVi.internet.exampleEmail(),
         description: fakerEn.lorem.paragraphs(),

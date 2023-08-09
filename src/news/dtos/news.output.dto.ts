@@ -1,3 +1,4 @@
+import { OrganizationOutputDto } from '@app/organization/dtos';
 import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose } from 'class-transformer';
 
@@ -7,6 +8,9 @@ export class NewsOutputDto {
 
   @Expose()
   organizationId: number;
+
+  @Expose()
+  organization?: OrganizationOutputDto;
 
   @Expose()
   authorId: number;
