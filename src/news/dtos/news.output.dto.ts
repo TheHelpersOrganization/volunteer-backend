@@ -28,6 +28,9 @@ export class NewsOutputDto {
   content: string;
 
   @Expose()
+  views: number;
+
+  @Expose()
   isPublished: boolean;
 
   @Expose()

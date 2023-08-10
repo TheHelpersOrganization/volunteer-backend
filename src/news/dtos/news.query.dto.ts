@@ -28,6 +28,8 @@ export const newsIncludes = Object.values(NewsInclude);
 export enum NewsSort {
   RelevanceAsc = 'relevance',
   RelevanceDesc = '-relevance',
+  PopularityAsc = 'popularity',
+  PopularityDesc = '-popularity',
   DateAsc = 'date',
   DateDesc = '-date',
   ViewsAsc = 'views',

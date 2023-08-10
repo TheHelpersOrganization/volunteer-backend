@@ -33,14 +33,30 @@ export class NewsService extends AbstractService {
     query: ManyNewsQueryDto,
     createAuthorizedNewsWhereQuery: CreateAuthorizedNewsWhereQuery,
   ) {
-    const res = await this.prismaService.news.findMany({
+    const news = await this.prismaService.news.findMany({
       where: this.getWhere(query, createAuthorizedNewsWhereQuery),
       include: this.getInclude(query.include),
       take: query.limit,
       skip: query.offset,
       orderBy: this.getOrderBy(query),
     });
-    return res.map((raw) => this.mapToDto(raw));
+
+    const res = news.map((raw) => this.mapToDto(raw));
+
+    if (
+      query.sort == NewsSort.PopularityAsc ||
+      query.sort == NewsSort.PopularityDesc
+    ) {
+      res.sort((a, b) => {
+        if (query.sort == NewsSort.PopularityAsc) {
+          return a.views - b.views;
+        } else {
+          return b.views - a.views;
+        }
+      });
+    }
+
+    return res;
   }
 
   async getNewsById(
@@ -125,26 +141,44 @@ export class NewsService extends AbstractService {
   }
 
   getOrderBy(query: ManyNewsQueryDto) {
-    const orderBy: Prisma.NewsOrderByWithRelationAndSearchRelevanceInput = {};
+    let orderBy:
+      | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput
+      | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput[];
 
     if (
-      (query.sort == NewsSort.RelevanceAsc ||
-        query.sort == NewsSort.RelevanceDesc) &&
-      query.search
+      query.sort == NewsSort.PopularityAsc ||
+      query.sort == NewsSort.PopularityDesc
     ) {
-      orderBy._relevance = {
-        fields: ['title'],
-        search: query.search,
-        sort: query.sort == NewsSort.RelevanceAsc ? 'asc' : 'desc',
-      };
-    } else if (query.sort == NewsSort.DateAsc) {
-      orderBy.createdAt = 'asc';
-    } else if (query.sort == NewsSort.DateDesc) {
-      orderBy.createdAt = 'desc';
-    } else if (query.sort == NewsSort.ViewsAsc) {
-      orderBy.views = 'asc';
-    } else if (query.sort == NewsSort.ViewsDesc) {
-      orderBy.views = 'desc';
+      orderBy = [];
+      if (query.sort == NewsSort.PopularityAsc) {
+        orderBy.push({ views: 'asc' });
+        orderBy.push({ publishedAt: 'asc' });
+      }
+      if (query.sort == NewsSort.PopularityDesc) {
+        orderBy.push({ publishedAt: 'desc' });
+        orderBy.push({ views: 'desc' });
+      }
+    } else {
+      orderBy = {};
+      if (
+        (query.sort == NewsSort.RelevanceAsc ||
+          query.sort == NewsSort.RelevanceDesc) &&
+        query.search
+      ) {
+        orderBy._relevance = {
+          fields: ['title'],
+          search: query.search,
+          sort: query.sort == NewsSort.RelevanceAsc ? 'asc' : 'desc',
+        };
+      } else if (query.sort == NewsSort.DateAsc) {
+        orderBy.createdAt = 'asc';
+      } else if (query.sort == NewsSort.DateDesc) {
+        orderBy.createdAt = 'desc';
+      } else if (query.sort == NewsSort.ViewsAsc) {
+        orderBy.views = 'asc';
+      } else if (query.sort == NewsSort.ViewsDesc) {
+        orderBy.views = 'desc';
+      }
     }
 
     return orderBy;
