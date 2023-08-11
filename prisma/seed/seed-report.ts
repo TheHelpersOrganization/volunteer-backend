@@ -223,10 +223,6 @@ export const seedReports = async (
     }
   }
 
-  console.log(
-    Object.values(reportMessageFilesCount).reduce((a, b) => a + b, 0),
-  );
-
   const files = await seedFiles(
     prisma,
     './tmp/images/report-file',

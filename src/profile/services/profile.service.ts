@@ -38,7 +38,7 @@ export class ProfileService extends AbstractService {
     let where: Prisma.ProfileWhereInput | undefined;
     if (query.ids) {
       where = {
-        accountId: {
+        id: {
           in: query.ids,
         },
       };
@@ -91,7 +91,7 @@ export class ProfileService extends AbstractService {
     }
 
     const profile: any | null = await this.prisma.profile.findUnique({
-      where: { accountId: accountId },
+      where: { id: accountId },
       select: this.parseProfileSelect(query?.select, query?.includes),
     });
 
@@ -100,12 +100,11 @@ export class ProfileService extends AbstractService {
       this.logger.log(ctx, `calling prisma.profile create`);
       const profile = await this.prisma.profile.create({
         data: {
-          accountId: accountId,
+          id: accountId,
         },
       });
       return this.output(ProfileOutputDto, {
         ...profile,
-        id: profile.accountId,
         email: account.email,
       });
     }
@@ -152,7 +151,7 @@ export class ProfileService extends AbstractService {
 
     this.logger.log(ctx, `calling prisma.profile findOneBy`);
     const profile = await this.prisma.profile.findUnique({
-      where: { accountId: accountId },
+      where: { id: accountId },
     });
 
     let location: LocationOutputDto | undefined = undefined;
@@ -175,7 +174,7 @@ export class ProfileService extends AbstractService {
 
     this.logger.log(ctx, `calling prisma.profile save`);
     const res = await this.prisma.profile.upsert({
-      where: { accountId: accountId },
+      where: { id: accountId },
       create: {
         ...updatedProfile,
         accountId: accountId,
@@ -219,7 +218,7 @@ export class ProfileService extends AbstractService {
             email: true,
           },
         }),
-      accountId: true,
+      id: true,
       profileInterestedSkills: includes?.includes(
         GetProfileInclude.INTERESTED_SKILLS,
       )

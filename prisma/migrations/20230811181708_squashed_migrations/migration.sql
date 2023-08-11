@@ -26,7 +26,7 @@ CREATE TABLE "Role" (
 
 -- CreateTable
 CREATE TABLE "Profile" (
-    "accountId" INTEGER NOT NULL,
+    "id" INTEGER NOT NULL,
     "username" TEXT,
     "firstName" TEXT,
     "lastName" TEXT,
@@ -39,7 +39,7 @@ CREATE TABLE "Profile" (
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Profile_pkey" PRIMARY KEY ("accountId")
+    CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -593,7 +593,7 @@ CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Profile_accountId_key" ON "Profile"("accountId");
+CREATE UNIQUE INDEX "Profile_id_key" ON "Profile"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_locationId_key" ON "Profile"("locationId");
@@ -644,7 +644,7 @@ CREATE UNIQUE INDEX "ActivityLocation_locationId_key" ON "ActivityLocation"("loc
 CREATE UNIQUE INDEX "ShiftLocation_locationId_key" ON "ShiftLocation"("locationId");
 
 -- AddForeignKey
-ALTER TABLE "Profile" ADD CONSTRAINT "Profile_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Profile" ADD CONSTRAINT "Profile_id_fkey" FOREIGN KEY ("id") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "Location"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -794,13 +794,13 @@ ALTER TABLE "AccountVerificationFile" ADD CONSTRAINT "AccountVerificationFile_ac
 ALTER TABLE "AccountVerificationFile" ADD CONSTRAINT "AccountVerificationFile_fileId_fkey" FOREIGN KEY ("fileId") REFERENCES "File"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("accountId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProfileInterestedSkill" ADD CONSTRAINT "ProfileInterestedSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProfileSkill" ADD CONSTRAINT "ProfileSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("accountId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProfileSkill" ADD CONSTRAINT "ProfileSkill_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProfileSkill" ADD CONSTRAINT "ProfileSkill_skillId_fkey" FOREIGN KEY ("skillId") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;

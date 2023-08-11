@@ -8,6 +8,7 @@ export enum GetProfileInclude {
 }
 
 export enum GetProfileSelect {
+  Id = 'id',
   Email = 'email',
   Username = 'username',
   FullName = 'full-name',
@@ -20,6 +21,7 @@ export enum GetProfileSelect {
 }
 
 export const getProfileBasicSelect = [
+  GetProfileSelect.Id,
   GetProfileSelect.Email,
   GetProfileSelect.Username,
   GetProfileSelect.FullName,

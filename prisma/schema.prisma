@@ -65,8 +65,8 @@ model Role {
 }
 
 model Profile {
-  accountId               Int                      @id @unique
-  account                 Account                  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id                      Int                      @id @unique
+  account                 Account                  @relation(fields: [id], references: [id], onDelete: Cascade)
   username                String?
   firstName               String?
   lastName                String?
@@ -447,7 +447,7 @@ model ProfileInterestedSkill {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @default(now()) @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [accountId], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([profileId, skillId])
@@ -460,7 +460,7 @@ model ProfileSkill {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @default(now()) @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [accountId], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([profileId, skillId])

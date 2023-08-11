@@ -65,7 +65,7 @@ export const seedProfiles = async (
     const hasAvatar = profileAvatars[i];
 
     const res = {
-      accountId: account.id,
+      id: account.id,
       username: fakerEn.internet.userName(),
       firstName: firstName,
       lastName: lastName,
@@ -90,11 +90,11 @@ export const seedProfiles = async (
     ...profiles.flatMap((profile) =>
       _.sampleSize(
         skills,
-        options?.importantAccountIds?.includes(profile.accountId)
+        options?.importantAccountIds?.includes(profile.id)
           ? 3
           : randomInt(0, 3),
       ).map((skill) => ({
-        profileId: profile.accountId,
+        profileId: profile.id,
         skillId: skill.id,
         createdAt: new Date(),
         updatedAt: new Date(),
