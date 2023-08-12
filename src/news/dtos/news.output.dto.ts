@@ -1,6 +1,7 @@
 import { OrganizationOutputDto } from '@app/organization/dtos';
 import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose } from 'class-transformer';
+import { NewsContentFormat } from '../constants';
 
 export class NewsOutputDto {
   @Expose()
@@ -26,6 +27,9 @@ export class NewsOutputDto {
 
   @Expose()
   content: string;
+
+  @Expose()
+  contentFormat: NewsContentFormat;
 
   @Expose()
   views: number;
