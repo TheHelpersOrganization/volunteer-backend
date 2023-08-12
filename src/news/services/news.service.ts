@@ -189,6 +189,7 @@ export class NewsService extends AbstractService {
       data: {
         title: dto.title,
         content: dto.content,
+        contentFormat: dto.contentFormat,
         thumbnail: dto.thumbnail,
         organizationId: dto.organizationId,
         authorId: context.account.id,

@@ -2,12 +2,17 @@ import { ContextAwareDto as RequestContextAwareDto } from '@app/common/dtos';
 import { ClientIsMemberOfOrganization } from '@app/organization/validators';
 import {
   IsBoolean,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
-import { NEWS_MAX_CONTENT_LENGTH, NEWS_MAX_TITLE_LENGTH } from '../constants';
+import {
+  NEWS_MAX_CONTENT_LENGTH,
+  NEWS_MAX_TITLE_LENGTH,
+  NewsContentFormat,
+} from '../constants';
 
 export class CreateNewsInputDto extends RequestContextAwareDto {
   @IsInt()
@@ -21,6 +26,9 @@ export class CreateNewsInputDto extends RequestContextAwareDto {
   @IsString()
   @MaxLength(NEWS_MAX_CONTENT_LENGTH)
   content: string;
+
+  @IsEnum(NewsContentFormat)
+  contentFormat: NewsContentFormat;
 
   @IsOptional()
   @IsInt()

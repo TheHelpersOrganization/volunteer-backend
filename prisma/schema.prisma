@@ -285,6 +285,7 @@ model News {
   thumbnail      Int?
   thumbnailFile  File?        @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
   content        String
+  contentFormat  String       @default("plaintext")
   organizationId Int
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   authorId       Int

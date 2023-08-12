@@ -207,6 +207,7 @@ CREATE TABLE "News" (
     "title" VARCHAR(255) NOT NULL,
     "thumbnail" INTEGER,
     "content" TEXT NOT NULL,
+    "contentFormat" TEXT NOT NULL DEFAULT 'plaintext',
     "organizationId" INTEGER NOT NULL,
     "authorId" INTEGER NOT NULL,
     "isPublished" BOOLEAN NOT NULL DEFAULT false,

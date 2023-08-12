@@ -169,6 +169,7 @@ const generateNews = (data: { orgId: number; authorId: number }) => {
       min: 3,
       max: 10,
     }),
+    contentFormat: 'plaintext',
     thumbnail: null,
     organizationId: data.orgId,
     views: isPublished ? faker.number.int({ min: 0, max: 300 }) : 0,
