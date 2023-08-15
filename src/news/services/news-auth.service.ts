@@ -1,3 +1,4 @@
+import { ActivityService } from '@app/activity/services';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
@@ -16,6 +17,7 @@ export class NewsAuthorizationService extends AbstractService {
     logger: AppLogger,
     private readonly organizationService: OrganizationService,
     private readonly memberService: OrganizationMemberService,
+    private readonly activityService: ActivityService,
   ) {
     super(logger);
   }
@@ -47,8 +49,20 @@ export class NewsAuthorizationService extends AbstractService {
     };
   }
 
-  async validateCanCreateNews(context: RequestContext, organizationId: number) {
-    await this.validateCanCrudNews(context, organizationId);
+  async validateCanCreateNews(
+    context: RequestContext,
+    organizationId: number,
+    extra?: { activityId?: number },
+  ) {
+    if (extra?.activityId) {
+      await this.validateCanCreateNewsActivity(
+        context,
+        organizationId,
+        extra.activityId,
+      );
+    } else {
+      await this.validateCanCrudNews(context, organizationId);
+    }
   }
 
   async validateCanUpdateNews(context: RequestContext, organizationId: number) {
@@ -77,5 +91,17 @@ export class NewsAuthorizationService extends AbstractService {
     if (!res) {
       throw new ForbiddenException();
     }
+  }
+
+  private async validateCanCreateNewsActivity(
+    context: RequestContext,
+    organizationId: number,
+    activityId: number,
+  ) {
+    await this.validateCanCrudNews(context, organizationId);
+    await this.activityService.validateOrganizationActivity(
+      organizationId,
+      activityId,
+    );
   }
 }

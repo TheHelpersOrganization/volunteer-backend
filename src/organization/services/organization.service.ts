@@ -24,6 +24,7 @@ import {
 import { UpdateOrganizationInputDto } from '../dtos/update-organization.input.dto';
 import {
   InvalidOrganizationStatusException,
+  OrganizationIsNotVerifiedException,
   OrganizationNotFoundException,
 } from '../exceptions';
 
@@ -483,6 +484,9 @@ export class OrganizationService extends AbstractService {
     });
     if (organization == null) {
       throw new OrganizationNotFoundException();
+    }
+    if (organization.status !== OrganizationStatus.Verified) {
+      throw new OrganizationIsNotVerifiedException();
     }
     return this.output(OrganizationOutputDto, organization);
   }

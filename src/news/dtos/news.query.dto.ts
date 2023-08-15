@@ -21,6 +21,7 @@ import {
 export enum NewsInclude {
   Author = 'author',
   Organization = 'organization',
+  Reference = 'reference',
 }
 
 export const newsIncludes = Object.values(NewsInclude);

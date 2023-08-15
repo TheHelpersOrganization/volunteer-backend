@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider          = "postgresql"
   url               = env("DB_URL")
+  directUrl         = env("DB_DIRECT_URL")
   shadowDatabaseUrl = env("DB_SHADOW_URL")
 }
 
@@ -218,6 +219,7 @@ model Activity {
   reportedActivity  ReportActivity[]   @relation(name: "reportedActivity")
   notification      Notification[]
   ActivityLocation  ActivityLocation[]
+  News              News[]
 }
 
 model Shift {
@@ -281,6 +283,7 @@ model Notification {
 
 model News {
   id             Int          @id @default(autoincrement())
+  type           String       @default("general")
   title          String       @db.VarChar(255)
   thumbnail      Int?
   thumbnailFile  File?        @relation(fields: [thumbnail], references: [id], onDelete: SetNull)
@@ -293,6 +296,9 @@ model News {
   isPublished    Boolean      @default(false)
   publishedAt    DateTime     @default(now())
   views          Int          @default(0)
+  popularity     Int          @default(0)
+  activityId     Int?
+  Activity       Activity?    @relation(fields: [activityId], references: [id], onDelete: SetNull)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @default(now()) @updatedAt
 }

@@ -1,3 +1,5 @@
+import { Role } from '@app/auth/constants';
+import { RequireRoles } from '@app/auth/decorators';
 import { ReqContext, RequestContext } from '@app/common/request-context';
 import {
   Body,
@@ -10,19 +12,25 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { NewsType } from '../constants';
 import {
   CreateNewsInputDto,
   ManyNewsQueryDto,
   NewsQueryDto,
   UpdateNewsInputDto,
 } from '../dtos';
-import { NewsAuthorizationService, NewsService } from '../services';
+import {
+  NewsAuthorizationService,
+  NewsService,
+  NewsTaskService,
+} from '../services';
 
 @Controller('news')
 export class NewsController {
   constructor(
     private readonly newsService: NewsService,
     private readonly newsAuthorizationService: NewsAuthorizationService,
+    private readonly newsTaskService: NewsTaskService,
   ) {}
 
   @Get()
@@ -59,6 +67,9 @@ export class NewsController {
     await this.newsAuthorizationService.validateCanCreateNews(
       context,
       dto.organizationId,
+      {
+        activityId: dto.type === NewsType.Activity ? dto.activityId : undefined,
+      },
     );
     return this.newsService.createNews(context, dto);
   }
@@ -80,5 +91,11 @@ export class NewsController {
   ) {
     await this.newsAuthorizationService.validateCanDeleteNews(context, id);
     return this.newsService.deleteNews(context, id);
+  }
+
+  @RequireRoles(Role.Operator)
+  @Post('refresh')
+  async refreshNews(@ReqContext() context: RequestContext) {
+    return this.newsTaskService.updateNewsPopularity();
   }
 }

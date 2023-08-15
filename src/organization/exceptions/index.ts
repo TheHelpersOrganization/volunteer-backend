@@ -13,6 +13,12 @@ export class OrganizationNotFoundException extends BaseApiException {
   }
 }
 
+export class OrganizationIsNotVerifiedException extends BaseApiException {
+  constructor() {
+    super('Organization is not verified');
+  }
+}
+
 export class InvalidOrganization extends BaseApiException {
   constructor() {
     super('Invalid organization');

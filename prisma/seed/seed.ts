@@ -175,9 +175,10 @@ const seed = async () => {
       seedNews(
         prisma,
         {
+          defaultAccounts: defaultAccounts,
           organizations: organizations,
           members: members,
-          defaultAccounts: defaultAccounts,
+          activities: activities,
         },
         {
           skipInsertIntoDatabase: runWithoutDb,

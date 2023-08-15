@@ -1,3 +1,4 @@
+import { InvalidInputException } from '@app/common/exceptions';
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import {
@@ -7,6 +8,21 @@ import {
   ValidatorConstraintInterface,
   registerDecorator,
 } from 'class-validator';
+import { NewsType } from '../constants';
+import { CreateNewsInputDto } from '../dtos';
+
+export const validateValidNewsType = (
+  object: CreateNewsInputDto,
+  value: NewsType,
+): boolean => {
+  if (value === NewsType.Activity && object.activityId == null) {
+    throw new InvalidInputException(
+      'activityId',
+      'activityId is required when news type is Activity',
+    );
+  }
+  return true;
+};
 
 @ValidatorConstraint({ name: 'IsOrganizationMember', async: true })
 @Injectable()

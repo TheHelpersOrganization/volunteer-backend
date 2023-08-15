@@ -1,3 +1,4 @@
+import { activityMinimalSelect } from '@app/activity/constants';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
@@ -132,6 +133,11 @@ export class NewsService extends AbstractService {
         select: organizationMinimalSelect,
       };
     }
+    if (includes?.includes(NewsInclude.Reference)) {
+      include.Activity = {
+        select: activityMinimalSelect,
+      };
+    }
 
     if (Object.keys(include).length == 0) {
       return undefined;
@@ -141,44 +147,46 @@ export class NewsService extends AbstractService {
   }
 
   getOrderBy(query: ManyNewsQueryDto) {
-    let orderBy:
+    const orderBy:
       | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput
-      | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput[];
+      | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput[] = {};
 
-    if (
-      query.sort == NewsSort.PopularityAsc ||
-      query.sort == NewsSort.PopularityDesc
+    // if (
+    //   query.sort == NewsSort.PopularityAsc ||
+    //   query.sort == NewsSort.PopularityDesc
+    // ) {
+    //   orderBy = [];
+    //   if (query.sort == NewsSort.PopularityAsc) {
+    //     orderBy.push({ views: 'asc' });
+    //     orderBy.push({ publishedAt: 'asc' });
+    //   }
+    //   if (query.sort == NewsSort.PopularityDesc) {
+    //     orderBy.push({ publishedAt: 'desc' });
+    //     orderBy.push({ views: 'desc' });
+    //   }
+    // }
+    if (query.sort == NewsSort.PopularityDesc) {
+      orderBy.popularity = 'desc';
+    } else if (query.sort == NewsSort.PopularityAsc) {
+      orderBy.popularity = 'asc';
+    } else if (
+      (query.sort == NewsSort.RelevanceAsc ||
+        query.sort == NewsSort.RelevanceDesc) &&
+      query.search
     ) {
-      orderBy = [];
-      if (query.sort == NewsSort.PopularityAsc) {
-        orderBy.push({ views: 'asc' });
-        orderBy.push({ publishedAt: 'asc' });
-      }
-      if (query.sort == NewsSort.PopularityDesc) {
-        orderBy.push({ publishedAt: 'desc' });
-        orderBy.push({ views: 'desc' });
-      }
-    } else {
-      orderBy = {};
-      if (
-        (query.sort == NewsSort.RelevanceAsc ||
-          query.sort == NewsSort.RelevanceDesc) &&
-        query.search
-      ) {
-        orderBy._relevance = {
-          fields: ['title'],
-          search: query.search,
-          sort: query.sort == NewsSort.RelevanceAsc ? 'asc' : 'desc',
-        };
-      } else if (query.sort == NewsSort.DateAsc) {
-        orderBy.createdAt = 'asc';
-      } else if (query.sort == NewsSort.DateDesc) {
-        orderBy.createdAt = 'desc';
-      } else if (query.sort == NewsSort.ViewsAsc) {
-        orderBy.views = 'asc';
-      } else if (query.sort == NewsSort.ViewsDesc) {
-        orderBy.views = 'desc';
-      }
+      orderBy._relevance = {
+        fields: ['title'],
+        search: query.search,
+        sort: query.sort == NewsSort.RelevanceAsc ? 'asc' : 'desc',
+      };
+    } else if (query.sort == NewsSort.DateAsc) {
+      orderBy.createdAt = 'asc';
+    } else if (query.sort == NewsSort.DateDesc) {
+      orderBy.createdAt = 'desc';
+    } else if (query.sort == NewsSort.ViewsAsc) {
+      orderBy.views = 'asc';
+    } else if (query.sort == NewsSort.ViewsDesc) {
+      orderBy.views = 'desc';
     }
 
     return orderBy;
@@ -187,6 +195,7 @@ export class NewsService extends AbstractService {
   async createNews(context: RequestContext, dto: CreateNewsInputDto) {
     const res = await this.prismaService.news.create({
       data: {
+        type: dto.type,
         title: dto.title,
         content: dto.content,
         contentFormat: dto.contentFormat,
@@ -194,6 +203,7 @@ export class NewsService extends AbstractService {
         organizationId: dto.organizationId,
         authorId: context.account.id,
         isPublished: dto.isPublished,
+        activityId: dto.activityId,
       },
     });
     return this.mapToDto(res);
@@ -224,6 +234,10 @@ export class NewsService extends AbstractService {
   }
 
   mapToDto(raw: any) {
-    return this.output(NewsOutputDto, { ...raw, author: raw.author?.profile });
+    return this.output(NewsOutputDto, {
+      ...raw,
+      author: raw.author?.profile,
+      activity: raw.Activity,
+    });
   }
 }

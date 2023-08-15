@@ -204,6 +204,7 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "News" (
     "id" SERIAL NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'general',
     "title" VARCHAR(255) NOT NULL,
     "thumbnail" INTEGER,
     "content" TEXT NOT NULL,
@@ -213,6 +214,8 @@ CREATE TABLE "News" (
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "publishedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "views" INTEGER NOT NULL DEFAULT 0,
+    "popularity" INTEGER NOT NULL DEFAULT 0,
+    "activityId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -715,6 +718,9 @@ ALTER TABLE "News" ADD CONSTRAINT "News_organizationId_fkey" FOREIGN KEY ("organ
 
 -- AddForeignKey
 ALTER TABLE "News" ADD CONSTRAINT "News_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "News" ADD CONSTRAINT "News_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES "Activity"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_blockedBy_fkey" FOREIGN KEY ("blockedBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;

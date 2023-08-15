@@ -1,5 +1,3 @@
-import { ContextAwareDto as RequestContextAwareDto } from '@app/common/dtos';
-import { ClientIsMemberOfOrganization } from '@app/organization/validators';
 import {
   IsBoolean,
   IsEnum,
@@ -7,16 +5,22 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import {
   NEWS_MAX_CONTENT_LENGTH,
   NEWS_MAX_TITLE_LENGTH,
   NewsContentFormat,
+  NewsType,
 } from '../constants';
+import { validateValidNewsType } from '../validators';
 
-export class CreateNewsInputDto extends RequestContextAwareDto {
+export class CreateNewsInputDto {
+  @IsEnum(NewsType)
+  @ValidateIf(validateValidNewsType)
+  type: NewsType;
+
   @IsInt()
-  @ClientIsMemberOfOrganization()
   organizationId: number;
 
   @IsString()
@@ -37,6 +41,10 @@ export class CreateNewsInputDto extends RequestContextAwareDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  activityId?: number;
 }
 
 export class UpdateNewsInputDto {

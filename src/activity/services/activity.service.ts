@@ -22,6 +22,7 @@ import {
   MonthlyActivityCountOutputDto,
   UpdateActivityInputDto,
 } from '../dtos';
+import { ActivityNotFoundException } from '../exceptions';
 import { ExtendedActivityInput, RawActivity } from '../types';
 import {
   extendActivity,
@@ -860,6 +861,22 @@ export class ActivityService extends AbstractService {
       total: total,
       monthly: monthly,
     });
+  }
+
+  async validateOrganizationActivity(
+    organizationId: number,
+    activityId: number,
+  ) {
+    const activity = await this.prisma.activity.findUnique({
+      where: {
+        id: activityId,
+        organizationId: organizationId,
+      },
+    });
+    if (activity == null) {
+      throw new ActivityNotFoundException();
+    }
+    return activity;
   }
 
   private mapToDto(activity: RawActivity): ActivityOutputDto {
