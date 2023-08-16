@@ -9,6 +9,7 @@ export enum ActivityStatus {
 }
 
 export const activityMinimalSelect: Prisma.ActivitySelect = {
+  id: true,
   name: true,
   thumbnail: true,
 };
