@@ -92,6 +92,12 @@ export class NewsService extends AbstractService {
       };
     }
 
+    if (query.type) {
+      where.type = {
+        in: query.type,
+      };
+    }
+
     if (query.organizationId) {
       where.organizationId = query.organizationId;
     }
@@ -151,20 +157,6 @@ export class NewsService extends AbstractService {
       | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput
       | Prisma.NewsOrderByWithRelationAndSearchRelevanceInput[] = {};
 
-    // if (
-    //   query.sort == NewsSort.PopularityAsc ||
-    //   query.sort == NewsSort.PopularityDesc
-    // ) {
-    //   orderBy = [];
-    //   if (query.sort == NewsSort.PopularityAsc) {
-    //     orderBy.push({ views: 'asc' });
-    //     orderBy.push({ publishedAt: 'asc' });
-    //   }
-    //   if (query.sort == NewsSort.PopularityDesc) {
-    //     orderBy.push({ publishedAt: 'desc' });
-    //     orderBy.push({ views: 'desc' });
-    //   }
-    // }
     if (query.sort == NewsSort.PopularityDesc) {
       orderBy.popularity = 'desc';
     } else if (query.sort == NewsSort.PopularityAsc) {

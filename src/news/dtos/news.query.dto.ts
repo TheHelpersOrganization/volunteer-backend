@@ -17,6 +17,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { NewsType, newsTypes } from '../constants';
 
 export enum NewsInclude {
   Author = 'author',
@@ -52,7 +53,15 @@ export class ManyNewsQueryDto extends NewsQueryDto {
   @IsArray()
   @IsInt({ each: true })
   @Transform(stringToIntArrayTransform)
-  id: number[];
+  id?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(NewsType, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(newsTypes.length)
+  @Transform(stringToStringArrayTransform)
+  type?: NewsType[];
 
   @IsOptional()
   @IsInt()
