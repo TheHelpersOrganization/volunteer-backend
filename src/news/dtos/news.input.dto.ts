@@ -62,6 +62,9 @@ export class UpdateNewsInputDto {
   @MaxLength(NEWS_MAX_CONTENT_LENGTH)
   content: string;
 
+  @IsEnum(NewsContentFormat)
+  contentFormat: NewsContentFormat;
+
   @IsOptional()
   @IsInt()
   thumbnail?: number;

@@ -213,6 +213,7 @@ export class NewsService extends AbstractService {
         type: dto.type,
         title: dto.title,
         content: dto.content,
+        contentFormat: dto.contentFormat,
         thumbnail: dto.thumbnail,
         isPublished: dto.isPublished,
         activityId: dto.type == NewsType.Activity ? dto.activityId : null,
