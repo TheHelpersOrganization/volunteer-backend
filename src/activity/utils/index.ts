@@ -242,13 +242,6 @@ export const extendActivity = (
     }
   }
 
-  // const locations = activity.shifts?.flatMap((s) =>
-  //   s.shiftLocations.map((sl) => sl.location),
-  // );
-  // const unionLocation = locations
-  //   ? unionLocationsTransform(locations)
-  //   : undefined;
-
   const skillIds = activity.shifts?.flatMap(
     (shift) => shift.shiftSkills?.map((sk) => sk.skillId),
   );

@@ -48,6 +48,10 @@ export class CreateNewsInputDto {
 }
 
 export class UpdateNewsInputDto {
+  @IsEnum(NewsType)
+  @ValidateIf(validateValidNewsType)
+  type: NewsType;
+
   @IsOptional()
   @IsString()
   @MaxLength(NEWS_MAX_TITLE_LENGTH)
@@ -65,4 +69,8 @@ export class UpdateNewsInputDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  activityId?: number;
 }

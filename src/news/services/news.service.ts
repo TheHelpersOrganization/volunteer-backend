@@ -8,6 +8,7 @@ import { getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService } from '@app/profile/services';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { NewsType } from '../constants';
 import {
   CreateNewsInputDto,
   ManyNewsQueryDto,
@@ -209,10 +210,12 @@ export class NewsService extends AbstractService {
     const res = await this.prismaService.news.update({
       where: { id: id },
       data: {
+        type: dto.type,
         title: dto.title,
         content: dto.content,
         thumbnail: dto.thumbnail,
         isPublished: dto.isPublished,
+        activityId: dto.type == NewsType.Activity ? dto.activityId : null,
       },
     });
     return this.mapToDto(res);
