@@ -64,17 +64,23 @@ export class NewsService extends AbstractService {
   async getNewsById(
     context: RequestContext,
     id: number,
-    query: NewsQueryDto,
-    createAuthorizedNewsWhereQuery: CreateAuthorizedNewsWhereQuery,
+    query?: NewsQueryDto,
+    createAuthorizedNewsWhereQuery?: CreateAuthorizedNewsWhereQuery,
   ) {
-    const where: Prisma.NewsWhereUniqueInput = {
-      ...createAuthorizedNewsWhereQuery({}),
-      id: id,
-    };
+    const where: Prisma.NewsWhereUniqueInput =
+      createAuthorizedNewsWhereQuery == null
+        ? { id: id }
+        : {
+            ...createAuthorizedNewsWhereQuery({}),
+            id: id,
+          };
     const res = await this.prismaService.news.findUnique({
       where: where,
-      include: this.getInclude(query.include),
+      include: this.getInclude(query?.include),
     });
+    if (res == null) {
+      return null;
+    }
     return this.mapToDto(res);
   }
 

@@ -1,9 +1,10 @@
 import { OtpType } from '@app/otp/constants';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { plainToClass, plainToInstance } from 'class-transformer';
 
+import authConfig from '@app/common/configs/subconfigs/auth.config';
 import { EmailService } from '@app/email/services';
 import { OtpService } from '@app/otp/services';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -30,19 +31,18 @@ export class AuthService {
     private jwtService: JwtService,
     private otpService: OtpService,
     private emailService: EmailService,
-    private configService: ConfigService,
+    @Inject(authConfig.KEY)
+    private configService: ConfigType<typeof authConfig>,
     private readonly logger: AppLogger,
     private eventEmitter: EventEmitter2,
   ) {
     this.logger.setContext(AuthService.name);
+    this.accessTokenExpirationTime = this.configService.accessTokenLifeSec;
+    this.refreshTokenExpirationTime = this.configService.refreshTokenLifeSec;
   }
 
-  private readonly refreshTokenExpirationTime = this.configService.get(
-    'auth.refreshTokenLifeSec',
-  );
-  private readonly accessTokenExpirationTime = this.configService.get(
-    'auth.accessTokenLifeSec',
-  );
+  private accessTokenExpirationTime: number;
+  private refreshTokenExpirationTime: number;
 
   async validateAccount(
     ctx: RequestContext,

@@ -9,7 +9,9 @@ import {
 } from '@app/organization/services';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { NewsNotFoundException } from '../exceptions';
 import { CreateAuthorizedNewsWhereQuery } from '../types';
+import { NewsService } from './news.service';
 
 @Injectable()
 export class NewsAuthorizationService extends AbstractService {
@@ -18,6 +20,7 @@ export class NewsAuthorizationService extends AbstractService {
     private readonly organizationService: OrganizationService,
     private readonly memberService: OrganizationMemberService,
     private readonly activityService: ActivityService,
+    private readonly newsService: NewsService,
   ) {
     super(logger);
   }
@@ -54,29 +57,35 @@ export class NewsAuthorizationService extends AbstractService {
     organizationId: number,
     extra?: { activityId?: number },
   ) {
+    const organization =
+      await this.organizationService.validateApprovedOrganization(
+        organizationId,
+      );
+
+    const res = await this.memberService.checkApproveMemberAccount(
+      organizationId,
+      context.account.id,
+      {
+        useOrganization: organization,
+      },
+    );
     if (extra?.activityId) {
-      await this.validateCanCreateNewsActivity(
-        context,
+      await this.activityService.validateOrganizationActivity(
         organizationId,
         extra.activityId,
       );
-    } else {
-      await this.validateCanCrudNews(context, organizationId);
+    }
+    if (!res) {
+      throw new ForbiddenException();
     }
   }
 
-  async validateCanUpdateNews(context: RequestContext, organizationId: number) {
-    await this.validateCanCrudNews(context, organizationId);
-  }
-
-  async validateCanDeleteNews(context: RequestContext, organizationId: number) {
-    await this.validateCanCrudNews(context, organizationId);
-  }
-
-  private async validateCanCrudNews(
-    context: RequestContext,
-    organizationId: number,
-  ) {
+  async validateCanUpdateNews(context: RequestContext, newsId: number) {
+    const news = await this.newsService.getNewsById(context, newsId);
+    if (news == null) {
+      throw new NewsNotFoundException();
+    }
+    const organizationId = news.organizationId;
     const organization =
       await this.organizationService.validateApprovedOrganization(
         organizationId,
@@ -93,15 +102,7 @@ export class NewsAuthorizationService extends AbstractService {
     }
   }
 
-  private async validateCanCreateNewsActivity(
-    context: RequestContext,
-    organizationId: number,
-    activityId: number,
-  ) {
-    await this.validateCanCrudNews(context, organizationId);
-    await this.activityService.validateOrganizationActivity(
-      organizationId,
-      activityId,
-    );
+  async validateCanDeleteNews(context: RequestContext, newsId: number) {
+    await this.validateCanUpdateNews(context, newsId);
   }
 }

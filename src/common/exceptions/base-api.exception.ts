@@ -7,20 +7,20 @@ export class BaseApiException extends HttpException {
   public localizedMessage: Record<string, string> | null | undefined;
   public details: string | Record<string, any> | null | undefined;
 
-  constructor(
-    message: string,
-    errorCode?: string,
-    status?: number,
-    details?: string | Record<string, any>,
-    localizedMessage?: Record<string, string>,
-  ) {
+  constructor(data: {
+    message: string;
+    errorCode?: string;
+    status?: number;
+    details?: string | Record<string, any>;
+    localizedMessage?: Record<string, string>;
+  }) {
     // Calling parent constructor of base Exception class.
-    super(message, status ?? 400);
+    super(data.message, data.status ?? 400);
     this.name = this.constructor.name;
-    this.errorCode = errorCode
-      ? createExceptionErrorCode(errorCode)
+    this.errorCode = data.errorCode
+      ? createExceptionErrorCode(data.errorCode)
       : createExceptionErrorCode(this.name);
-    this.localizedMessage = localizedMessage;
-    this.details = details;
+    this.localizedMessage = data.localizedMessage;
+    this.details = data.details;
   }
 }
