@@ -62,6 +62,7 @@ export class UpdateNewsInputDto {
   @MaxLength(NEWS_MAX_CONTENT_LENGTH)
   content: string;
 
+  @IsOptional()
   @IsEnum(NewsContentFormat)
   contentFormat: NewsContentFormat;
 
