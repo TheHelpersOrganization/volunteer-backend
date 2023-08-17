@@ -97,6 +97,7 @@ export const seedActivities = async (
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
+      const organizationRatingBias = fakerEn.number.int({ min: 1, max: 5 });
       const organizationMembers = members.filter(
         (m) =>
           m.organizationId === organization.id &&
@@ -113,6 +114,7 @@ export const seedActivities = async (
         activityIndex++
       ) {
         const activityId = getNextActivityId();
+        const activityRatingBias = generateRating(organizationRatingBias);
         // Id start from 1
         const template = getActivityTemplateAt(activityId - 1);
         const activity: Activity = {
@@ -199,6 +201,7 @@ export const seedActivities = async (
 
         for (let i = 0; i < numberOfShifts; i++) {
           const shiftId = getNextShiftId();
+          const shiftRatingBias = generateRating(activityRatingBias);
           let shiftStatus: ShiftStatus;
           switch (activityStatus) {
             case ActivityStatus.Pending:
@@ -480,6 +483,14 @@ export const seedActivities = async (
                     to: shiftEndTime,
                   })
                 : null;
+            const shiftRating =
+              shiftStatus === ShiftStatus.Completed
+                ? generateRating(shiftRatingBias)
+                : null;
+            const shiftRatingComment =
+              shiftStatus === ShiftStatus.Completed
+                ? fakerEn.lorem.sentence()
+                : null;
             shiftVolunteers.push({
               id: getNextShiftVolunteerId(),
               shiftId: shiftId,
@@ -518,6 +529,8 @@ export const seedActivities = async (
               ].includes(status)
                 ? fakerEn.lorem.sentence()
                 : null,
+              shiftRating: shiftRating,
+              shiftRatingComment: shiftRatingComment,
               createdAt: createdAt,
               updatedAt: updatedAt,
             });
@@ -543,29 +556,8 @@ export const seedActivities = async (
 
             const joinedAccounts = _.sampleSize(
               [...volunteerAccounts, ...filteredDefaultAccount],
-              // fakerEn.helpers.weightedArrayElement(
-              //   Array.from({ length: max }, (_, i) => ({
-              //     value: i,
-              //     weight: 1 / (i + 1),
-              //   })),
-              // ),
               fakerEn.number.int({ min: min, max: max }),
             );
-            // if (
-            //   options?.joinIfMatchAccountPreferences &&
-            //   options?.accountPreferences
-            // ) {
-            //   for (const key in options.accountPreferences) {
-            //     if (
-            //       !joinedAccounts.some((v) => v.id === Number(key)) &&
-            //       filteredDefaultAccount.some((v) => v.id === Number(key))
-            //     ) {
-            //       joinedAccounts.push(
-            //         filteredDefaultAccount.find((v) => v.id === Number(key))!,
-            //       );
-            //     }
-            //   }
-            // }
 
             joinedAccounts.forEach((account) => {
               if (status === ShiftVolunteerStatus.Approved) {
@@ -599,6 +591,14 @@ export const seedActivities = async (
                       from: checkedInAt,
                       to: shiftEndTime,
                     })
+                  : null;
+              const shiftRating =
+                shiftStatus === ShiftStatus.Completed
+                  ? generateRating(shiftRatingBias)
+                  : null;
+              const shiftRatingComment =
+                shiftStatus === ShiftStatus.Completed
+                  ? fakerEn.lorem.sentence()
                   : null;
               shiftVolunteers.push({
                 id: getNextShiftVolunteerId(),
@@ -641,6 +641,8 @@ export const seedActivities = async (
                 ].includes(status)
                   ? fakerEn.lorem.sentence()
                   : null,
+                shiftRating: shiftRating,
+                shiftRatingComment: shiftRatingComment,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               });
@@ -762,4 +764,21 @@ export const seedActivities = async (
     shiftVolunteers,
     shiftSkills,
   };
+};
+
+const weightedRatings = Array.from({ length: 5 }).map((_, i) => {
+  const bias = i + 1;
+  return Array.from({ length: 5 }).map((_, j) => {
+    const rating = j + 1;
+    return {
+      weight: rating === bias ? 10 : Math.abs(rating - bias) === 1 ? 5 : 1,
+      value: rating,
+    };
+  });
+});
+
+const generateRating = (bias: number) => {
+  const weighted = weightedRatings[bias - 1];
+  const rating = fakerEn.helpers.weightedArrayElement(weighted);
+  return rating;
 };

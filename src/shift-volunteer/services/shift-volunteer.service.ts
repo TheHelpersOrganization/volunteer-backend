@@ -28,6 +28,7 @@ import {
   ApproveManyShiftVolunteer,
   CreateShiftVolunteerInputDto,
   GetShiftVolunteerQueryDto,
+  RateActivityInputDto,
   RejectManyShiftVolunteer,
   RemoveManyShiftVolunteer,
   ReviewShiftVolunteerInputDto,
@@ -1181,6 +1182,40 @@ export class ShiftVolunteerService extends AbstractService {
         checkInOutVerifierId: context.account.id,
       },
     });
+    return this.output(ShiftVolunteerOutputDto, res);
+  }
+
+  async rateActivity(
+    context: RequestContext,
+    shiftId: number,
+    dto: RateActivityInputDto,
+    options?: {
+      useVolunteer?: ShiftVolunteerOutputDto;
+    },
+  ) {
+    this.logCaller(context, this.rateActivity);
+    const volunteer =
+      options?.useVolunteer ??
+      (await this.prisma.volunteerShift.findFirst({
+        where: {
+          accountId: context.account.id,
+          shiftId: shiftId,
+          active: true,
+        },
+      }));
+    if (volunteer == null) {
+      throw new VolunteerNotFoundException();
+    }
+    const res = await this.prisma.volunteerShift.update({
+      where: {
+        id: volunteer.id,
+      },
+      data: {
+        shiftRating: dto.rating,
+        shiftRatingComment: dto.comment,
+      },
+    });
+
     return this.output(ShiftVolunteerOutputDto, res);
   }
 

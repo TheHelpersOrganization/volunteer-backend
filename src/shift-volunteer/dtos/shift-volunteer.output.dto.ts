@@ -60,6 +60,12 @@ export class ShiftVolunteerOutputDto {
   reviewerId?: number;
 
   @Expose()
+  shiftRating?: number;
+
+  @Expose()
+  shiftRatingComment?: string;
+
+  @Expose()
   @Type(() => ProfileOutputDto)
   profile?: ProfileOutputDto;
 

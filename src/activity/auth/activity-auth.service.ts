@@ -3,13 +3,16 @@ import { AbstractService } from '@app/common/services';
 import { OrganizationMemberRole } from '@app/organization/constants';
 import { OrganizationRoleService } from '@app/organization/services';
 import { PrismaService } from '@app/prisma';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ShiftVolunteerOutputDto } from '@app/shift-volunteer/dtos';
+import { ShiftVolunteerService } from '@app/shift-volunteer/services';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 @Injectable()
-export class ActivityRoleService extends AbstractService {
+export class ActivityAuthService extends AbstractService {
   constructor(
     logger: AppLogger,
     private readonly organizationRoleService: OrganizationRoleService,
+    private readonly volunteerService: ShiftVolunteerService,
     private readonly prisma: PrismaService,
   ) {
     super(logger);
@@ -38,7 +41,26 @@ export class ActivityRoleService extends AbstractService {
         },
       })) > 0;
     if (!hasRole && !isActivityManager) {
-      throw new UnauthorizedException('Forbidden');
+      throw new ForbiddenException();
     }
+  }
+
+  async validateIsVolunteerOfActivity(data: {
+    accountId: number;
+    activityId: number;
+  }) {
+    const volunteer = await this.prisma.volunteerShift.findFirst({
+      where: {
+        accountId: data.accountId,
+        shift: {
+          activityId: data.activityId,
+        },
+        active: true,
+      },
+    });
+    if (volunteer == null) {
+      throw new ForbiddenException();
+    }
+    return this.output(ShiftVolunteerOutputDto, volunteer);
   }
 }

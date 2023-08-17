@@ -11,20 +11,21 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ActivityAuthService } from '../auth';
 import {
   ActivityOutputDto,
   CreateActivityInputDto,
   ModGetActivitiesQueryDto,
   UpdateActivityInputDto,
 } from '../dtos';
-import { ActivityRoleService, ModActivityService } from '../services';
+import { ModActivityService } from '../services';
 
 @Controller('mod/organizations/:organizationId/activities')
 export class ModActivityController {
   constructor(
     private readonly modActivityService: ModActivityService,
     private readonly organizationRoleService: OrganizationRoleService,
-    private readonly activityRoleService: ActivityRoleService,
+    private readonly activityAuthService: ActivityAuthService,
   ) {}
 
   @Get()
@@ -61,7 +62,7 @@ export class ModActivityController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateActivityInputDto,
   ): Promise<ActivityOutputDto> {
-    await this.activityRoleService.validateAccountMemberCanManageActivity({
+    await this.activityAuthService.validateAccountMemberCanManageActivity({
       organizationId,
       accountId: context.account.id,
       activityId: id,

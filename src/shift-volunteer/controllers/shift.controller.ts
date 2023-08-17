@@ -1,8 +1,17 @@
 import { ReqContext, RequestContext } from '@app/common/request-context';
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { ShiftVolunteerAuthService } from '../auth';
 import { ShiftVolunteerStatus } from '../constants';
 import {
   ApproveManyShiftVolunteer,
+  RateActivityInputDto,
   RejectManyShiftVolunteer,
   RemoveManyShiftVolunteer,
   ReviewShiftVolunteerInputDto,
@@ -14,7 +23,10 @@ import { ShiftVolunteerService } from '../services';
 
 @Controller('shifts/:shiftId/volunteers')
 export class IdentifiedShiftVolunteerController {
-  constructor(private readonly shiftVolunteerService: ShiftVolunteerService) {}
+  constructor(
+    private readonly shiftVolunteerService: ShiftVolunteerService,
+    private readonly shiftVolunteerAuthService: ShiftVolunteerAuthService,
+  ) {}
 
   @Post('join')
   async join(
@@ -146,5 +158,22 @@ export class IdentifiedShiftVolunteerController {
     @Body() dto: ReviewShiftVolunteerInputDto,
   ): Promise<ShiftVolunteerOutputDto> {
     return this.shiftVolunteerService.review(context, shiftId, id, dto);
+  }
+
+  @Post('rate')
+  async rateActivity(
+    @ReqContext() context: RequestContext,
+    @Param('shiftId', ParseIntPipe) shiftId: number,
+    @Body() dto: RateActivityInputDto,
+  ) {
+    const volunteer = await this.shiftVolunteerAuthService.validateCanRateShift(
+      {
+        accountId: context.account.id,
+        shiftId: shiftId,
+      },
+    );
+    return this.shiftVolunteerService.rateActivity(context, shiftId, dto, {
+      useVolunteer: volunteer,
+    });
   }
 }

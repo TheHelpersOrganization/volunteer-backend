@@ -561,6 +561,8 @@ CREATE TABLE "VolunteerShift" (
     "completion" DOUBLE PRECISION,
     "reviewNote" TEXT,
     "reviewerId" INTEGER,
+    "shiftRating" INTEGER,
+    "shiftRatingComment" TEXT,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
 

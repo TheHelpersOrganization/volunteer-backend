@@ -9,9 +9,9 @@ export const calculateNewsPopularity = (news: {
   // If news is published:
   // - Set popularity views if news is published no more than 7 days ago
   // - Set popularity to views - (published days - 6) * 10 if news is published more than 7 days ago
-  if (!news.isPublished) return Number.MIN_SAFE_INTEGER;
+  if (!news.isPublished) return -2147483647;
   const dateDiff = dayjs().diff(news.publishedAt, 'day');
   const popularity =
     dateDiff > 7 ? news.views - Math.pow(dateDiff - 6, 2) * 10 : news.views;
-  return Math.max(popularity, Number.MIN_SAFE_INTEGER);
+  return Math.max(popularity, -2147483647);
 };

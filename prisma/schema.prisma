@@ -657,6 +657,8 @@ model VolunteerShift {
   reviewNote            String?
   reviewerId            Int?
   reviewer              Account?  @relation(name: "volunteerShiftReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  shiftRating           Int?
+  shiftRatingComment    String?
   createdAt             DateTime? @default(now())
   updatedAt             DateTime? @default(now()) @updatedAt
 }

@@ -4,6 +4,7 @@ import { LocationModule } from '@app/location/location.module';
 import { ProfileModule } from '@app/profile/profile.module';
 import { ShiftSkillModule } from '@app/shift-skill/shift-skill.module';
 import { Module } from '@nestjs/common';
+import { ShiftVolunteerAuthService } from './auth/shift-volunteer-auth.service';
 import {
   ActivityVolunteer,
   IdentifiedShiftVolunteerController,
@@ -34,6 +35,7 @@ import {
     ShiftVolunteerService,
     ShiftVolunteerTaskService,
     ModShiftVolunteerService,
+    ShiftVolunteerAuthService,
   ],
   exports: [ShiftVolunteerService, ModShiftVolunteerService],
 })
