@@ -1,4 +1,4 @@
-export enum OtpType {
+export enum TokenType {
   ResetPassword = 'reset-password',
   EmailVerification = 'email-verification',
 }

@@ -1,10 +1,10 @@
 import { EmailModule } from '@app/email/email.module';
-import { OtpModule } from '@app/otp/otp.module';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
+import { TokenModule } from '@app/token/token.module';
 import { CaslModule } from 'nest-casl';
 import { AccountModule } from '../account/account.module';
 import { CommonModule } from '../common/common.module';
@@ -34,7 +34,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       getUserFromRequest: (request) => request.user,
     }),
     AccountModule,
-    OtpModule,
+    TokenModule,
     EmailModule,
   ],
   controllers: [AuthController],

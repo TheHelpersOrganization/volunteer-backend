@@ -1,7 +1,7 @@
 import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
 import { EmailAlreadyInUseException } from '@app/auth/exceptions/email-already-in-use.exception';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { compare, hash } from 'bcrypt';
+import { compare, hash, hashSync } from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 
 import { Role } from '@app/auth/constants';
@@ -143,6 +143,32 @@ export class AccountService extends AbstractService {
     const updated = await this.prisma.account.update({
       where: { id: updatedUser.id },
       data: updatedUser,
+      include: this.getAccountInclude(),
+    });
+
+    return this.mapToDto(updated);
+  }
+
+  async updateAccountPassword(
+    ctx: RequestContext,
+    id: number,
+    password: string,
+  ): Promise<AccountOutputDto> {
+    this.logger.log(ctx, `${this.updateAccountPassword.name} was called`);
+
+    const account = await this.prisma.account.findUnique({
+      where: { id: id },
+    });
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    const hashedPassword = hashSync(password, 10);
+    const updated = await this.prisma.account.update({
+      where: { id: id },
+      data: {
+        password: hashedPassword,
+      },
       include: this.getAccountInclude(),
     });
 

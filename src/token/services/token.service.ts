@@ -1,4 +1,4 @@
-import otpConfig from '@app/common/configs/subconfigs/otp.config';
+import tokenConfig from '@app/common/configs/subconfigs/token.config';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
@@ -9,30 +9,30 @@ import dayjs from 'dayjs';
 import { gen } from 'n-digit-token';
 
 import { PrismaService } from '../../prisma/prisma.service';
-import { OtpType } from '../constants';
-import { VerifyOtpDto } from '../dto';
-import { OtpOutputDto } from '../dto/otp-output.dto';
+import { TokenType } from '../constants';
+import { VerifyTokenDto } from '../dto';
+import { TokenOutputDto } from '../dto/token.output.dto';
 import {
   EarlyTokenRenewalException,
   InvalidTokenException,
 } from '../exceptions';
 
 @Injectable()
-export class OtpService extends AbstractService {
+export class TokenService extends AbstractService {
   constructor(
-    @Inject(otpConfig.KEY)
-    private readonly otpConfigApi: ConfigType<typeof otpConfig>,
+    @Inject(tokenConfig.KEY)
+    private readonly tokenConfigApi: ConfigType<typeof tokenConfig>,
     private readonly prisma: PrismaService,
     appLogger: AppLogger,
   ) {
     super(appLogger);
   }
 
-  async getEffectiveOtp(
+  async getEffectiveToken(
     ctx: RequestContext,
-    type: OtpType,
-  ): Promise<OtpOutputDto | null> {
-    const lifeSec = this.otpConfigApi.lifeSec;
+    type: TokenType,
+  ): Promise<TokenOutputDto | null> {
+    const lifeSec = this.tokenConfigApi.lifeSec;
 
     const exist = await this.prisma.token.findUnique({
       where: {
@@ -53,15 +53,15 @@ export class OtpService extends AbstractService {
     return exist;
   }
 
-  async createOtp(
+  async createToken(
     ctx: RequestContext,
     accountId: number,
-    type: OtpType,
+    type: TokenType,
     options?: {
-      noEarlyRenewalCheck?: boolean;
+      skipEarlyRenewalCheck?: boolean;
     },
   ): Promise<string> {
-    this.logCaller(ctx, this.createOtp);
+    this.logCaller(ctx, this.createToken);
 
     const renewSec = this.getRenewSec(type);
     this.logger.log(ctx, `type is ${type}`);
@@ -75,16 +75,16 @@ export class OtpService extends AbstractService {
       },
     });
     if (
-      options?.noEarlyRenewalCheck != true &&
+      options?.skipEarlyRenewalCheck != true &&
       exist &&
       dayjs(exist.createdAt).add(renewSec, 'second').isAfter(dayjs())
     ) {
       throw new EarlyTokenRenewalException();
     }
 
-    // Delete the old otp
+    // Delete the old token
     if (exist) {
-      this.logger.log(ctx, 'old otp exist, delete it');
+      this.logger.log(ctx, 'old token exist, delete it');
       await this.prisma.token.delete({
         where: {
           accountId_type: {
@@ -95,9 +95,9 @@ export class OtpService extends AbstractService {
       });
     }
 
-    // Generate 6-digit OTP and hash it
-    const otp = gen(6);
-    const hashed = await hash(otp, 10);
+    // Generate 6-digit TOKEN and hash it
+    const token = gen(6);
+    const hashed = await hash(token, 10);
 
     await this.prisma.token.create({
       data: {
@@ -107,17 +107,17 @@ export class OtpService extends AbstractService {
       },
     });
 
-    return otp;
+    return token;
   }
 
-  async verifyOtp(
+  async verifyToken(
     ctx: RequestContext,
     accountId: number,
-    verifyOtp: VerifyOtpDto,
-    type: OtpType,
+    verifyToken: VerifyTokenDto,
+    type: TokenType,
   ): Promise<void> {
-    this.logCaller(ctx, this.verifyOtp);
-    const lifeSec = this.otpConfigApi.lifeSec;
+    this.logCaller(ctx, this.verifyToken);
+    const lifeSec = this.tokenConfigApi.lifeSec;
 
     const exist = await this.prisma.token.findUnique({
       where: {
@@ -127,7 +127,7 @@ export class OtpService extends AbstractService {
         },
       },
     });
-    // Check if otp exists and not expires yet
+    // Check if token exists and not expires yet
     if (
       !exist ||
       !exist.createdAt ||
@@ -136,13 +136,13 @@ export class OtpService extends AbstractService {
       throw new InvalidTokenException();
     }
 
-    // Compare with hashed otp
-    const match = await compare(verifyOtp.token, exist.token);
+    // Compare with hashed token
+    const match = await compare(verifyToken.token, exist.token);
     if (!match) {
       throw new InvalidTokenException();
     }
 
-    // Delete the otp
+    // Delete the token
     await this.prisma.token.delete({
       where: {
         accountId_type: {
@@ -153,14 +153,14 @@ export class OtpService extends AbstractService {
     });
   }
 
-  private getRenewSec(type: OtpType): number {
+  private getRenewSec(type: TokenType): number {
     let renewSec;
     switch (type) {
-      case OtpType.ResetPassword:
-        renewSec = this.otpConfigApi.passwordResetRenewSec;
+      case TokenType.ResetPassword:
+        renewSec = this.tokenConfigApi.passwordResetRenewSec;
         break;
-      case OtpType.EmailVerification:
-        renewSec = this.otpConfigApi.emailVerificationResetRenewSec;
+      case TokenType.EmailVerification:
+        renewSec = this.tokenConfigApi.emailVerificationResetRenewSec;
         break;
       default:
         renewSec = 0;

@@ -6,7 +6,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { Module } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 
-import { OtpModule } from '@app/otp/otp.module';
+import { TokenModule } from '@app/token/token.module';
 import { EmailListener, EmailService } from './services';
 
 @Module({
@@ -16,15 +16,13 @@ import { EmailListener, EmailService } from './services';
       inject: [emailConfig.KEY],
       useFactory: (emailConfigApi: ConfigType<typeof emailConfig>) => ({
         transport: {
+          service: emailConfigApi.service,
           host: emailConfigApi.host,
           port: emailConfigApi.port,
           secure: true,
           auth: {
             user: emailConfigApi.user,
             pass: emailConfigApi.password,
-          },
-          tls: {
-            rejectUnauthorized: false,
           },
         },
         defaults: {
@@ -39,7 +37,7 @@ import { EmailListener, EmailService } from './services';
         },
       }),
     }),
-    OtpModule,
+    TokenModule,
   ],
   providers: [EmailService, EmailListener],
   exports: [EmailService],

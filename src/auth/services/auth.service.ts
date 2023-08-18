@@ -1,4 +1,4 @@
-import { OtpType } from '@app/otp/constants';
+import { TokenType } from '@app/token/constants';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -6,13 +6,18 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 
 import authConfig from '@app/common/configs/subconfigs/auth.config';
 import { EmailService } from '@app/email/services';
-import { OtpService } from '@app/otp/services';
+import { TokenService } from '@app/token/services';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AccountOutputDto } from '../../account/dtos/account-output.dto';
 import { AccountService } from '../../account/services/account.service';
 import { AppLogger } from '../../common/logger/logger.service';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
+import {
+  ResetPasswordInputDto,
+  ResetPasswordRequestInputDto,
+  VerifyAccountDto,
+  VerifyAccountTokenInputDto,
+} from '../dtos';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
 import {
@@ -29,7 +34,7 @@ export class AuthService {
   constructor(
     private accountService: AccountService,
     private jwtService: JwtService,
-    private otpService: OtpService,
+    private tokenService: TokenService,
     private emailService: EmailService,
     @Inject(authConfig.KEY)
     private configService: ConfigType<typeof authConfig>,
@@ -174,11 +179,11 @@ export class AuthService {
       throw new AccountNotFoundException();
     }
 
-    await this.otpService.verifyOtp(
+    await this.tokenService.verifyToken(
       ctx,
       account.id,
       { token: dto.token },
-      OtpType.EmailVerification,
+      TokenType.EmailVerification,
     );
 
     const updatedAccount = await this.accountService.markAccountAsVerified(
@@ -200,10 +205,14 @@ export class AuthService {
       throw new AccountNotFoundException();
     }
 
-    const otp = await this.createVerifyAccountToken(ctx, account.id);
+    const token = await this.tokenService.createToken(
+      ctx,
+      account.id,
+      TokenType.EmailVerification,
+    );
 
     this.emailService
-      .sendEmailVerification(ctx, account.email, otp)
+      .sendEmailVerificationEmail(ctx, account.email, token)
       .catch((err) => {
         this.logger.error(ctx, err);
       });
@@ -213,22 +222,58 @@ export class AuthService {
     };
   }
 
-  async createVerifyAccountToken(
+  async sendResetPasswordToken(
     ctx: RequestContext,
-    accountId: number,
-    options?: {
-      noEarlyRenewalCheck?: boolean;
-    },
-  ): Promise<string> {
-    this.logger.log(ctx, `${this.createVerifyAccountToken.name} was called`);
+    dto: ResetPasswordRequestInputDto,
+  ) {
+    this.logger.log(ctx, `${this.sendResetPasswordToken.name} was called`);
 
-    const otp = await this.otpService.createOtp(
+    const account = await this.accountService.findByEmail(ctx, dto.email);
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    const token = await this.tokenService.createToken(
       ctx,
-      accountId,
-      OtpType.EmailVerification,
-      options,
+      account.id,
+      TokenType.ResetPassword,
     );
 
-    return otp;
+    this.emailService
+      .sendResetPasswordEmail(ctx, account.email, token)
+      .catch((err) => {
+        this.logger.error(ctx, err);
+      });
+
+    return {
+      successful: true,
+    };
+  }
+
+  async resetPassword(
+    ctx: RequestContext,
+    dto: ResetPasswordInputDto,
+  ): Promise<AccountOutputDto> {
+    this.logger.log(ctx, `${this.resetPassword.name} was called`);
+
+    const account = await this.accountService.findByEmail(ctx, dto.email);
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    await this.tokenService.verifyToken(
+      ctx,
+      account.id,
+      { token: dto.token },
+      TokenType.ResetPassword,
+    );
+
+    const updatedAccount = await this.accountService.updateAccountPassword(
+      ctx,
+      account.id,
+      dto.password,
+    );
+
+    return updatedAccount;
   }
 }

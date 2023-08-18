@@ -10,8 +10,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.enableCors();
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-  //const prismaService = app.get(PrismaService);
-  //await prismaService.enableShutdownHooks(app);
 
   /** Swagger configuration*/
   const options = new DocumentBuilder()

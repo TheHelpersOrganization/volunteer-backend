@@ -6,14 +6,14 @@ import emailConfig from './email.config';
 import fileConfig from './file.config';
 import firebaseConfig from './firebase.config';
 import googleMapConfig from './google-maps.config';
-import otpConfig from './otp.config';
+import tokenConfig from './token.config';
 
 export default [
   appConfig,
   authConfig,
   activityConfig,
   databaseConfig,
-  otpConfig,
+  tokenConfig,
   emailConfig,
   fileConfig,
   googleMapConfig,

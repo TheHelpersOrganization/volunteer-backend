@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class OtpOutputDto {
+export class TokenOutputDto {
   @Expose()
   token: string;
 }

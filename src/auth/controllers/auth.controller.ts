@@ -1,5 +1,4 @@
 import { AccountOutputDto } from '@app/account/dtos';
-import { OtpService } from '@app/otp/services';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -20,7 +19,12 @@ import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
 import { Public } from '../decorators';
-import { VerifyAccountDto, VerifyAccountTokenInputDto } from '../dtos';
+import {
+  ResetPasswordInputDto,
+  ResetPasswordRequestInputDto,
+  VerifyAccountDto,
+  VerifyAccountTokenInputDto,
+} from '../dtos';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
@@ -35,7 +39,6 @@ import { AuthService } from '../services/auth.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly otpService: OtpService,
     private readonly logger: AppLogger,
   ) {
     this.logger.setContext(AuthController.name);
@@ -129,5 +132,23 @@ export class AuthController {
     @Body() dto: VerifyAccountTokenInputDto,
   ): Promise<{ successful: boolean }> {
     return this.authService.sendVerifyAccountToken(ctx, dto);
+  }
+
+  @Public()
+  @Post('request-reset-password')
+  async requestResetPassword(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: ResetPasswordRequestInputDto,
+  ) {
+    return this.authService.sendResetPasswordToken(ctx, dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: ResetPasswordInputDto,
+  ) {
+    return this.authService.resetPassword(ctx, dto);
   }
 }

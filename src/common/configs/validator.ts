@@ -50,13 +50,17 @@ class EnvironmentVariables {
   AUTH_REFRESH_TOKEN_LIFE_SEC: number;
 
   @IsNumber()
-  OTP_LIFE_SEC: number;
+  TOKEN_LIFE_SEC: number;
 
   @IsNumber()
-  OTP_PASSWORD_RESET_RENEWAL_SEC: number;
+  TOKEN_PASSWORD_RESET_RENEWAL_SEC: number;
 
   @IsNumber()
-  OTP_EMAIL_VERIFICATION_RENEWAL_SEC: number;
+  TOKEN_EMAIL_VERIFICATION_RENEWAL_SEC: number;
+
+  @IsOptional()
+  @IsString()
+  EMAIL_SERVICE: string;
 
   @IsString()
   EMAIL_HOST: string;
@@ -73,6 +77,9 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   EMAIL_DEFAULT_FROM: string;
+
+  @IsString()
+  MAILGUN_API_KEY: string;
 
   @IsUrl()
   FILE_ENDPOINT: string;

@@ -1,8 +1,8 @@
 import { AccountRegisteredEvent } from '@app/auth/events';
 import { AppLogger } from '@app/common/logger';
 import { AbstractService } from '@app/common/services';
-import { OtpType } from '@app/otp/constants';
-import { OtpService } from '@app/otp/services';
+import { TokenType } from '@app/token/constants';
+import { TokenService } from '@app/token/services';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmailService } from './email.service';
@@ -11,7 +11,7 @@ import { EmailService } from './email.service';
 export class EmailListener extends AbstractService {
   constructor(
     logger: AppLogger,
-    private readonly otpService: OtpService,
+    private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
   ) {
     super(logger);
@@ -24,14 +24,18 @@ export class EmailListener extends AbstractService {
 
     const account = event.account;
 
-    // Generate OTP
-    const otp = await this.otpService.createOtp(
+    // Generate TOKEN
+    const token = await this.tokenService.createToken(
       context,
       account.id,
-      OtpType.EmailVerification,
+      TokenType.EmailVerification,
     );
 
-    // Send OTP to account email
-    await this.emailService.sendEmailVerification(context, account.email, otp);
+    // Send TOKEN to account email
+    await this.emailService.sendEmailVerificationEmail(
+      context,
+      account.email,
+      token,
+    );
   }
 }

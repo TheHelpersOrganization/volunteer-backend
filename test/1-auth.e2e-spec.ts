@@ -3,10 +3,11 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 
 import { AccountOutputDto } from '@app/account/dtos';
-import { AuthService } from '@app/auth/services';
 import { RequestContext } from '@app/common/request-context';
 import { PrismaService } from '@app/prisma';
 import { RoleService } from '@app/role/services';
+import { TokenType } from '@app/token/constants';
+import { TokenService } from '@app/token/services';
 import { hashSync } from 'bcrypt';
 import { AppModule } from '../src/app.module';
 import { Role } from '../src/auth/constants/role.constant';
@@ -153,13 +154,14 @@ describe('AuthController (e2e)', () => {
         .post('/auth/login')
         .send(loginInput);
 
-      const otp = await app
-        .get(AuthService)
-        .createVerifyAccountToken(
+      const token = await app
+        .get(TokenService)
+        .createToken(
           new RequestContext(),
           loginResponse.body.data.account.id,
+          TokenType.EmailVerification,
           {
-            noEarlyRenewalCheck: true,
+            skipEarlyRenewalCheck: true,
           },
         );
 
@@ -167,7 +169,7 @@ describe('AuthController (e2e)', () => {
         .post('/auth/verify-account')
         .send({
           email: loginInput.email,
-          token: otp,
+          token: token,
         })
         .expect(HttpStatus.CREATED)
         .expect((res) => {

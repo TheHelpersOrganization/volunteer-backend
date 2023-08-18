@@ -6,9 +6,11 @@ import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found
 import { CommonModule } from '@app/common/common.module';
 import { RequestContext } from '@app/common/request-context';
 import { EmailModule } from '@app/email/email.module';
-import { OtpModule } from '@app/otp/otp.module';
 import { RoleModule } from '@app/role/role.module';
 import { RoleService } from '@app/role/services';
+import { TokenType } from '@app/token/constants';
+import { TokenService } from '@app/token/services';
+import { TokenModule } from '@app/token/token.module';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -17,6 +19,7 @@ import { AuthService } from '../auth.service';
 describe('AuthService Integration', () => {
   let roleService: RoleService;
   let authService: AuthService;
+  let tokenService: TokenService;
   const context = new RequestContext();
 
   let account: RegisterOutput;
@@ -28,7 +31,7 @@ describe('AuthService Integration', () => {
       imports: [
         CommonModule,
         AccountModule,
-        OtpModule,
+        TokenModule,
         EmailModule,
         JwtModule.registerAsync({
           imports: [CommonModule],
@@ -44,6 +47,7 @@ describe('AuthService Integration', () => {
 
     roleService = moduleRef.get<RoleService>(RoleService);
     authService = moduleRef.get<AuthService>(AuthService);
+    tokenService = moduleRef.get<TokenService>(TokenService);
   });
 
   it('should be defined', () => {
@@ -153,7 +157,11 @@ describe('AuthService Integration', () => {
 
     it('should create token successfully', async () => {
       context.account = account;
-      token = await authService.createVerifyAccountToken(context, account.id);
+      token = await tokenService.createToken(
+        context,
+        account.id,
+        TokenType.EmailVerification,
+      );
 
       expect(token).toBeDefined();
     });

@@ -28,13 +28,13 @@ import { LocationModule } from './location/location.module';
 import { NewsModule } from './news/news.module';
 import { NotificationModule } from './notification/notification.module';
 import { OrganizationModule } from './organization/organization.module';
-import { OtpModule } from './otp/otp.module';
 import { ProfileModule } from './profile/profile.module';
 import { ReportModule } from './report/report.module';
 import { ShiftSkillModule } from './shift-skill/shift-skill.module';
 import { ShiftVolunteerModule } from './shift-volunteer/shift-volunteer.module';
 import { ShiftModule } from './shift/shift.module';
 import { SkillModule } from './skill/skill.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -43,7 +43,7 @@ import { SkillModule } from './skill/skill.module';
     AccountVerificationModule,
     AuthModule,
     ProfileModule,
-    OtpModule,
+    TokenModule,
     EmailModule,
     OrganizationModule,
     FileModule,
