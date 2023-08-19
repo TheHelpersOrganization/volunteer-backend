@@ -17,6 +17,7 @@ import {
   ResetPasswordRequestInputDto,
   VerifyAccountDto,
   VerifyAccountTokenInputDto,
+  VerifyResetPasswordTokenInputDto,
 } from '../dtos';
 import { RegisterInput } from '../dtos/auth-register-input.dto';
 import { RegisterOutput } from '../dtos/auth-register-output.dto';
@@ -179,7 +180,7 @@ export class AuthService {
       throw new AccountNotFoundException();
     }
 
-    await this.tokenService.verifyToken(
+    await this.tokenService.verifyAndExpireToken(
       ctx,
       account.id,
       { token: dto.token },
@@ -250,6 +251,27 @@ export class AuthService {
     };
   }
 
+  async verifyResetPasswordToken(
+    ctx: RequestContext,
+    dto: VerifyResetPasswordTokenInputDto,
+  ): Promise<boolean> {
+    this.logger.log(ctx, `${this.verifyResetPasswordToken.name} was called`);
+
+    const account = await this.accountService.findByEmail(ctx, dto.email);
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+
+    await this.tokenService.verifyToken(
+      ctx,
+      account.id,
+      { token: dto.token },
+      TokenType.ResetPassword,
+    );
+
+    return true;
+  }
+
   async resetPassword(
     ctx: RequestContext,
     dto: ResetPasswordInputDto,
@@ -261,7 +283,7 @@ export class AuthService {
       throw new AccountNotFoundException();
     }
 
-    await this.tokenService.verifyToken(
+    await this.tokenService.verifyAndExpireToken(
       ctx,
       account.id,
       { token: dto.token },

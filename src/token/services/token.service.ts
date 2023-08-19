@@ -117,6 +117,7 @@ export class TokenService extends AbstractService {
     type: TokenType,
   ): Promise<void> {
     this.logCaller(ctx, this.verifyToken);
+
     const lifeSec = this.tokenConfigApi.lifeSec;
 
     const exist = await this.prisma.token.findUnique({
@@ -141,6 +142,17 @@ export class TokenService extends AbstractService {
     if (!match) {
       throw new InvalidTokenException();
     }
+  }
+
+  async verifyAndExpireToken(
+    ctx: RequestContext,
+    accountId: number,
+    verifyToken: VerifyTokenDto,
+    type: TokenType,
+  ): Promise<void> {
+    this.logCaller(ctx, this.verifyAndExpireToken);
+
+    await this.verifyToken(ctx, accountId, verifyToken, type);
 
     // Delete the token
     await this.prisma.token.delete({

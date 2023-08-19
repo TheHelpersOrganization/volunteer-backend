@@ -12,6 +12,16 @@ export class ResetPasswordRequestInputDto {
   email: string;
 }
 
+export class VerifyResetPasswordTokenInputDto {
+  @IsString()
+  @MaxLength(RESET_PASSWORD_TOKEN_MAX_LENGTH)
+  token: string;
+
+  @IsString()
+  @MaxLength(EMAIL_MAX_LENGTH)
+  email: string;
+}
+
 export class ResetPasswordInputDto {
   @IsString()
   @MaxLength(RESET_PASSWORD_TOKEN_MAX_LENGTH)

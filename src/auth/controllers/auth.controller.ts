@@ -24,6 +24,7 @@ import {
   ResetPasswordRequestInputDto,
   VerifyAccountDto,
   VerifyAccountTokenInputDto,
+  VerifyResetPasswordTokenInputDto,
 } from '../dtos';
 import { LoginInput } from '../dtos/auth-login-input.dto';
 import { RefreshTokenInput } from '../dtos/auth-refresh-token-input.dto';
@@ -141,6 +142,15 @@ export class AuthController {
     @Body() dto: ResetPasswordRequestInputDto,
   ) {
     return this.authService.sendResetPasswordToken(ctx, dto);
+  }
+
+  @Public()
+  @Post('verify-reset-password-token')
+  async verifyResetPasswordToken(
+    @ReqContext() ctx: RequestContext,
+    @Body() dto: VerifyResetPasswordTokenInputDto,
+  ) {
+    return this.authService.verifyResetPasswordToken(ctx, dto);
   }
 
   @Public()
