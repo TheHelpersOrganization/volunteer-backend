@@ -111,7 +111,10 @@ export class ProfileService extends AbstractService {
     const skillHours = query?.includes?.includes(GetProfileInclude.SKILLS)
       ? await this.prisma.profileSkill.findMany({
           where: {
-            profileId: profile.accountId,
+            profileId: profile.id,
+            hours: {
+              gt: 0,
+            },
           },
           include: {
             skill: true,
