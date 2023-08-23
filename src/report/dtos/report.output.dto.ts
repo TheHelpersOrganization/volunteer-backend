@@ -1,5 +1,6 @@
 import { ActivityOutputDto } from '@app/activity/dtos';
 import { FileOutputDto } from '@app/file/dtos';
+import { NewsOutputDto } from '@app/news/dtos';
 import { OrganizationOutputDto } from '@app/organization/dtos';
 import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose, Type } from 'class-transformer';
@@ -78,4 +79,7 @@ export class ReportOutputDto {
 
   @Expose()
   reportedActivity?: ActivityOutputDto;
+
+  @Expose()
+  reportedNews?: NewsOutputDto;
 }

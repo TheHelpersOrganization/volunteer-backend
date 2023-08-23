@@ -300,6 +300,14 @@ CREATE TABLE "ReportActivity" (
 );
 
 -- CreateTable
+CREATE TABLE "ReportNews" (
+    "id" INTEGER NOT NULL,
+    "reportedNewsId" INTEGER NOT NULL,
+
+    CONSTRAINT "ReportNews_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ReportMessage" (
     "id" SERIAL NOT NULL,
     "reportId" INTEGER NOT NULL,
@@ -632,6 +640,9 @@ CREATE UNIQUE INDEX "ReportOrganization_id_key" ON "ReportOrganization"("id");
 CREATE UNIQUE INDEX "ReportActivity_id_key" ON "ReportActivity"("id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ReportNews_id_key" ON "ReportNews"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ReportMessageFile_fileId_key" ON "ReportMessageFile"("fileId");
 
 -- CreateIndex
@@ -765,6 +776,12 @@ ALTER TABLE "ReportActivity" ADD CONSTRAINT "ReportActivity_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "ReportActivity" ADD CONSTRAINT "ReportActivity_reportedActivityId_fkey" FOREIGN KEY ("reportedActivityId") REFERENCES "Activity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportNews" ADD CONSTRAINT "ReportNews_id_fkey" FOREIGN KEY ("id") REFERENCES "Report"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReportNews" ADD CONSTRAINT "ReportNews_reportedNewsId_fkey" FOREIGN KEY ("reportedNewsId") REFERENCES "News"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ReportMessage" ADD CONSTRAINT "ReportMessage_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "Report"("id") ON DELETE CASCADE ON UPDATE CASCADE;

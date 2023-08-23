@@ -8,6 +8,7 @@ import { faker } from '@faker-js/faker';
 import {
   Account,
   Activity,
+  News,
   Organization,
   PrismaClient,
   Report,
@@ -15,6 +16,7 @@ import {
   ReportActivity,
   ReportMessage,
   ReportMessageFile,
+  ReportNews,
   ReportOrganization,
 } from '@prisma/client';
 import { seedFiles } from './seed-file';
@@ -27,6 +29,7 @@ export const seedReports = async (
   accounts: Account[],
   organizations: Organization[],
   activities: Activity[],
+  news: News[],
   options?: {
     importantAccountIds?: number[];
     runWithoutDb?: boolean;
@@ -36,6 +39,7 @@ export const seedReports = async (
   const accountReports: ReportAccount[] = [];
   const organizationReports: ReportOrganization[] = [];
   const activityReports: ReportActivity[] = [];
+  const newsReports: ReportNews[] = [];
 
   const reportMessages: ReportMessage[] = [];
   const reportMessageFilesCount: { [key: number]: number } = {};
@@ -72,6 +76,11 @@ export const seedReports = async (
           activityReports.push({
             id: report.id,
             reportedActivityId: faker.helpers.arrayElement(activities).id,
+          });
+        } else if (report.type === ReportType.News) {
+          newsReports.push({
+            id: report.id,
+            reportedNewsId: faker.helpers.arrayElement(news).id,
           });
         }
       }
@@ -131,6 +140,24 @@ export const seedReports = async (
           activityReports.push({
             id: report.id,
             reportedActivityId: faker.helpers.arrayElement(activities).id,
+          });
+        }
+        const numberOfNewsReports = faker.helpers.weightedArrayElement([
+          { weight: account.id, value: 0 },
+          { weight: 1, value: 1 },
+        ]);
+        for (let i = 0; i < numberOfNewsReports; i++) {
+          const report = createReport({
+            type: ReportType.News,
+            status: status,
+            reporterId: account.id,
+            reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+          });
+          reports.push(report);
+
+          newsReports.push({
+            id: report.id,
+            reportedNewsId: faker.helpers.arrayElement(news).id,
           });
         }
       });
@@ -262,6 +289,7 @@ export const seedReports = async (
       accountReports: accountReports,
       organizationReports: organizationReports,
       activityReports: activityReports,
+      newsReports: newsReports,
     };
   }
 
@@ -281,6 +309,10 @@ export const seedReports = async (
     data: activityReports,
   });
 
+  await prisma.reportNews.createMany({
+    data: newsReports,
+  });
+
   await prisma.reportMessage.createMany({
     data: reportMessages,
   });
@@ -294,6 +326,7 @@ export const seedReports = async (
     accountReports: accountReports,
     organizationReports: organizationReports,
     activityReports: activityReports,
+    newsReports: newsReports,
   };
 };
 

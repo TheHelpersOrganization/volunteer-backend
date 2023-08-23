@@ -301,6 +301,7 @@ model News {
   Activity       Activity?    @relation(fields: [activityId], references: [id], onDelete: SetNull)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @default(now()) @updatedAt
+  ReportNews     ReportNews[] @relation(name: "reportedNews")
 }
 
 model Chat {
@@ -357,6 +358,7 @@ model Report {
   reportAccount      ReportAccount?
   reportOrganization ReportOrganization?
   reportActivity     ReportActivity?
+  reportNews         ReportNews?
   notification       Notification[]
 }
 
@@ -379,6 +381,13 @@ model ReportActivity {
   report             Report   @relation(fields: [id], references: [id], onDelete: Cascade)
   reportedActivityId Int
   reportedActivity   Activity @relation(name: "reportedActivity", fields: [reportedActivityId], references: [id], onDelete: Cascade)
+}
+
+model ReportNews {
+  id             Int    @id @unique
+  report         Report @relation(fields: [id], references: [id], onDelete: Cascade)
+  reportedNewsId Int
+  reportedNews   News   @relation(name: "reportedNews", fields: [reportedNewsId], references: [id], onDelete: Cascade)
 }
 
 model ReportMessage {

@@ -47,4 +47,8 @@ export class CreateReportInputDto {
   @IsOptional()
   @IsInt()
   reportedActivityId?: number;
+
+  @IsOptional()
+  @IsInt()
+  reportedNewsId?: number;
 }

@@ -131,43 +131,9 @@ const seed = async () => {
     '- Seeding profile skills...',
   );
 
-  const { reports } = await runWithTimer(
-    () =>
-      seedReports(
-        prisma,
-        volunteerAccounts,
-        adminAccounts,
-        accounts,
-        organizations,
-        activities,
-        {
-          runWithoutDb,
-          importantAccountIds: defaultAccountIds,
-        },
-      ),
-    '- Seeding reports...',
-  );
-
   const { chats } = await runWithTimer(
     () => seedChats(prisma, accounts, { runWithoutDb }),
     '- Seeding chats...',
-  );
-
-  await runWithTimer(
-    () =>
-      seedNotifications(
-        prisma,
-        accounts,
-        activities,
-        shifts,
-        organizations,
-        reports,
-        chats,
-        {
-          runWithoutDb,
-        },
-      ),
-    '- Seeding notifications...',
   );
 
   const { news } = await runWithTimer(
@@ -185,6 +151,41 @@ const seed = async () => {
         },
       ),
     '- Seeding news...',
+  );
+
+  const { reports } = await runWithTimer(
+    () =>
+      seedReports(
+        prisma,
+        volunteerAccounts,
+        adminAccounts,
+        accounts,
+        organizations,
+        activities,
+        news,
+        {
+          runWithoutDb,
+          importantAccountIds: defaultAccountIds,
+        },
+      ),
+    '- Seeding reports...',
+  );
+
+  await runWithTimer(
+    () =>
+      seedNotifications(
+        prisma,
+        accounts,
+        activities,
+        shifts,
+        organizations,
+        reports,
+        chats,
+        {
+          runWithoutDb,
+        },
+      ),
+    '- Seeding notifications...',
   );
 
   if (runWithoutDb) {

@@ -2,6 +2,7 @@ export enum ReportType {
   Account = 'account',
   Organization = 'organization',
   Activity = 'activity',
+  News = 'news',
 }
 
 export const reportTypes = Object.values(ReportType);

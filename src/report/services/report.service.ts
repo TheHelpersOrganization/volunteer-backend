@@ -5,6 +5,7 @@ import { AccountNotFoundException } from '@app/auth/exceptions';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { NewsNotFoundException } from '@app/news/exceptions';
 import { OrganizationNotFoundException } from '@app/organization/exceptions';
 import { PrismaService } from '@app/prisma';
 import { getProfileBasicSelect } from '@app/profile/dtos';
@@ -223,6 +224,33 @@ export class ReportService extends AbstractService {
         throw new ReportIsInReviewingException();
       }
     }
+    if (dto.type === ReportType.News) {
+      if (dto.reportedNewsId == null) {
+        throw new ReportActivityMustNotBeNullException();
+      }
+      const news = await this.prismaService.news.findUnique({
+        where: {
+          id: dto.reportedNewsId,
+        },
+      });
+      if (news == null) {
+        throw new NewsNotFoundException();
+      }
+      const existing = await this.prismaService.report.findFirst({
+        where: {
+          reporterId: context.account.id,
+          reportNews: {
+            reportedNewsId: dto.reportedNewsId,
+          },
+          status: {
+            in: [ReportStatus.Reviewing, ReportStatus.Pending],
+          },
+        },
+      });
+      if (existing != null) {
+        throw new ReportIsInReviewingException();
+      }
+    }
     const report = await this.prismaService.report.create({
       data: {
         title: dto.title,
@@ -267,6 +295,14 @@ export class ReportService extends AbstractService {
             : {
                 create: {
                   reportedActivityId: dto.reportedActivityId,
+                },
+              },
+        reportNews:
+          dto.reportedNewsId == null
+            ? undefined
+            : {
+                create: {
+                  reportedNewsId: dto.reportedNewsId,
                 },
               },
       },
@@ -319,7 +355,7 @@ export class ReportService extends AbstractService {
           },
         },
       });
-      if (report.status === ReportStatus.Pending) {
+      if (report.status === ReportStatus.Pending && context.isAdmin) {
         await tx.report.update({
           where: {
             id: reportId,
@@ -428,6 +464,11 @@ export class ReportService extends AbstractService {
       reportActivity: {
         include: {
           reportedActivity: true,
+        },
+      },
+      reportNews: {
+        include: {
+          reportedNews: true,
         },
       },
     };
@@ -544,6 +585,7 @@ export class ReportService extends AbstractService {
       reportedAccount: raw.reportedAccount,
       reportedOrganization: raw.reportOrganization?.reportedOrganization,
       reportedActivity: raw.reportActivity?.reportedActivity,
+      reportedNews: raw.reportNews?.reportedNews,
     };
     return this.output(ReportOutputDto, output);
   }
