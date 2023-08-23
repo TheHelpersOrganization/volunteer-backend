@@ -32,7 +32,11 @@ import {
 } from '@nestjs/websockets';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
-import { CreateChatInputDto, CreateMessageInputDto } from '../dtos';
+import {
+  CreateChatGroupInputDto,
+  CreateChatInputDto,
+  CreateMessageInputDto,
+} from '../dtos';
 import {
   ChatBlockedEvent,
   ChatCreatedEvent,
@@ -86,8 +90,13 @@ export class ChatGateway
       return;
     }
     try {
-      this.jwtService.verify(token);
-      this.logger.log(null, `Client connected: ${client.id}`);
+      const payload = this.jwtService.verify(token);
+      // Join the client to the chat room
+      await client.join(`chat-${payload.sub}`);
+      this.logger.log(
+        null,
+        `Client connected: ${client.id} with account id: ${payload.sub}`,
+      );
     } catch (err) {
       if (
         err instanceof TokenExpiredError ||
@@ -139,6 +148,16 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.createChat);
     const chat = await this.chatService.createChat(context, data);
+    return chat;
+  }
+
+  @SubscribeMessage('create-chat-group')
+  async createChatGroup(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: CreateChatGroupInputDto,
+  ) {
+    this.logCaller(context, this.createChat);
+    const chat = await this.chatService.createChatGroup(context, data);
     return chat;
   }
 

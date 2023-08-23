@@ -14,7 +14,10 @@ import {
   ChatsQueryDto,
   CreateMessageInputDto,
 } from '../dtos';
-import { CreateChatInputDto } from '../dtos/create-chat.input.dto';
+import {
+  CreateChatGroupInputDto,
+  CreateChatInputDto,
+} from '../dtos/create-chat.input.dto';
 import { ChatService } from '../services';
 
 @Controller('chats')
@@ -66,6 +69,14 @@ export class ChatController {
     @Body() dto: CreateChatInputDto,
   ) {
     return this.chatService.createChat(context, dto);
+  }
+
+  @Post('group')
+  async createChatGroup(
+    @ReqContext() context: RequestContext,
+    @Body() dto: CreateChatGroupInputDto,
+  ) {
+    return this.chatService.createChatGroup(context, dto);
   }
 
   @Post('send')
