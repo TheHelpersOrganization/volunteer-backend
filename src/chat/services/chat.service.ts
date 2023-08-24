@@ -121,10 +121,24 @@ export class ChatService extends AbstractService {
           accountId: requesterId,
         },
       },
+      OR: [
+        {
+          isGroup: false,
+          ChatMessage: {
+            some: {},
+          },
+        },
+        {
+          isGroup: true,
+        },
+      ],
     };
 
     if (query.name) {
-      where.OR = [
+      if (!where.OR) {
+        where.OR = [];
+      }
+      where.OR.push(
         {
           name: {
             contains: query.name,
@@ -161,7 +175,7 @@ export class ChatService extends AbstractService {
             },
           },
         },
-      ];
+      );
     }
 
     if (query.isBlocked) {
