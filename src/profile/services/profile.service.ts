@@ -69,9 +69,10 @@ export class ProfileService extends AbstractService {
   getProfileWhere(query: GetProfilesQueryDto) {
     const where: Prisma.ProfileWhereInput = {};
 
-    if (query.ids) {
+    if (query.ids || query.excludeId) {
       where.id = {
         in: query.ids,
+        notIn: query.excludeId,
       };
     }
 

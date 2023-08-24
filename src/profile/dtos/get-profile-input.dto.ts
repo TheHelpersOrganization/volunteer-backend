@@ -1,4 +1,5 @@
 import { PaginationQueryDto } from '@app/common/dtos';
+import { stringToIntArrayTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -53,8 +54,14 @@ export class GetProfilesQueryDto extends GetProfileQueryDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  @Transform(({ value }) => value.split(',').map(Number))
+  @Transform(stringToIntArrayTransform)
   ids?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Transform(stringToIntArrayTransform)
+  excludeId?: number[];
 
   @IsOptional()
   @IsString()
