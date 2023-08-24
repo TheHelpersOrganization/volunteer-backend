@@ -22,6 +22,7 @@ import {
   CreateChatGroupInputDto,
   CreateChatInputDto,
   CreateMessageInputDto,
+  UpdateChatInputDto,
 } from '../dtos';
 import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
@@ -30,6 +31,7 @@ import {
   ChatMessageSentEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
+  ChatUpdatedEvent,
 } from '../events';
 import {
   ChatIsBlockedException,
@@ -369,6 +371,29 @@ export class ChatService extends AbstractService {
     this.eventEmitter.emit(
       ChatCreatedEvent.eventName,
       new ChatCreatedEvent(context, output),
+    );
+
+    return output;
+  }
+
+  async updateChat(context: RequestContext, dto: UpdateChatInputDto) {
+    this.logCaller(context, this.updateChat);
+
+    const chat = await this.getChatOrThrow(context, dto.chatId);
+
+    const res = await this.prisma.chat.update({
+      where: {
+        id: dto.chatId,
+      },
+      data: dto,
+      include: this.getChatInclude(),
+    });
+
+    const output = await this.mapToDto(context, res);
+
+    this.eventEmitter.emit(
+      ChatUpdatedEvent.eventName,
+      new ChatUpdatedEvent(context, output),
     );
 
     return output;

@@ -117,6 +117,7 @@ model File {
   accountVerificationFile AccountVerificationFile?
   reportMessageFile       ReportMessageFile?
   News                    News[]
+  Chat                    Chat[]
 }
 
 model Location {
@@ -314,6 +315,8 @@ model Chat {
   isGroup          Boolean           @default(false)
   createdBy        Int
   createdByAccount Account           @relation(name: "createdByAccount", fields: [createdBy], references: [id], onDelete: Cascade)
+  avatar           Int?
+  avatarFile       File?             @relation(fields: [avatar], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   ChatMessage      ChatMessage[]

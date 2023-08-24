@@ -36,6 +36,7 @@ import {
   CreateChatGroupInputDto,
   CreateChatInputDto,
   CreateMessageInputDto,
+  UpdateChatInputDto,
 } from '../dtos';
 import {
   ChatBlockedEvent,
@@ -43,6 +44,7 @@ import {
   ChatMessageSentEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
+  ChatUpdatedEvent,
 } from '../events';
 import { HaveNotJoinedChatException } from '../exceptions';
 import { ChatService } from '../services';
@@ -161,6 +163,16 @@ export class ChatGateway
     return chat;
   }
 
+  @SubscribeMessage('update-chat')
+  async updateChat(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: UpdateChatInputDto,
+  ) {
+    this.logCaller(context, this.updateChat);
+    const chat = await this.chatService.updateChat(context, data);
+    return chat;
+  }
+
   @SubscribeMessage('send-message')
   async sendMessage(
     @ReqContext() context: RequestContext,
@@ -206,6 +218,14 @@ export class ChatGateway
     this.logCaller(event.context, this.onChatCreated);
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-created', event.chat);
+  }
+
+  @OnEvent(ChatUpdatedEvent.eventName)
+  async onChatUpdated(event: ChatUpdatedEvent) {
+    this.logCaller(event.context, this.onChatUpdated);
+
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 
   @OnEvent(ChatMessageSentEvent.eventName)

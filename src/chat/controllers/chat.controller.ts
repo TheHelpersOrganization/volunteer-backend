@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import {
@@ -13,6 +14,7 @@ import {
   ChatQueryDto,
   ChatsQueryDto,
   CreateMessageInputDto,
+  UpdateChatInputDto,
 } from '../dtos';
 import {
   CreateChatGroupInputDto,
@@ -69,6 +71,14 @@ export class ChatController {
     @Body() dto: CreateChatInputDto,
   ) {
     return this.chatService.createChat(context, dto);
+  }
+
+  @Put()
+  async updateChat(
+    @ReqContext() context: RequestContext,
+    @Body() dto: UpdateChatInputDto,
+  ) {
+    return this.chatService.updateChat(context, dto);
   }
 
   @Post('group')
