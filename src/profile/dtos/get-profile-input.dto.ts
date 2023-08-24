@@ -1,6 +1,13 @@
 import { PaginationQueryDto } from '@app/common/dtos';
 import { Transform } from 'class-transformer';
-import { IsArray, IsEnum, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export enum GetProfileInclude {
   INTERESTED_SKILLS = 'interested-skills',
@@ -48,4 +55,9 @@ export class GetProfilesQueryDto extends GetProfileQueryDto {
   @IsInt({ each: true })
   @Transform(({ value }) => value.split(',').map(Number))
   ids?: number[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  search?: string;
 }

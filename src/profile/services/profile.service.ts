@@ -35,14 +35,7 @@ export class ProfileService extends AbstractService {
     query: GetProfilesQueryDto,
   ): Promise<ProfileOutputDto[]> {
     this.logCaller(ctx, this.getProfiles);
-    let where: Prisma.ProfileWhereInput | undefined;
-    if (query.ids) {
-      where = {
-        id: {
-          in: query.ids,
-        },
-      };
-    }
+    const where = this.getProfileWhere(query);
     const profiles: any[] = await this.prisma.profile.findMany({
       where: where,
       select: this.parseProfileSelect(query.select, query.includes),
@@ -71,6 +64,41 @@ export class ProfileService extends AbstractService {
       });
     }
     return this.outputArray(ProfileOutputDto, res);
+  }
+
+  getProfileWhere(query: GetProfilesQueryDto) {
+    const where: Prisma.ProfileWhereInput = {};
+
+    if (query.ids) {
+      where.id = {
+        in: query.ids,
+      };
+    }
+
+    if (query.search) {
+      where.OR = [
+        {
+          username: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          firstName: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          lastName: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    return where;
   }
 
   async getProfile(
