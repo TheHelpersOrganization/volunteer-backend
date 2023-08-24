@@ -135,10 +135,7 @@ export class ChatService extends AbstractService {
     };
 
     if (query.name) {
-      if (!where.OR) {
-        where.OR = [];
-      }
-      where.OR.push(
+      const whereName: Prisma.ChatWhereInput[] = [
         {
           name: {
             contains: query.name,
@@ -175,7 +172,10 @@ export class ChatService extends AbstractService {
             },
           },
         },
-      );
+      ];
+      where.AND = {
+        OR: whereName,
+      };
     }
 
     if (query.isBlocked) {
