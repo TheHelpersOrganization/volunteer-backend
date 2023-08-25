@@ -41,13 +41,14 @@ import {
 import {
   ChatBlockedEvent,
   ChatCreatedEvent,
+  ChatDeletedEvent,
   ChatMessageSentEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
   ChatUpdatedEvent,
 } from '../events';
 import { HaveNotJoinedChatException } from '../exceptions';
-import { ChatService } from '../services';
+import { ChatGroupService, ChatService } from '../services';
 
 @WebSocketGateway(undefined, {
   namespace: 'chat',
@@ -70,6 +71,7 @@ export class ChatGateway
     logger: AppLogger,
     private readonly jwtService: JwtService,
     private readonly chatService: ChatService,
+    private readonly chatGroupService: ChatGroupService,
   ) {
     super(logger);
   }
@@ -159,7 +161,7 @@ export class ChatGateway
     @MessageBody() data: CreateChatGroupInputDto,
   ) {
     this.logCaller(context, this.createChat);
-    const chat = await this.chatService.createChatGroup(context, data);
+    const chat = await this.chatGroupService.createChatGroup(context, data);
     return chat;
   }
 
@@ -226,6 +228,14 @@ export class ChatGateway
 
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-updated', event.chat);
+  }
+
+  @OnEvent(ChatDeletedEvent.eventName)
+  async onChatDeleted(event: ChatDeletedEvent) {
+    this.logCaller(event.context, this.onChatDeleted);
+
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    this.server.sockets.to(rooms).emit('chat-deleted', event.chat);
   }
 
   @OnEvent(ChatMessageSentEvent.eventName)

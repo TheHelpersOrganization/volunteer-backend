@@ -50,7 +50,9 @@ export const seedChats = async (
         blockedBy: blockedBy,
         blockedAt: isBlocked ? new Date() : null,
         isGroup: false,
+        avatar: null,
         createdBy: account.id,
+        ownerId: account.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       });

@@ -27,6 +27,17 @@ export class ChatUpdatedEvent extends AbstractEvent {
   }
 }
 
+export class ChatDeletedEvent extends AbstractEvent {
+  static readonly eventName = 'chat.deleted';
+
+  constructor(
+    context,
+    public readonly chat: ChatOutputDto,
+  ) {
+    super(context);
+  }
+}
+
 export class ChatMessageSentEvent extends AbstractEvent {
   static readonly eventName = 'chat.message.sent';
 

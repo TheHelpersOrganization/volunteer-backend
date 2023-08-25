@@ -52,6 +52,7 @@ model Account {
   DisableActivity                  Activity[]              @relation(name: "activityBannedBy")
   Contact                          Contact[]
   News                             News[]
+  OwnChat                          Chat[]                  @relation(name: "ownerAccount")
 }
 
 model Role {
@@ -315,6 +316,8 @@ model Chat {
   isGroup          Boolean           @default(false)
   createdBy        Int
   createdByAccount Account           @relation(name: "createdByAccount", fields: [createdBy], references: [id], onDelete: Cascade)
+  ownerId          Int
+  owner            Account           @relation(name: "ownerAccount", fields: [ownerId], references: [id], onDelete: Cascade)
   avatar           Int?
   avatarFile       File?             @relation(fields: [avatar], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now())

@@ -29,3 +29,15 @@ export class ChatParticipantNotFoundException extends BaseApiException {
     super({ message: 'Chat participant not found', status: 404 });
   }
 }
+
+export class ChatParticipantAlreadyExistsException extends BaseApiException {
+  constructor() {
+    super({ message: 'Chat participant already exists' });
+  }
+}
+
+export class CanNotRemoveChatOwnerException extends BaseApiException {
+  constructor() {
+    super({ message: 'Can not remove chat owner' });
+  }
+}

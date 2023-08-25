@@ -13,18 +13,18 @@ import {
   ChatMessagesQueryDto,
   ChatQueryDto,
   ChatsQueryDto,
+  CreateChatInputDto,
   CreateMessageInputDto,
   UpdateChatInputDto,
 } from '../dtos';
-import {
-  CreateChatGroupInputDto,
-  CreateChatInputDto,
-} from '../dtos/create-chat.input.dto';
-import { ChatService } from '../services';
+import { ChatGroupService, ChatService } from '../services';
 
 @Controller('chats')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly chatGroupService: ChatGroupService,
+  ) {}
 
   @Get()
   async getChats(
@@ -79,14 +79,6 @@ export class ChatController {
     @Body() dto: UpdateChatInputDto,
   ) {
     return this.chatService.updateChat(context, dto);
-  }
-
-  @Post('group')
-  async createChatGroup(
-    @ReqContext() context: RequestContext,
-    @Body() dto: CreateChatGroupInputDto,
-  ) {
-    return this.chatService.createChatGroup(context, dto);
   }
 
   @Post('send')

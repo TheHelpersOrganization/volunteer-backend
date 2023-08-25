@@ -19,7 +19,6 @@ import {
   ChatQueryDto,
   ChatQuerySort,
   ChatsQueryDto,
-  CreateChatGroupInputDto,
   CreateChatInputDto,
   CreateMessageInputDto,
   UpdateChatInputDto,
@@ -286,6 +285,8 @@ export class ChatService extends AbstractService {
       data: {
         isGroup: false,
         createdBy: context.account.id,
+        ownerId: context.account.id,
+        avatar: dto.avatar,
         ChatParticipant: {
           create: [
             {
@@ -294,61 +295,6 @@ export class ChatService extends AbstractService {
             {
               accountId: dto.to,
             },
-          ],
-        },
-        ChatMessage:
-          dto.initialMessage == null
-            ? undefined
-            : {
-                create: [
-                  {
-                    message: dto.initialMessage,
-                    sender: context.account.id,
-                  },
-                ],
-              },
-      },
-      include: this.getChatInclude(),
-    });
-
-    const output = await this.mapToDto(context, chat);
-
-    this.eventEmitter.emit(
-      ChatCreatedEvent.eventName,
-      new ChatCreatedEvent(context, output),
-    );
-
-    return output;
-  }
-
-  async createChatGroup(context: RequestContext, dto: CreateChatGroupInputDto) {
-    this.logCaller(context, this.createChatGroup);
-
-    const toAccounts = await this.prisma.account.findMany({
-      where: {
-        id: {
-          in: dto.to,
-        },
-      },
-    });
-
-    if (toAccounts.length !== dto.to.length) {
-      throw new ChatParticipantNotFoundException();
-    }
-
-    const chat = await this.prisma.chat.create({
-      data: {
-        isGroup: true,
-        createdBy: context.account.id,
-        name: dto.name,
-        ChatParticipant: {
-          create: [
-            {
-              accountId: context.account.id,
-            },
-            ...dto.to.map((to) => ({
-              accountId: to,
-            })),
           ],
         },
         ChatMessage:

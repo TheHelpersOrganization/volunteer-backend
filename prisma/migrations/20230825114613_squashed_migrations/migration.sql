@@ -231,6 +231,7 @@ CREATE TABLE "Chat" (
     "blockedAt" TIMESTAMP(3),
     "isGroup" BOOLEAN NOT NULL DEFAULT false,
     "createdBy" INTEGER NOT NULL,
+    "ownerId" INTEGER NOT NULL,
     "avatar" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -741,6 +742,9 @@ ALTER TABLE "Chat" ADD CONSTRAINT "Chat_blockedBy_fkey" FOREIGN KEY ("blockedBy"
 
 -- AddForeignKey
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_avatar_fkey" FOREIGN KEY ("avatar") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;

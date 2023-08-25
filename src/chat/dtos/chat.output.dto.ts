@@ -31,7 +31,13 @@ export class ChatOutputDto {
   name?: string;
 
   @Expose()
+  avatar?: number;
+
+  @Expose()
   createdBy: number;
+
+  @Expose()
+  ownerId: number;
 
   @Expose()
   isBlocked: boolean;
