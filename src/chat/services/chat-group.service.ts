@@ -223,7 +223,7 @@ export class ChatGroupService extends AbstractService {
 
     await this.prisma.chatParticipant.delete({
       where: {
-        id: chatParticipant.id,
+        id: chatParticipant.participantId,
       },
     });
 
@@ -255,10 +255,10 @@ export class ChatGroupService extends AbstractService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.chatParticipant.deleteMany({
+      await tx.chatParticipant.delete({
         where: {
           chatId: chat.id,
-          accountId: chatParticipantProfile.id,
+          id: chatParticipantProfile.participantId,
         },
       });
 
