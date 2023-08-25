@@ -11,7 +11,7 @@ import {
 } from '../dtos';
 import { ChatGroupService, ChatService } from '../services';
 
-@Controller('chat/groups')
+@Controller('chats/groups')
 export class ChatGroupController {
   constructor(
     private readonly chatService: ChatService,

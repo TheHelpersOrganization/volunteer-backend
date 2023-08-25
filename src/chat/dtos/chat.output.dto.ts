@@ -20,6 +20,12 @@ export class ChatMessageOutputDto {
 
 export class ChatParticipantOutputDto extends ProfileOutputDto {
   @Expose()
+  chatId: number;
+
+  @Expose()
+  participantId: number;
+
+  @Expose()
   read: boolean;
 }
 

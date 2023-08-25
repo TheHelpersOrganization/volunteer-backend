@@ -297,17 +297,17 @@ export class ChatService extends AbstractService {
             },
           ],
         },
-        ChatMessage:
-          dto.initialMessage == null
-            ? undefined
-            : {
-                create: [
-                  {
-                    message: dto.initialMessage,
-                    sender: context.account.id,
-                  },
-                ],
-              },
+        // ChatMessage:
+        //   dto.initialMessage == null
+        //     ? undefined
+        //     : {
+        //         create: [
+        //           {
+        //             message: dto.initialMessage,
+        //             sender: context.account.id,
+        //           },
+        //         ],
+        //       },
       },
       include: this.getChatInclude(),
     });
@@ -355,8 +355,16 @@ export class ChatService extends AbstractService {
     }
 
     const message = await this.prisma.$transaction(async (tx) => {
+      const participant = chat.participants.find(
+        (p) => p.id === context.account.id,
+      );
+      console.log(participant);
       const message = await tx.chatMessage.create({
-        data: { ...dto, chatId: dto.chatId, sender: context.account.id },
+        data: {
+          ...dto,
+          chatId: dto.chatId,
+          sender: participant!.participantId,
+        },
       });
       const otherParticipants = chat.participants
         .filter((p) => p.id !== context.account.id)
@@ -509,18 +517,29 @@ export class ChatService extends AbstractService {
     return output;
   }
 
-  async getChatOrThrow(context: RequestContext, id: number) {
+  async getChatOrThrow(
+    context: RequestContext,
+    id: number,
+    options?: {
+      validateIsParticipant?: boolean;
+    },
+  ) {
     this.logCaller(context, this.getChatOrThrow);
 
-    const chat = await this.prisma.chat.findUnique({
-      where: {
-        id: id,
-        ChatParticipant: {
-          some: {
-            accountId: context.account.id,
-          },
+    const where: Prisma.ChatWhereUniqueInput = {
+      id: id,
+    };
+
+    if (options?.validateIsParticipant != false) {
+      where.ChatParticipant = {
+        some: {
+          accountId: context.account.id,
         },
-      },
+      };
+    }
+
+    const chat = await this.prisma.chat.findUnique({
+      where: where,
       include: this.getChatInclude(),
     });
 
@@ -542,6 +561,9 @@ export class ChatService extends AbstractService {
           });
     const participants = profiles?.map((p) => ({
       ...p,
+      chatId: raw.id,
+      participantId: raw.ChatParticipant?.find((cp) => cp.accountId === p.id)
+        ?.id,
       read: raw.ChatParticipant?.find((cp) => cp.accountId === p.id)?.read,
     }));
 

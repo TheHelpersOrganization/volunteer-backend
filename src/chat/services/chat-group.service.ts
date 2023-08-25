@@ -14,6 +14,8 @@ import {
 import {
   ChatCreatedEvent,
   ChatDeletedEvent,
+  ChatParticipantLeftEvent,
+  ChatParticipantRemovedEvent,
   ChatUpdatedEvent,
 } from '../events';
 import {
@@ -67,17 +69,17 @@ export class ChatGroupService extends AbstractService {
             })),
           ],
         },
-        ChatMessage:
-          dto.initialMessage == null
-            ? undefined
-            : {
-                create: [
-                  {
-                    message: dto.initialMessage,
-                    sender: context.account.id,
-                  },
-                ],
-              },
+        // ChatMessage:
+        //   dto.initialMessage == null
+        //     ? undefined
+        //     : {
+        //         create: [
+        //           {
+        //             message: dto.initialMessage,
+        //             sender: context.account.id,
+        //           },
+        //         ],
+        //       },
       },
       include: this.chatService.getChatInclude(),
     });
@@ -163,7 +165,7 @@ export class ChatGroupService extends AbstractService {
     dto: CreateChatGroupParticipantInputDto,
     options?: { useChat?: ChatOutputDto },
   ) {
-    this.logCaller(context, this.leaveChatGroup);
+    this.logCaller(context, this.addParticipantToChatGroup);
 
     const chat =
       options?.useChat ?? (await this.getChatGroupOrThrow(context, dto.chatId));
@@ -200,7 +202,7 @@ export class ChatGroupService extends AbstractService {
     dto: CreateChatGroupParticipantInputDto,
     options?: { useChat?: ChatOutputDto },
   ) {
-    this.logCaller(context, this.leaveChatGroup);
+    this.logCaller(context, this.removeParticipantFromChatGroup);
 
     const chat =
       options?.useChat ?? (await this.getChatGroupOrThrow(context, dto.chatId));
@@ -209,12 +211,9 @@ export class ChatGroupService extends AbstractService {
       throw new CanNotRemoveChatOwnerException();
     }
 
-    const chatParticipant = await this.prisma.chatParticipant.findFirst({
-      where: {
-        chatId: dto.chatId,
-        accountId: dto.accountId,
-      },
-    });
+    const chatParticipant = chat.participants.find(
+      (p) => p.id === dto.accountId,
+    );
     if (!chatParticipant) {
       throw new ChatParticipantNotFoundException();
     }
@@ -228,8 +227,8 @@ export class ChatGroupService extends AbstractService {
     const output = await this.getChatGroupOrThrow(context, chat.id);
 
     this.eventEmitter.emit(
-      ChatUpdatedEvent.eventName,
-      new ChatUpdatedEvent(context, output),
+      ChatParticipantRemovedEvent.eventName,
+      new ChatParticipantRemovedEvent(context, output, chatParticipant),
     );
 
     return output;
@@ -253,9 +252,10 @@ export class ChatGroupService extends AbstractService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.chatParticipant.delete({
+      await tx.chatParticipant.deleteMany({
         where: {
-          id: chatParticipantProfile.id,
+          chatId: chat.id,
+          accountId: chatParticipantProfile.id,
         },
       });
 
@@ -270,22 +270,31 @@ export class ChatGroupService extends AbstractService {
           data: {
             ownerId: newOwner!.id,
           },
+          include: this.chatService.getChatInclude(),
         });
       }
     });
 
-    const output = await this.getChatGroupOrThrow(context, dto.chatId);
+    const output = await this.getChatGroupOrThrow(context, dto.chatId, {
+      validateIsParticipant: false,
+    });
 
     this.eventEmitter.emit(
-      ChatUpdatedEvent.eventName,
-      new ChatUpdatedEvent(context, output),
+      ChatParticipantLeftEvent.eventName,
+      new ChatParticipantLeftEvent(context, output, chatParticipantProfile),
     );
 
     return output;
   }
 
-  async getChatGroupOrThrow(context: RequestContext, id: number) {
-    const res = await this.chatService.getChatOrThrow(context, id);
+  async getChatGroupOrThrow(
+    context: RequestContext,
+    id: number,
+    options?: {
+      validateIsParticipant?: boolean;
+    },
+  ) {
+    const res = await this.chatService.getChatOrThrow(context, id, options);
     if (!res.isGroup) {
       throw new ChatNotFoundException();
     }

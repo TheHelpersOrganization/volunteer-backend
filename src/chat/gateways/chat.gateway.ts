@@ -43,6 +43,8 @@ import {
   ChatCreatedEvent,
   ChatDeletedEvent,
   ChatMessageSentEvent,
+  ChatParticipantLeftEvent,
+  ChatParticipantRemovedEvent,
   ChatReadEvent,
   ChatUnblockedEvent,
   ChatUpdatedEvent,
@@ -236,6 +238,30 @@ export class ChatGateway
 
     const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
     this.server.sockets.to(rooms).emit('chat-deleted', event.chat);
+  }
+
+  @OnEvent(ChatParticipantLeftEvent.eventName)
+  async onChatParticipantLeft(event: ChatParticipantLeftEvent) {
+    this.logCaller(event.context, this.onChatParticipantLeft);
+
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    rooms.push(`chat-${event.chatParticipant.id}`);
+    this.server.sockets
+      .to(rooms)
+      .emit('chat-participant-left', event.chatParticipant);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
+  }
+
+  @OnEvent(ChatParticipantRemovedEvent.eventName)
+  async onChatParticipantRemoved(event: ChatParticipantRemovedEvent) {
+    this.logCaller(event.context, this.onChatParticipantRemoved);
+
+    const rooms = event.chat.participants.map((p) => `chat-${p.id}`);
+    rooms.push(`chat-${event.chatParticipant.id}`);
+    this.server.sockets
+      .to(rooms)
+      .emit('chat-participant-removed', event.chatParticipant);
+    this.server.sockets.to(rooms).emit('chat-updated', event.chat);
   }
 
   @OnEvent(ChatMessageSentEvent.eventName)

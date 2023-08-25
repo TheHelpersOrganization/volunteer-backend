@@ -88,3 +88,37 @@ export class ChatReadEvent extends AbstractEvent {
     this.chatParticipant = chatParticipant;
   }
 }
+
+export class ChatParticipantLeftEvent extends AbstractEvent {
+  static readonly eventName = 'chat.participant.left';
+
+  readonly chat: ChatOutputDto;
+  readonly chatParticipant: ChatParticipantOutputDto;
+
+  constructor(
+    context,
+    chat: ChatOutputDto,
+    chatParticipant: ChatParticipantOutputDto,
+  ) {
+    super(context);
+    this.chat = chat;
+    this.chatParticipant = chatParticipant;
+  }
+}
+
+export class ChatParticipantRemovedEvent extends AbstractEvent {
+  static readonly eventName = 'chat.participant.removed';
+
+  readonly chat: ChatOutputDto;
+  readonly chatParticipant: ChatParticipantOutputDto;
+
+  constructor(
+    context,
+    chat: ChatOutputDto,
+    chatParticipant: ChatParticipantOutputDto,
+  ) {
+    super(context);
+    this.chat = chat;
+    this.chatParticipant = chatParticipant;
+  }
+}
