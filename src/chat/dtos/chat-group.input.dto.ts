@@ -1,4 +1,11 @@
-import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { CHAT_GROUP_NAME_MAX_LENGTH } from '../constants';
 
 export class CreateChatGroupInputDto {
@@ -48,8 +55,10 @@ export class CreateChatGroupParticipantInputDto {
   @IsInt()
   chatId: number;
 
-  @IsInt()
-  accountId: number;
+  @IsArray()
+  @IsInt({ each: true })
+  @ArrayMinSize(1)
+  accountIds: number[];
 }
 
 export class DeleteChatParticipantGroupInputDto {

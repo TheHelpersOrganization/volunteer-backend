@@ -8,6 +8,7 @@ import {
   ChatOutputDto,
   CreateChatGroupInputDto,
   CreateChatGroupParticipantInputDto,
+  DeleteChatParticipantGroupInputDto,
   LeaveChatGroupInputDto,
   MakeParticipantChatGroupOwnerInputDto,
 } from '../dtos';
@@ -170,21 +171,23 @@ export class ChatGroupService extends AbstractService {
     const chat =
       options?.useChat ?? (await this.getChatGroupOrThrow(context, dto.chatId));
 
-    const chatParticipant = await this.prisma.chatParticipant.findFirst({
+    const chatParticipants = await this.prisma.chatParticipant.findMany({
       where: {
         chatId: dto.chatId,
-        accountId: dto.accountId,
+        accountId: {
+          in: dto.accountIds,
+        },
       },
     });
-    if (chatParticipant) {
+    if (chatParticipants.length > 0) {
       throw new ChatParticipantAlreadyExistsException();
     }
 
-    await this.prisma.chatParticipant.create({
-      data: {
+    await this.prisma.chatParticipant.createMany({
+      data: dto.accountIds.map((accountId) => ({
         chatId: dto.chatId,
-        accountId: dto.accountId,
-      },
+        accountId: accountId,
+      })),
     });
 
     const output = await this.getChatGroupOrThrow(context, chat.id);
@@ -199,7 +202,7 @@ export class ChatGroupService extends AbstractService {
 
   async removeParticipantFromChatGroup(
     context: RequestContext,
-    dto: CreateChatGroupParticipantInputDto,
+    dto: DeleteChatParticipantGroupInputDto,
     options?: { useChat?: ChatOutputDto },
   ) {
     this.logCaller(context, this.removeParticipantFromChatGroup);
