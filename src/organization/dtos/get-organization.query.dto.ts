@@ -9,6 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 
+import { CountQueryDto } from '@app/common/dtos/count.dto';
 import {
   stringToBooleanTransform,
   stringToIntArrayTransform,
@@ -74,4 +75,15 @@ export class OrganizationQueryDto extends PaginationQueryDto {
   @IsEnum(OrganizationInclude, { each: true })
   @Transform(({ value }) => value.split(','))
   include?: OrganizationInclude[];
+}
+
+export class CountOrganizationQueryDto extends CountQueryDto {
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isDisabled?: boolean;
+
+  @IsOptional()
+  @IsEnum(OrganizationStatus)
+  status?: OrganizationStatus;
 }

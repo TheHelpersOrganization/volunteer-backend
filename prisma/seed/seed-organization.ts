@@ -123,7 +123,7 @@ export const seedOrganizations = async (
         ownerId: 1,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
         verifierComment: fakerEn.lorem.sentence(),
-        createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
+        createdAt: fakerVi.date.between({ from: '2000-01-01', to: new Date() }),
         updatedAt: new Date(),
       };
       if (hasLogo[index]) {

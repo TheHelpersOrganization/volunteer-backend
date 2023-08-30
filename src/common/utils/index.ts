@@ -4,9 +4,27 @@ import dayjs from 'dayjs';
 import tz from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import path from 'path';
+import {
+  CountOutputDto,
+  MonthlyCountOutputDto,
+  YearlyCountOutputDto,
+} from '../dtos/count.dto';
 
 dayjs.extend(utc);
 dayjs.extend(tz);
+
+export function applyMixins(derivedCtor: any, constructors: any[]) {
+  constructors.forEach((baseCtor) => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+      Object.defineProperty(
+        derivedCtor.prototype,
+        name,
+        Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
+          Object.create(null),
+      );
+    });
+  });
+}
 
 export const requireNonNull = <T>(
   value: T | null | undefined,
@@ -141,4 +159,129 @@ export const secondsToHoursMinutesSeconds = (seconds: number) => {
   const mDisplay = m > 0 ? m + (m == 1 ? ' minute ' : ' minutes ') : '';
   const sDisplay = s > 0 ? s + (s == 1 ? ' second' : ' seconds') : '';
   return `${dDisplay}${hDisplay}${mDisplay}${sDisplay}`.trim();
+};
+
+export const executeCountGroupByTime = async (data: {
+  getFirstItem: () => Promise<Date | null | undefined>;
+  getLastItem: () => Promise<Date | null | undefined>;
+  countTotalItems: () => Promise<number> | number;
+  countItems: (from: Date, to: Date) => Promise<number> | number;
+}): Promise<CountOutputDto> => {
+  const first = await data.getFirstItem();
+  if (first == null) {
+    return { total: 0, yearly: [], monthly: [] };
+  }
+  const last = await data.getLastItem();
+  if (last == null) {
+    return { total: 0, yearly: [], monthly: [] };
+  }
+  const firstMonth = dayjs(first).month() + 1;
+  const firstYear = dayjs(first).year();
+  const lastMonth = dayjs(last).month() + 1;
+  const lastYear = dayjs(last).year();
+
+  const total = await data.countTotalItems();
+  const yearly: YearlyCountOutputDto[] = [];
+  const monthly: MonthlyCountOutputDto[] = [];
+
+  const monthlyPromises: {
+    year: number;
+    month: number;
+    count: Promise<number> | number;
+  }[] = [];
+  for (let year = firstYear; year <= lastYear; year++) {
+    const fromMonth = year == firstYear ? firstMonth : 1;
+    const toMonth = year == lastYear ? lastMonth : 12;
+    for (let month = fromMonth; month <= toMonth; month++) {
+      const monthCountPromise = data.countItems(
+        dayjs()
+          .year(year)
+          .month(month - 1)
+          .startOf('month')
+          .toDate(),
+        dayjs()
+          .year(year)
+          .month(month - 1)
+          .endOf('month')
+          .toDate(),
+      );
+      monthlyPromises.push({
+        year: year,
+        month: month,
+        count: monthCountPromise,
+      });
+    }
+  }
+
+  await Promise.all(
+    monthlyPromises.map(async (p) => {
+      monthly.push({
+        year: p.year,
+        month: p.month,
+        count: await p.count,
+      });
+    }),
+  );
+
+  monthly.sort((a, b) => {
+    if (a.year == b.year) {
+      return a.month - b.month;
+    }
+    return a.year - b.year;
+  });
+
+  monthly.forEach((m) => {
+    const year = yearly.find((y) => y.year == m.year);
+    if (year) {
+      year.count += m.count;
+    } else {
+      yearly.push({
+        year: m.year,
+        count: m.count,
+      });
+    }
+  });
+
+  return { total, yearly, monthly };
+};
+
+export type MonthlyCountData = {
+  month: Date;
+  count: bigint;
+};
+
+export const countGroupByTime = async (data: MonthlyCountData[]) => {
+  const yearly: YearlyCountOutputDto[] = [];
+  const monthly: MonthlyCountOutputDto[] = data
+    .map((r) => ({
+      year: r.month.getUTCFullYear(),
+      month: r.month.getUTCMonth() + 1,
+      count: Number(r.count),
+    }))
+    .sort((a, b) => {
+      if (a.year === b.year) {
+        return a.month - b.month;
+      }
+      return a.year - b.year;
+    });
+  monthly.forEach((m) => {
+    const year = yearly.find((y) => y.year === m.year);
+    if (year == null) {
+      yearly.push({
+        year: m.year,
+        count: m.count,
+      });
+    } else {
+      year.count += m.count;
+    }
+  });
+  const total = yearly.reduce((a, b) => a + b.count, 0);
+
+  const output: CountOutputDto = {
+    total: total,
+    monthly: monthly,
+    yearly: yearly,
+  };
+
+  return output;
 };

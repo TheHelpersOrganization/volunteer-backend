@@ -12,6 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  CountReportQueryDto,
   CreateReportInputDto,
   CreateReportMessageInputDto,
   GetReportQueryDto,
@@ -28,6 +29,14 @@ export class ReportController {
     @Query() query: GetReportQueryDto,
   ) {
     return this.reportService.getReports(context, query);
+  }
+
+  @Get('count')
+  async countReports(
+    @ReqContext() context: RequestContext,
+    @Query() query: CountReportQueryDto,
+  ) {
+    return this.reportService.countReports(context, query);
   }
 
   @Get(':id')

@@ -5,6 +5,7 @@ import { AccountNotFoundException } from '@app/auth/exceptions';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { countGroupByTime } from '@app/common/utils';
 import { NewsNotFoundException } from '@app/news/exceptions';
 import { OrganizationNotFoundException } from '@app/organization/exceptions';
 import { PrismaService } from '@app/prisma';
@@ -15,6 +16,7 @@ import { Prisma } from '@prisma/client';
 import { ReportStatus, ReportType } from '../constants';
 import {
   BaseGetReportQueryDto,
+  CountReportQueryDto,
   CreateReportInputDto,
   CreateReportMessageInputDto,
   GetReportQueryDto,
@@ -97,6 +99,48 @@ export class ReportService extends AbstractService {
     return Promise.all(
       reports.map((report) => this.mapReportToDto(context, report)),
     );
+  }
+
+  async countReports(context: RequestContext, query: CountReportQueryDto) {
+    const conditions: Prisma.Sql[] = [];
+    if (query.type != null) {
+      const subConditions: Prisma.Sql[] = [];
+      query.type.forEach((type) => {
+        subConditions.push(Prisma.sql`"type" = ${type}`);
+      });
+      conditions.push(Prisma.sql`(${Prisma.join(subConditions, ' OR ')})`);
+    }
+    if (query.status != null) {
+      const statusConditions: Prisma.Sql[] = [];
+      query.status.forEach((status) => {
+        statusConditions.push(Prisma.sql`"status" = ${status}`);
+      });
+      conditions.push(Prisma.sql`(${Prisma.join(statusConditions, ' OR ')})`);
+    }
+    if (query.startTime != null) {
+      conditions.push(Prisma.sql`"createdAt" >= ${query.startTime}`);
+    }
+    if (query.endTime != null) {
+      conditions.push(Prisma.sql`"createdAt" <= ${query.endTime}`);
+    }
+    const sqlWhere =
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
+    const res: {
+      month: Date;
+      count: bigint;
+    }[] = await this.prismaService.$queryRaw`
+      SELECT
+      DATE_TRUNC('month', "createdAt")
+        AS month,
+      COUNT(*) AS count
+      FROM "Report"
+      ${sqlWhere}
+      GROUP BY DATE_TRUNC('month',"createdAt");
+    `;
+
+    return countGroupByTime(res);
   }
 
   async getReportById(

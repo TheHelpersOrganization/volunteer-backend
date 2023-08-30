@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,6 +18,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { Role } from '@app/auth/constants';
+import { RequireRoles } from '@app/auth/decorators';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
   BaseApiErrorResponse,
@@ -25,9 +28,10 @@ import {
 import { AppLogger } from '../../common/logger/logger.service';
 import { ReqContext } from '../../common/request-context/req-context.decorator';
 import { RequestContext } from '../../common/request-context/request-context.dto';
-import { UpdateAccountRolesInputDto } from '../dtos';
+import { CountAccountQueryDto, UpdateAccountRolesInputDto } from '../dtos';
 import { AccountOutputDto } from '../dtos/account-output.dto';
 import { UpdateAccountInput } from '../dtos/account-update-input.dto';
+import { AdminAccountService } from '../services';
 import { AccountService } from '../services/account.service';
 
 @ApiTags('accounts')
@@ -35,6 +39,7 @@ import { AccountService } from '../services/account.service';
 export class AccountController {
   constructor(
     private readonly accountService: AccountService,
+    private readonly adminAccountService: AdminAccountService,
     private readonly logger: AppLogger,
   ) {
     this.logger.setContext(AccountController.name);
@@ -62,6 +67,15 @@ export class AccountController {
 
     const account = await this.accountService.findById(ctx, ctx.account.id);
     return account;
+  }
+
+  @RequireRoles(Role.Admin)
+  @Get('count')
+  async countAccounts(
+    @ReqContext() ctx: RequestContext,
+    @Query() query: CountAccountQueryDto,
+  ) {
+    return this.adminAccountService.countAccounts(ctx, query);
   }
 
   // TODO: ADD RoleGuard

@@ -4,6 +4,7 @@ import { AbstractService } from '@app/common/services';
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 
+import { countGroupByTime } from '@app/common/utils';
 import { LocationOutputDto } from '@app/location/dtos';
 import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { ShiftStatus } from '@app/shift/constants';
@@ -15,11 +16,9 @@ import {
   ActivityOutputDto,
   ActivityQueryOutputDto,
   BaseGetActivityQueryDto,
-  CountActivityOutputDto,
   CountActivityQueryDto,
   GetActivitiesQueryDto,
   GetActivityByIdQueryDto,
-  MonthlyActivityCountOutputDto,
   UpdateActivityInputDto,
 } from '../dtos';
 import { ActivityNotFoundException } from '../exceptions';
@@ -794,73 +793,41 @@ export class ActivityService extends AbstractService {
 
   async countActivities(context: RequestContext, query: CountActivityQueryDto) {
     this.logCaller(context, this.countActivities);
-    // The first activity created is the oldest activity
-    const first = await this.prisma.activity.findFirst({
-      where: {
-        startTime: {
-          not: null,
-          gte: query.startTime,
-        },
-      },
-      orderBy: {
-        startTime: 'asc',
-      },
-    });
-    if (first == null) {
-      return this.output(CountActivityOutputDto, {
-        total: 0,
-        monthly: [],
+    const conditions: Prisma.Sql[] = [];
+    if (query.isDisabled != null) {
+      conditions.push(Prisma.sql`"isDisabled" = ${query.isDisabled}`);
+    }
+    if (query.status != null) {
+      const statusConditions: Prisma.Sql[] = [];
+      query.status.forEach((status) => {
+        statusConditions.push(Prisma.sql`"status" = ${status}`);
       });
+      conditions.push(Prisma.sql`(${Prisma.join(statusConditions, ' OR ')})`);
     }
-    const firstMonth = dayjs(first.startTime).month() + 1;
-    const firstYear = dayjs(first.startTime).year();
-    // The last activity created is the latest activity
-    const last = await this.prisma.activity.findFirst({
-      where: {
-        startTime: {
-          not: null,
-          lte: query.endTime,
-        },
-      },
-      orderBy: {
-        startTime: 'desc',
-      },
-    });
-    if (last == null) {
-      return this.output(CountActivityOutputDto, {
-        total: 0,
-        monthly: [],
-      });
+    if (query.startTime != null) {
+      conditions.push(Prisma.sql`"startTime" >= ${query.startTime}`);
     }
-    const lastMonth = dayjs(last.startTime).month() + 1;
-    const lastYear = dayjs(last.startTime).year();
+    if (query.endTime != null) {
+      conditions.push(Prisma.sql`"endTime" <= ${query.endTime}`);
+    }
+    const sqlWhere =
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
+    const res: {
+      month: Date;
+      count: bigint;
+    }[] = await this.prisma.$queryRaw`
+      SELECT
+      DATE_TRUNC('month', "startTime")
+        AS month,
+      COUNT(*) AS count
+      FROM "Activity"
+      ${sqlWhere}
+      GROUP BY DATE_TRUNC('month',"startTime");
+    `;
 
-    const total = await this.prisma.activity.count();
-    const monthly: MonthlyActivityCountOutputDto[] = [];
-    for (let year = firstYear; year <= lastYear; year++) {
-      const startMonth = year === firstYear ? firstMonth : 1;
-      const endMonth = year === lastYear ? lastMonth : 12;
-      for (let month = startMonth; month <= endMonth; month++) {
-        const count = await this.prisma.activity.count({
-          where: {
-            startTime: {
-              gte: new Date(year, month - 1, 1),
-              lt: new Date(year, month, 1),
-            },
-          },
-        });
-        monthly.push({
-          year: year,
-          month: month,
-          count: count,
-        });
-      }
-    }
-
-    return this.output(CountActivityOutputDto, {
-      total: total,
-      monthly: monthly,
-    });
+    return countGroupByTime(res);
   }
 
   async validateOrganizationActivity(

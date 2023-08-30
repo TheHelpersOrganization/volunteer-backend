@@ -1,3 +1,4 @@
+import { CountQueryDto } from '@app/common/dtos/count.dto';
 import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
@@ -100,4 +101,22 @@ export class GetReportQueryDto {
   @IsOptional()
   @IsEnum(GetReportQuerySort)
   sort?: GetReportQuerySort;
+}
+
+export class CountReportQueryDto extends CountQueryDto {
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ReportType, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(reportTypes.length)
+  @Transform(({ value }) => value.split(','))
+  type?: ReportType[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ReportStatus, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(reportStatuses.length)
+  @Transform(({ value }) => value.split(','))
+  status?: ReportStatus[];
 }

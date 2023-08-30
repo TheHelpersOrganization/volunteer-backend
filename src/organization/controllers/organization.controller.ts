@@ -12,6 +12,7 @@ import { RoleService } from '@app/role/services';
 import { ReqContext, RequestContext } from '../../common/request-context';
 import { OrganizationMemberRole, organizationMemberRoles } from '../constants';
 import {
+  CountOrganizationQueryDto,
   OrganizationOutputDto,
   OrganizationQueryDto,
   TransferOwnershipInputDto,
@@ -37,6 +38,14 @@ export class OrganizationController {
     @Query() query: OrganizationQueryDto,
   ): Promise<OrganizationOutputDto[]> {
     return this.organizationService.getVerifiedOrganizations(context, query);
+  }
+
+  @Get('count')
+  countOrganizations(
+    @ReqContext() context: RequestContext,
+    @Query() query: CountOrganizationQueryDto,
+  ) {
+    return this.organizationService.countOrganizations(context, query);
   }
 
   @Get('roles')

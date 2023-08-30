@@ -1,13 +1,16 @@
 import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { CountOutputDto } from '@app/common/dtos/count.dto';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { countGroupByTime } from '@app/common/utils';
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { AccountVerification, Prisma } from '@prisma/client';
 import { AccountVerificationStatus } from '../constants';
 import {
   AccountVerificationOutputDto,
+  CountAccountVerificationRequestQueryDto,
   CreateAccountVerificationInputDto,
   GetAccountVerificationInclude,
   GetAccountVerificationQueryDto,
@@ -46,6 +49,48 @@ export class AccountVerificationService extends AbstractService {
     return verificationRequests.map((verificationRequest) =>
       this.mapToDto(verificationRequest),
     );
+  }
+
+  async countVerificationRequests(
+    context: RequestContext,
+    query: CountAccountVerificationRequestQueryDto,
+  ): Promise<CountOutputDto> {
+    this.logCaller(context, this.countVerificationRequests);
+    const conditions: Prisma.Sql[] = [];
+    if (query.isVerified != null) {
+      conditions.push(Prisma.sql`"isVerified" = ${query.isVerified}`);
+    }
+    if (query.status != null) {
+      const statusConditions: Prisma.Sql[] = [];
+      query.status.forEach((status) => {
+        statusConditions.push(Prisma.sql`"status" = ${status}`);
+      });
+      conditions.push(Prisma.sql`(${Prisma.join(statusConditions, ' OR ')})`);
+    }
+    if (query.startTime != null) {
+      conditions.push(Prisma.sql`"createdAt" >= ${query.startTime}`);
+    }
+    if (query.endTime != null) {
+      conditions.push(Prisma.sql`"createdAt" <= ${query.endTime}`);
+    }
+    const sqlWhere =
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
+    const res: {
+      month: Date;
+      count: bigint;
+    }[] = await this.prisma.$queryRaw`
+      SELECT
+      DATE_TRUNC('month', "createdAt")
+        AS month,
+      COUNT(*) AS count
+      FROM "AccountVerification"
+      ${sqlWhere}
+      GROUP BY DATE_TRUNC('month', "createdAt");
+    `;
+
+    return countGroupByTime(res);
   }
 
   async getVerificationRequestById(

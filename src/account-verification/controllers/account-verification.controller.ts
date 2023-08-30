@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  CountAccountVerificationRequestQueryDto,
   CreateAccountVerificationInputDto,
   GetAccountVerificationQueryDto,
   GetAccountVerificationsQueryDto,
@@ -28,6 +29,17 @@ export class AccountVerificationController {
     @Query() query: GetAccountVerificationsQueryDto,
   ) {
     return this.accountVerificationService.getVerificationRequests(
+      context,
+      query,
+    );
+  }
+
+  @Get('count')
+  async countVerificationRequest(
+    @ReqContext() context: RequestContext,
+    @Query() query: CountAccountVerificationRequestQueryDto,
+  ) {
+    return this.accountVerificationService.countVerificationRequests(
       context,
       query,
     );

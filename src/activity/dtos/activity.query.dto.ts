@@ -1,4 +1,5 @@
 import { PaginationQueryDto } from '@app/common/dtos';
+import { CountQueryDto } from '@app/common/dtos/count.dto';
 import {
   separatedCommaNumberArrayTransform,
   stringToBooleanTransform,
@@ -176,14 +177,16 @@ export class ModGetActivitiesQueryDto extends BaseGetActivityQueryDto {
   status?: ActivityStatus[];
 }
 
-export class CountActivityQueryDto {
+export class CountActivityQueryDto extends CountQueryDto {
   @IsOptional()
-  @IsDate()
-  @Transform(({ value }) => new Date(Number(value)))
-  startTime?: Date;
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isDisabled?: boolean;
 
   @IsOptional()
-  @IsDate()
-  @Transform(({ value }) => new Date(Number(value)))
-  endTime?: Date;
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(ActivityStatus, { each: true })
+  @Transform(({ value }) => value.split(',').map(String))
+  status?: ActivityStatus[];
 }

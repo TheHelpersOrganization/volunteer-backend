@@ -2,6 +2,7 @@ import { AppLogger } from '@app/common/logger';
 import { AbstractService } from '@app/common/services';
 import { Injectable } from '@nestjs/common';
 
+import { countGroupByTime } from '@app/common/utils';
 import { RoleService } from '@app/role/services';
 import { Prisma } from '@prisma/client';
 import { RequestContext } from '../../common/request-context';
@@ -14,6 +15,7 @@ import {
   OrganizationStatus,
 } from '../constants';
 import {
+  CountOrganizationQueryDto,
   CreateOrganizationInputDto,
   DisableOrganizationInputDto,
   OrganizationInclude,
@@ -48,20 +50,7 @@ export class OrganizationService extends AbstractService {
     const accountId = context.account.id;
 
     const organizations = await this.prisma.organization.findMany({
-      where: {
-        id: {
-          in: query.id,
-          notIn: query.excludeId,
-        },
-        name: {
-          contains: query.name?.trim(),
-          mode: 'insensitive',
-        },
-        members: this.getMemberQuery(query, accountId),
-        status: query.status,
-        ownerId: query.owner ? accountId : undefined,
-        isDisabled: query.isDisabled,
-      },
+      where: this.getOrganizationWhere(context, query),
       take: query.limit,
       skip: query.offset,
       include: {
@@ -102,6 +91,37 @@ export class OrganizationService extends AbstractService {
     );
 
     return this.outputArray(OrganizationOutputDto, res);
+  }
+
+  getOrganizationWhere(context: RequestContext, query: OrganizationQueryDto) {
+    const where: Prisma.OrganizationWhereInput = {};
+    if (query.id != null || query.excludeId != null) {
+      where.id = {
+        in: query.id,
+        notIn: query.excludeId,
+      };
+    }
+    if (query.name != null) {
+      where.name = {
+        contains: query.name.trim(),
+        mode: 'insensitive',
+      };
+    }
+    if (query.status != null) {
+      where.status = query.status;
+    }
+    if (query.owner != null) {
+      where.ownerId = query.owner
+        ? context.account.id
+        : {
+            not: context.account.id,
+          };
+    }
+    if (query.isDisabled != null) {
+      where.isDisabled = query.isDisabled;
+    }
+    where.members = this.getMemberQuery(query, context.account.id);
+    return where;
   }
 
   async getOrganizationById(
@@ -265,6 +285,44 @@ export class OrganizationService extends AbstractService {
       limit: 1,
       offset: 0,
     });
+  }
+
+  async countOrganizations(
+    context: RequestContext,
+    query: CountOrganizationQueryDto,
+  ) {
+    this.logCaller(context, this.countOrganizations);
+    const conditions: Prisma.Sql[] = [];
+    if (query.isDisabled != null) {
+      conditions.push(Prisma.sql`"isDisabled" = ${query.isDisabled}`);
+    }
+    if (query.status != null) {
+      conditions.push(Prisma.sql`"status" = ${query.status}`);
+    }
+    if (query.startTime != null) {
+      conditions.push(Prisma.sql`"createdAt" >= ${query.startTime}`);
+    }
+    if (query.endTime != null) {
+      conditions.push(Prisma.sql`"createdAt" <= ${query.endTime}`);
+    }
+    const sqlWhere =
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
+    const res: {
+      month: Date;
+      count: bigint;
+    }[] = await this.prisma.$queryRaw`
+      SELECT
+      DATE_TRUNC('month', "createdAt")
+        AS month,
+      COUNT(*) AS count
+      FROM "Organization"
+      ${sqlWhere}
+      GROUP BY DATE_TRUNC('month',"createdAt");
+    `;
+
+    return countGroupByTime(res);
   }
 
   async create(

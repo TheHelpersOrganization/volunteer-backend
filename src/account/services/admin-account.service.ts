@@ -6,9 +6,11 @@ import {
 } from '@app/account-verification/exceptions';
 import { Role } from '@app/auth/constants';
 import { AccountNotFoundException } from '@app/auth/exceptions/account-not-found.exception';
+import { CountOutputDto } from '@app/common/dtos/count.dto';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { countGroupByTime } from '@app/common/utils';
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -18,6 +20,7 @@ import {
   AdminAccountBanInputDto,
   AdminAccountVerifyInputDto,
   BaseAccountQueryDto,
+  CountAccountQueryDto,
   GetAccountIncludes,
   GetAccountQueryDto,
 } from '../dtos';
@@ -39,19 +42,7 @@ export class AdminAccountService extends AbstractService {
   ): Promise<AccountOutputDto[]> {
     this.logger.log(ctx, `${this.getAccounts.name} was called`);
 
-    const where: Prisma.AccountWhereInput | undefined = {};
-    if (query?.ids) {
-      where.id = { in: query.ids };
-    }
-    where.isAccountVerified = query?.isVerified;
-    where.isAccountDisabled = query?.isBanned;
-    where.email = query?.email ? { contains: query.email } : undefined;
-    if (query.createdAt) {
-      where.createdAt = {
-        gte: query.createdAt[0],
-        lte: query.createdAt[1],
-      };
-    }
+    const where = this.getAccountWhere(query);
     const includeVerificationList = query.includes?.includes(
       GetAccountIncludes.VerificationList,
     );
@@ -85,6 +76,67 @@ export class AdminAccountService extends AbstractService {
     });
 
     return output;
+  }
+
+  async countAccounts(
+    ctx: RequestContext,
+    query: CountAccountQueryDto,
+  ): Promise<CountOutputDto> {
+    const conditions: Prisma.Sql[] = [];
+    if (query.isBanned != null) {
+      conditions.push(Prisma.sql`"isAccountDisabled" = ${query.isBanned}`);
+    }
+    if (query.isAccountVerified != null) {
+      conditions.push(
+        Prisma.sql`"isAccountVerified" = ${query.isAccountVerified}`,
+      );
+    }
+    if (query.isEmailVerified != null) {
+      conditions.push(Prisma.sql`"isEmailVerified" = ${query.isEmailVerified}`);
+    }
+    if (query.startTime != null) {
+      conditions.push(Prisma.sql`"createdAt" >= ${query.startTime}`);
+    }
+    if (query.endTime != null) {
+      conditions.push(Prisma.sql`"createdAt" <= ${query.endTime}`);
+    }
+    const sqlWhere =
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
+    const res: {
+      month: Date;
+      count: bigint;
+    }[] = await this.prisma.$queryRaw`
+      SELECT
+      DATE_TRUNC('month', "createdAt")
+        AS month,
+      COUNT(*) AS count
+      FROM "Account"
+      ${sqlWhere}
+      GROUP BY DATE_TRUNC('month',"createdAt");
+    `;
+
+    return countGroupByTime(res);
+  }
+
+  getAccountWhere(query: GetAccountQueryDto) {
+    const where: Prisma.AccountWhereInput | undefined = {};
+    if (query?.ids) {
+      where.id = { in: query.ids };
+    }
+    where.isAccountVerified = query?.isVerified;
+    where.isAccountDisabled = query?.isBanned;
+    where.email = query?.email
+      ? { contains: query.email, mode: 'insensitive' }
+      : undefined;
+    if (query.createdAt) {
+      where.createdAt = {
+        gte: query.createdAt[0],
+        lte: query.createdAt[1],
+      };
+    }
+    return where;
   }
 
   async verifyAccount(

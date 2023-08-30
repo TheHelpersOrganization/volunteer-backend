@@ -1,4 +1,5 @@
 import { PaginationQueryDto } from '@app/common/dtos';
+import { CountQueryDto } from '@app/common/dtos/count.dto';
 import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional } from 'class-validator';
@@ -28,6 +29,18 @@ export class GetAccountVerificationsQueryDto extends GetAccountVerificationQuery
   @Transform(({ value }) => parseInt(value))
   accountId?: number;
 
+  @IsOptional()
+  @IsBoolean()
+  @Transform(stringToBooleanTransform)
+  isVerified?: boolean;
+
+  @IsOptional()
+  @IsEnum(AccountVerificationStatus, { each: true })
+  @Transform(({ value }) => value.split(','))
+  status?: AccountVerificationStatus[];
+}
+
+export class CountAccountVerificationRequestQueryDto extends CountQueryDto {
   @IsOptional()
   @IsBoolean()
   @Transform(stringToBooleanTransform)

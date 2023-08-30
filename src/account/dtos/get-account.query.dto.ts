@@ -1,4 +1,5 @@
 import { PaginationQueryDto } from '@app/common/dtos';
+import { CountQueryDto } from '@app/common/dtos/count.dto';
 import { stringToBooleanTransform } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
@@ -57,4 +58,21 @@ export class GetAccountQueryDto extends BaseAccountQueryDto {
   @IsDate({ each: true })
   @Transform(({ value }) => value.split(',').map((v) => new Date(Number(v))))
   createdAt?: Date[];
+}
+
+export class CountAccountQueryDto extends CountQueryDto {
+  @IsOptional()
+  @Transform(stringToBooleanTransform)
+  @IsBoolean()
+  isBanned?: boolean;
+
+  @IsOptional()
+  @Transform(stringToBooleanTransform)
+  @IsBoolean()
+  isEmailVerified?: boolean;
+
+  @IsOptional()
+  @Transform(stringToBooleanTransform)
+  @IsBoolean()
+  isAccountVerified?: boolean;
 }
