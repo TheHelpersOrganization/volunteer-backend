@@ -1,6 +1,7 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 import { FileOutputDto } from '@app/file/dtos';
+import _ from 'lodash';
 import { ContactOutputDto } from '../../contact/dtos';
 import { LocationOutputDto } from '../../location/dtos/location-output.dto';
 import { OrganizationStatus } from '../constants';
@@ -57,6 +58,10 @@ export class OrganizationOutputDto {
 
   @Expose()
   hasJoined: boolean;
+
+  @Expose()
+  @Transform(({ value }) => _.round(value, 1))
+  hoursContributed: number;
 
   // ----- Extra fields -----
 

@@ -172,6 +172,7 @@ model Organization {
   verifierId             Int?
   verifier               Account?               @relation(name: "organizationVerifier", fields: [verifierId], references: [id])
   verifierComment        String?
+  hoursContributed       Float                  @default(0)
   organizationFiles      OrganizationFile[]
   organizationLocations  OrganizationLocation[]
   organizationContacts   OrganizationContact[]

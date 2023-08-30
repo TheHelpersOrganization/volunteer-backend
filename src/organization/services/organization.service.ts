@@ -4,7 +4,11 @@ import { Injectable } from '@nestjs/common';
 
 import { countGroupByTime } from '@app/common/utils';
 import { RoleService } from '@app/role/services';
+import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
+import { ShiftVolunteerReviewedEvent } from '@app/shift-volunteer/events';
+import { ShiftStatus } from '@app/shift/constants';
 import { Prisma } from '@prisma/client';
+import dayjs from 'dayjs';
 import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
@@ -547,6 +551,118 @@ export class OrganizationService extends AbstractService {
       throw new OrganizationIsNotVerifiedException();
     }
     return this.output(OrganizationOutputDto, organization);
+  }
+
+  async onShiftVolunteerReviewed(event: ShiftVolunteerReviewedEvent) {
+    const context = event.context;
+    this.logCaller(context, this.onShiftVolunteerReviewed);
+    // TODO: When shift time is updated, we may need to update profile skill
+    const duration = dayjs(event.shift.endTime).diff(
+      dayjs(event.shift.startTime),
+      'hour',
+      true,
+    );
+    const shiftVolunteer = event.next;
+    const previousShiftVolunteer = event.previous;
+    const previousHours = duration * (previousShiftVolunteer.completion ?? 0);
+    const nextHours = duration * (shiftVolunteer.completion ?? 0);
+    const organizationId = (
+      await this.prisma.activity.findUnique({
+        where: {
+          id: event.shift.activityId,
+        },
+        select: {
+          organizationId: true,
+        },
+      })
+    )?.organizationId;
+    await this.prisma.organization.update({
+      where: {
+        id: organizationId,
+      },
+      data: {
+        hoursContributed: {
+          increment: nextHours - previousHours,
+        },
+      },
+    });
+  }
+
+  async refreshOrganizationHoursContributed(context: RequestContext) {
+    this.logCaller(context, this.refreshOrganizationHoursContributed);
+    const findMany = {
+      include: {
+        organizationActivities: {
+          include: {
+            shifts: {
+              where: {
+                status: ShiftStatus.Completed,
+              },
+              include: {
+                shiftVolunteers: {
+                  where: {
+                    status: ShiftVolunteerStatus.Approved,
+                    completion: {
+                      gt: 0,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    let organizations = await this.prisma.organization.findMany(findMany);
+    while (organizations.length > 0) {
+      const updates: {
+        id: number;
+        hoursContributed: number;
+      }[] = [];
+      console.log(organizations.length);
+      for (const organization of organizations) {
+        const shifts = organization.organizationActivities.flatMap(
+          (activity) => activity.shifts,
+        );
+        const hoursContributed = shifts.reduce(
+          (acc, shift) =>
+            acc +
+            shift.shiftVolunteers.reduce(
+              (acc, shiftVolunteer) =>
+                acc +
+                dayjs(shift.endTime).diff(
+                  dayjs(shift.startTime),
+                  'hour',
+                  true,
+                ) *
+                  (shiftVolunteer.completion ?? 0),
+              0,
+            ),
+          0,
+        );
+        updates.push({
+          id: organization.id,
+          hoursContributed: hoursContributed,
+        });
+      }
+      await this.prisma.$transaction(
+        updates.map((update) =>
+          this.prisma.organization.update({
+            where: {
+              id: update.id,
+            },
+            data: {
+              hoursContributed: update.hoursContributed,
+            },
+          }),
+        ),
+      );
+      organizations = await this.prisma.organization.findMany({
+        ...findMany,
+        skip: 1,
+        cursor: { id: organizations[organizations.length - 1].id },
+      });
+    }
   }
 
   private mapRawToDto(

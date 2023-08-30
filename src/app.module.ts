@@ -9,6 +9,7 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { AccountVerificationModule } from './account-verification/account-verification.module';
 import { AccountModule } from './account/account.module';
 import { ActivityModule } from './activity/activity.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
@@ -41,6 +42,7 @@ import { TokenModule } from './token/token.module';
     CommonModule,
     AccountModule,
     AccountVerificationModule,
+    AnalyticsModule,
     AuthModule,
     ProfileModule,
     TokenModule,

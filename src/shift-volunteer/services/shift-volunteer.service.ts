@@ -2,6 +2,7 @@ import { toErrorObject } from '@app/common/filters';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
+import { OrganizationService } from '@app/organization/services';
 import { PrismaService } from '@app/prisma';
 import { getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService, ProfileSkillService } from '@app/profile/services';
@@ -59,6 +60,7 @@ export class ShiftVolunteerService extends AbstractService {
     private readonly prisma: PrismaService,
     private readonly profileService: ProfileService,
     private readonly profileSkillService: ProfileSkillService,
+    private readonly organizationService: OrganizationService,
     private readonly shiftSkillService: ShiftSkillService,
     private readonly eventEmitter: EventEmitter2,
   ) {
@@ -557,6 +559,7 @@ export class ShiftVolunteerService extends AbstractService {
     );
 
     await this.profileSkillService.onShiftVolunteerReviewed(event);
+    await this.organizationService.onShiftVolunteerReviewed(event);
     await this.updateMeetSkillRequirements(context, event);
 
     this.eventEmitter.emit(ShiftVolunteerReviewedEvent.eventName, event);

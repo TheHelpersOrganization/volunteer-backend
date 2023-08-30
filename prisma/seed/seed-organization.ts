@@ -125,6 +125,7 @@ export const seedOrganizations = async (
         verifierComment: fakerEn.lorem.sentence(),
         createdAt: fakerVi.date.between({ from: '2000-01-01', to: new Date() }),
         updatedAt: new Date(),
+        hoursContributed: 0,
       };
       if (hasLogo[index]) {
         logoIndex++;
@@ -155,6 +156,7 @@ export const seedOrganizations = async (
         verifierComment: fakerEn.lorem.sentence(),
         createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
         updatedAt: new Date(),
+        hoursContributed: 0,
       };
 
       if (hasLogo[realIndex]) {

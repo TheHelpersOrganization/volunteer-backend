@@ -75,4 +75,11 @@ export class OrganizationController {
 
     return this.organizationMemberService.transferOwnership(context, id, dto);
   }
+
+  @Post('refresh')
+  async refreshOrganizations(@ReqContext() context: RequestContext) {
+    return this.organizationService.refreshOrganizationHoursContributed(
+      context,
+    );
+  }
 }

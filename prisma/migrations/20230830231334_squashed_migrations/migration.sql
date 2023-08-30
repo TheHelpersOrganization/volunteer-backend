@@ -115,6 +115,7 @@ CREATE TABLE "Organization" (
     "ownerId" INTEGER NOT NULL,
     "verifierId" INTEGER,
     "verifierComment" TEXT,
+    "hoursContributed" DOUBLE PRECISION NOT NULL DEFAULT 0,
 
     CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
 );
