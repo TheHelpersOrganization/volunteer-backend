@@ -1,4 +1,5 @@
 import { AppPrismaClient } from '@app/prisma';
+import { CallbackHandler, Response } from 'supertest';
 
 export const deleteAllDatabaseData = async () => {
   const prisma = new AppPrismaClient();
@@ -20,4 +21,10 @@ export const deleteAllDatabaseData = async () => {
     console.log({ error });
   }
   await prisma.$disconnect();
+};
+
+export const logIfError: CallbackHandler = (err: any, res: Response) => {
+  if (err) {
+    console.log(err.message);
+  }
 };

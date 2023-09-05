@@ -36,7 +36,7 @@ export class CreateActivityInputDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  contacts: number[];
+  contacts?: number[];
 
   @Type(() => CreateLocationInputDto)
   @ValidateNested({ each: true })

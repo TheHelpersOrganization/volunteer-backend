@@ -22,6 +22,8 @@ export enum GetShiftInclude {
   MyShiftVolunteer = 'myShiftVolunteer',
   ShiftManager = 'shiftManager',
   Activity = 'activity',
+  ShiftOverlaps = 'shiftOverlaps',
+  TravelingConstrainedShifts = 'travelingConstrainedShifts',
 }
 
 export enum GetShiftSort {

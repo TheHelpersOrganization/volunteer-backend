@@ -126,7 +126,7 @@ export class ModActivityService extends AbstractService {
             })),
           },
         },
-        activityContacts: {
+        activityContacts: dto.contacts && {
           createMany: {
             data: dto.contacts.map((id) => ({
               contactId: id,

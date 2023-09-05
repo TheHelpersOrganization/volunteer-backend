@@ -20,9 +20,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "pretest:int": "pnpm run test:container:restart && dotenv -e .env.test -- pnpx prisma migrate reset --preview-feature --force --skip-generate --skip-seed",
-    "test:container:restart": "docker compose -f docker-compose.test.yml down && docker compose --env-file .env.test -f docker-compose.test.yml up -d && sleep 3",
-    "test:int": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --config --verbose ./jest-int.json",
-    "test:e2e": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --config ./jest-e2e.json",
+    "pretest:e2e": "pnpm run test:container:restart && dotenv -e .env.test -- pnpx prisma migrate reset --preview-feature --force --skip-generate --skip-seed",
+    "test:container:restart": "docker compose --env-file .env.test -f docker-compose.test.yml down && docker compose --env-file .env.test -f docker-compose.test.yml up -d && sleep 3",
+    "test:int": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --bail --config ./jest-int.json",
+    "test:e2e": "dotenv -e .env.test -- jest --runInBand --detectOpenHandles --no-cache --bail --config ./jest-e2e.json",
     "migrate:dev": "prisma migrate dev --preview-feature",
     "migrate:dev:create": "prisma migrate dev --create-only --preview-feature",
     "migrate:deploy": "pnpx prisma migrate deploy --preview-feature",
@@ -149,26 +150,5 @@
     "tsconfig-paths": "^4.2.0",
     "tslib": "^2.6.2",
     "typescript": "^5.1.6"
-  },
-  "jest": {
-    "testResultsProcessor": "jest-sonar-reporter",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".spec.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coveragePathIgnorePatterns": [
-      ".module.ts$"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

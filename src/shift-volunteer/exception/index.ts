@@ -11,6 +11,12 @@ export class VolunteerNotFoundException extends BaseApiException {
   }
 }
 
+export class ShiftIsOverlappingException extends BaseApiException {
+  constructor() {
+    super({ message: 'Account has already join another shift at this time' });
+  }
+}
+
 export class VolunteerHasAlreadyCheckedInException extends BaseApiException {
   constructor() {
     super({ message: 'Volunteer has already checked in' });

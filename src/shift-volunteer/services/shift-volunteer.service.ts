@@ -44,6 +44,7 @@ import { ShiftVolunteerReviewedEvent } from '../events';
 import {
   CheckInHasAlreadyBeenVerified,
   CheckOutHasAlreadyBeenVerified,
+  ShiftIsOverlappingException,
   VolunteerHasAlreadyCheckedInException,
   VolunteerHasAlreadyCheckedOutException,
   VolunteerHasAlreadyJoinedShiftException,
@@ -320,13 +321,28 @@ export class ShiftVolunteerService extends AbstractService {
       throw new ShiftNotFoundException();
     }
 
-    const volunteer = await this.prisma.volunteerShift.findFirst({
+    if (shift.status !== ShiftStatus.Pending) {
+      throw new ShiftHasStartedException();
+    }
+
+    if (shift.availableSlots != null && shift.availableSlots <= 0) {
+      throw new ShiftIsFullException();
+    }
+
+    // Account volunteers
+    const volunteers = await this.prisma.volunteerShift.findMany({
       where: {
         accountId: context.account.id,
-        shiftId: shiftId,
         active: true,
       },
+      include: {
+        shift: true,
+      },
     });
+    const approved = volunteers.filter(
+      (v) => v.status === ShiftVolunteerStatus.Approved,
+    );
+    const volunteer = volunteers.find((v) => v.shiftId === shiftId);
     if (
       volunteer != null &&
       (volunteer.status === ShiftVolunteerStatus.Pending ||
@@ -335,12 +351,12 @@ export class ShiftVolunteerService extends AbstractService {
       throw new VolunteerHasAlreadyJoinedShiftException();
     }
 
-    if (shift.status !== ShiftStatus.Pending) {
-      throw new ShiftHasStartedException();
-    }
-
-    if (shift.availableSlots != null && shift.availableSlots <= 0) {
-      throw new ShiftIsFullException();
+    // Check if new shift time overlaps with pending or approved shifts
+    const hasSomeOverlap = approved.some((v) => {
+      shift.startTime < v.shift.endTime && shift.endTime > v.shift.startTime;
+    });
+    if (hasSomeOverlap) {
+      throw new ShiftIsOverlappingException();
     }
 
     const res = this.prisma.$transaction(async (tx) => {
@@ -691,13 +707,19 @@ export class ShiftVolunteerService extends AbstractService {
     });
     const shift = this.validateShiftBeforeApproveOrRejectOrRemove(s);
 
-    const shiftVolunteer = await this.prisma.volunteerShift.findUnique({
+    const volunteers = await this.prisma.volunteerShift.findMany({
       where: {
-        id: id,
-        shiftId: shiftId,
+        accountId: context.account.id,
         active: true,
       },
+      include: {
+        shift: true,
+      },
     });
+    const approvedVolunteers = volunteers.filter(
+      (v) => v.status === ShiftVolunteerStatus.Approved,
+    );
+    const shiftVolunteer = volunteers.find((v) => v.id === id);
     if (shiftVolunteer == null) {
       throw new InvalidStatusException();
     }
@@ -708,6 +730,13 @@ export class ShiftVolunteerService extends AbstractService {
       shiftVolunteer.status != ShiftVolunteerStatus.Removed
     ) {
       throw new InvalidStatusException();
+    }
+    // Check if any other shift is overlapping
+    const hasSomeOverlap = approvedVolunteers.some((v) => {
+      shift.startTime < v.shift.endTime && shift.endTime > v.shift.startTime;
+    });
+    if (hasSomeOverlap) {
+      throw new ShiftIsOverlappingException();
     }
     if (
       dto.status === ShiftVolunteerStatus.Rejected &&
@@ -744,6 +773,29 @@ export class ShiftVolunteerService extends AbstractService {
             },
           });
         }
+
+        // Cancel other overlapping pending shifts
+        await tx.volunteerShift.updateMany({
+          where: {
+            accountId: context.account.id,
+            shift: {
+              id: {
+                not: shiftId,
+              },
+              startTime: {
+                lt: shift.endTime,
+              },
+              endTime: {
+                gt: shift.startTime,
+              },
+            },
+            status: ShiftVolunteerStatus.Pending,
+            active: true,
+          },
+          data: {
+            status: ShiftVolunteerStatus.Cancelled,
+          },
+        });
       }
       const res = await tx.volunteerShift.update({
         where: {

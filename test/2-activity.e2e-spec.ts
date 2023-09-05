@@ -1,30 +1,32 @@
-import { AccountService } from '@app/account/services';
-import { ActivityOutputDto } from '@app/activity/dtos';
-import { ModActivityService } from '@app/activity/services';
-import { AppModule } from '@app/app.module';
-import { AccountTokenOutputDto } from '@app/auth/dtos';
-import { RequestContext } from '@app/common/request-context';
-import { CreateLocationInputDto } from '@app/location/dtos';
-import { OrganizationStatus } from '@app/organization/constants';
-import { OrganizationOutputDto } from '@app/organization/dtos';
-import { OrganizationService } from '@app/organization/services';
-import { PrismaService } from '@app/prisma';
-import { RoleService } from '@app/role/services';
-import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
-import { ShiftVolunteerOutputDto } from '@app/shift-volunteer/dtos';
-import { ShiftStatus } from '@app/shift/constants';
-import { ShiftOutputDto } from '@app/shift/dtos';
-import { ShiftService } from '@app/shift/services';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import dayjs from 'dayjs';
+import { AccountService } from 'src/account/services';
+import { ActivityOutputDto } from 'src/activity/dtos';
+import { ModActivityService } from 'src/activity/services';
+import { AppModule } from 'src/app.module';
+import { AccountTokenOutputDto } from 'src/auth/dtos';
+import { RequestContext } from 'src/common/request-context';
+import { CreateLocationInputDto } from 'src/location/dtos';
+import { OrganizationStatus } from 'src/organization/constants';
+import { OrganizationOutputDto } from 'src/organization/dtos';
+import { OrganizationService } from 'src/organization/services';
+import { PrismaService } from 'src/prisma';
+import { RoleService } from 'src/role/services';
+import { ShiftVolunteerStatus } from 'src/shift-volunteer/constants';
+import { ShiftVolunteerOutputDto } from 'src/shift-volunteer/dtos';
+import { ShiftStatus } from 'src/shift/constants';
+import { ShiftOutputDto } from 'src/shift/dtos';
+import { ShiftService } from 'src/shift/services';
 import request from 'supertest';
+import { logIfError } from './utils';
 
 describe('Activity Controller (e2e)', () => {
   let app: INestApplication;
   let organization: OrganizationOutputDto;
   let activity: ActivityOutputDto;
   let shift: ShiftOutputDto;
+  let overlappingShift: ShiftOutputDto;
   let startedShiftId: number;
   let endedShiftId: number;
   let accountToken: AccountTokenOutputDto;
@@ -80,6 +82,7 @@ describe('Activity Controller (e2e)', () => {
         name: 'Test Activity',
         description: 'Test Activity Description',
         location: {},
+        contacts: [],
       });
 
     shift = await app.get(ShiftService).createShift(requestContext, {
@@ -176,8 +179,8 @@ describe('Activity Controller (e2e)', () => {
           name: 'Test Activity',
           description: 'Test Activity Description',
           location: {},
-        });
-      expect(HttpStatus.CREATED);
+        })
+        .expect(HttpStatus.CREATED);
       activity = res.body.data;
     });
   });
@@ -186,6 +189,7 @@ describe('Activity Controller (e2e)', () => {
     it('should throw if activity does not exist', async () => {
       const res = await request(app.getHttpServer())
         .post('/shifts')
+        .set('Authorization', `Bearer ${modAccountToken.token.accessToken}`)
         .send({
           name: 'Test Shift',
           activityId: 0,
@@ -193,13 +197,8 @@ describe('Activity Controller (e2e)', () => {
           startTime: dayjs().toDate(),
           endTime: dayjs().add(1, 'minute').toDate(),
           locations: [new CreateLocationInputDto()],
-          contacts: [
-            {
-              name: 'Test Contact',
-            },
-          ],
+          contacts: [],
         })
-        .set('Authorization', `Bearer ${modAccountToken.token.accessToken}`)
         .expect(HttpStatus.NOT_FOUND);
     });
 
@@ -214,14 +213,27 @@ describe('Activity Controller (e2e)', () => {
           startTime: dayjs().toDate(),
           endTime: dayjs().add(1, 'minute').toDate(),
           locations: [new CreateLocationInputDto()],
-          contacts: [
-            {
-              name: 'Test Contact',
-            },
-          ],
+          contacts: [],
         })
         .expect(HttpStatus.CREATED);
       shift = res.body.data;
+    });
+
+    it('should create another shift', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/shifts`)
+        .set('Authorization', `Bearer ${modAccountToken.token.accessToken}`)
+        .send({
+          name: 'Test Shift 2',
+          activityId: activity.id,
+          description: 'Test Shift Description',
+          startTime: dayjs().toDate(),
+          endTime: dayjs().add(1, 'minute').toDate(),
+          locations: [new CreateLocationInputDto()],
+          contacts: [],
+        })
+        .expect(HttpStatus.CREATED);
+      overlappingShift = res.body.data;
     });
   });
 
@@ -247,7 +259,9 @@ describe('Activity Controller (e2e)', () => {
         .expect(HttpStatus.OK)
         .expect(({ body }) => {
           expect(body.data.length).toBeGreaterThan(0);
-          expect(body.data.map((a) => a.id)).toContainEqual(shift.id);
+          const shiftIds = body.data.map((a) => a.id);
+          expect(shiftIds).toContain(shift.id);
+          expect(shiftIds).toContain(overlappingShift.id);
         });
     });
   });
@@ -292,7 +306,8 @@ describe('Activity Controller (e2e)', () => {
         .expect(HttpStatus.OK)
         .expect(
           ({ body }) => body.data.status === ShiftVolunteerStatus.Approved,
-        );
+        )
+        .end(logIfError);
     });
 
     it('should remove volunteer out of the shift', () => {
@@ -323,6 +338,35 @@ describe('Activity Controller (e2e)', () => {
           ({ body }) => body.data.status === ShiftVolunteerStatus.Rejected,
         )
         .expect(({ body }) => body.data.rejectionReason === 'Test Reject');
+    });
+  });
+
+  describe('volunteer join overlapping shift', () => {
+    it('should join shift', async () => {
+      volunteer = (
+        await request(app.getHttpServer())
+          .post(`/shifts/${shift.id}/volunteers/join`)
+          .set('Authorization', `Bearer ${accountToken.token.accessToken}`)
+          .expect(HttpStatus.CREATED)
+      ).body.data;
+    });
+
+    it('should approve volunteer to shift', () => {
+      return request(app.getHttpServer())
+        .put(`/shifts/${shift.id}/volunteers/${volunteer.id}/approve`)
+        .set('Authorization', `Bearer ${modAccountToken.token.accessToken}`)
+        .expect(HttpStatus.OK)
+        .expect(
+          ({ body }) => body.data.status === ShiftVolunteerStatus.Approved,
+        );
+    });
+
+    it('should throw overlapping shift', async () => {
+      await request(app.getHttpServer())
+        .post(`/shifts/${overlappingShift.id}/volunteers/join`)
+        .set('Authorization', `Bearer ${accountToken.token.accessToken}`)
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect(({ body }) => body.message.includes('overlapping'));
     });
   });
 });

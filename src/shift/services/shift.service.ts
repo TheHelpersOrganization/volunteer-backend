@@ -5,13 +5,14 @@ import { ContactService } from '@app/contact/services';
 import { LocationService } from '@app/location/services';
 import { PrismaService } from '@app/prisma';
 import { Injectable } from '@nestjs/common';
-import { Prisma, VolunteerShift } from '@prisma/client';
+import { Location, Prisma, Shift, VolunteerShift } from '@prisma/client';
 
 import { ActivityNotFoundException } from '@app/activity/exceptions';
 import { getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService } from '@app/profile/services';
 import { ShiftVolunteerStatus } from '@app/shift-volunteer/constants';
 import { ShiftVolunteerService } from '@app/shift-volunteer/services';
+import { getDistance } from 'geolib';
 import { max, min } from 'lodash';
 import { ShiftStatus } from '../constants';
 import {
@@ -21,6 +22,7 @@ import {
   GetShiftSort,
   GetShiftsQueryDto,
   ShiftOutputDto,
+  TravelingConstrainedShiftOutputDto,
   UpdateShiftInputDto,
 } from '../dtos';
 import { ShiftNotFoundException } from '../exceptions';
@@ -99,7 +101,18 @@ export class ShiftService extends AbstractService {
       });
     }
 
-    return res.map((r) => this.mapToOutput(context, r));
+    return Promise.all(
+      res.map((r) =>
+        this.mapToOutput(context, r, {
+          includeOverlappingShifts: query.include?.includes(
+            GetShiftInclude.ShiftOverlaps,
+          ),
+          includeTravelingConstrainedShift: query.include?.includes(
+            GetShiftInclude.TravelingConstrainedShifts,
+          ),
+        }),
+      ),
+    );
   }
 
   async getShiftById(
@@ -117,7 +130,14 @@ export class ShiftService extends AbstractService {
     if (res == null) {
       return null;
     }
-    return this.mapToOutput(context, res);
+    return this.mapToOutput(context, res, {
+      includeOverlappingShifts: query.include?.includes(
+        GetShiftInclude.ShiftOverlaps,
+      ),
+      includeTravelingConstrainedShift: query.include?.includes(
+        GetShiftInclude.TravelingConstrainedShifts,
+      ),
+    });
   }
 
   async createShift(
@@ -531,7 +551,14 @@ export class ShiftService extends AbstractService {
     return sort;
   }
 
-  mapToOutput(context: RequestContext, raw: any): ShiftOutputDto {
+  async mapToOutput(
+    context: RequestContext,
+    raw: any,
+    options?: {
+      includeOverlappingShifts?: boolean;
+      includeTravelingConstrainedShift?: boolean;
+    },
+  ): Promise<ShiftOutputDto> {
     const myShiftVolunteers: VolunteerShift[] = raw.shiftVolunteers?.filter(
       (sv) => sv.accountId == context.account.id,
     );
@@ -544,8 +571,119 @@ export class ShiftService extends AbstractService {
     const canCheckOut =
       myShiftVolunteer?.status === ShiftVolunteerStatus.Approved &&
       this.shiftVolunteerService.checkCanCheckOut(raw, myShiftVolunteer, false);
+    const locations = raw.shiftLocations?.map((sl) => sl.location);
 
-    return this.output(ShiftOutputDto, {
+    let volunteers:
+      | (VolunteerShift & {
+          shift: Shift & {
+            shiftLocations: {
+              location: Location;
+            }[];
+          };
+        })[]
+      | undefined;
+    let overlaps: ShiftOutputDto[] | undefined = undefined;
+    let travelingConstrainedShifts:
+      | TravelingConstrainedShiftOutputDto[]
+      | undefined = undefined;
+    if (options?.includeOverlappingShifts) {
+      volunteers = await this.prisma.volunteerShift.findMany({
+        where: {
+          accountId: context.account.id,
+          active: true,
+          status: ShiftVolunteerStatus.Approved,
+        },
+        include: {
+          shift: {
+            include: {
+              shiftLocations: {
+                include: {
+                  location: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      overlaps = await Promise.all(
+        volunteers
+          .filter(
+            (v) =>
+              v.shift.startTime < raw.endTime &&
+              v.shift.endTime > raw.startTime,
+          )
+          .map((s) => this.mapToOutput(context, s.shift)),
+      );
+    }
+    if (
+      options?.includeTravelingConstrainedShift &&
+      locations &&
+      locations[0].latitude &&
+      locations[0].longitude
+    ) {
+      travelingConstrainedShifts = [];
+      if (!volunteers) {
+        volunteers = await this.prisma.volunteerShift.findMany({
+          where: {
+            accountId: context.account.id,
+            active: true,
+            status: ShiftVolunteerStatus.Approved,
+          },
+          include: {
+            shift: {
+              include: {
+                shiftLocations: {
+                  include: {
+                    location: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+      for (const v of volunteers) {
+        // If shift is overlapping, skip
+        if (
+          v.shift.startTime < raw.endTime &&
+          v.shift.endTime > raw.startTime
+        ) {
+          continue;
+        }
+        // Time available to travel
+        const startTime: Date = max([v.shift.startTime, raw.startTime]);
+        const endTime: Date = min([v.shift.endTime, raw.endTime]);
+        const durationInSeconds =
+          (startTime.getTime() - endTime.getTime()) / 1000;
+
+        const shift = v.shift;
+        const location = shift.shiftLocations[0].location;
+        const lat1 = location.latitude;
+        const long1 = location.longitude;
+        if (lat1 == null || long1 == null) continue;
+        const lat2 = locations[0].latitude;
+        const long2 = locations[0].longitude;
+
+        const distanceInMeters = getDistance(
+          { latitude: lat1, longitude: long1 },
+          { latitude: lat2, longitude: long2 },
+        );
+        // Speed in m/s
+        const speedInMetersPerSecond = distanceInMeters / durationInSeconds;
+
+        // If speed is greater than 18 m/, then maybe we can't make it
+        if (speedInMetersPerSecond > 2) {
+          travelingConstrainedShifts?.push({
+            ...(await this.mapToOutput(context, shift)),
+            distanceInMeters,
+            durationInSeconds,
+            speedInMetersPerSecond,
+          });
+        }
+      }
+    }
+
+    const output: ShiftOutputDto = {
       ...raw,
       locations: raw.shiftLocations?.map((sl) => sl.location),
       contacts: raw.shiftContacts?.map((sc) => sc.contact),
@@ -557,6 +695,10 @@ export class ShiftService extends AbstractService {
         canCheckIn: canCheckIn,
         canCheckOut: canCheckOut,
       },
-    });
+      overlaps: overlaps,
+      travelingConstrainedShifts: travelingConstrainedShifts,
+    };
+
+    return this.output(ShiftOutputDto, output);
   }
 }
