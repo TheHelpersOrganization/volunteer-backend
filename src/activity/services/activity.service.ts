@@ -808,7 +808,7 @@ export class ActivityService extends AbstractService {
       conditions.push(Prisma.sql`"startTime" >= ${query.startTime}`);
     }
     if (query.endTime != null) {
-      conditions.push(Prisma.sql`"endTime" <= ${query.endTime}`);
+      conditions.push(Prisma.sql`"startTime" <= ${query.endTime}`);
     }
     const sqlWhere =
       conditions.length > 0
