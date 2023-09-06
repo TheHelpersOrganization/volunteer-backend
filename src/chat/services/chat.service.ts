@@ -1,11 +1,7 @@
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
-import {
-  getProfileName,
-  getProfileNames,
-  requireNonNull,
-} from '@app/common/utils';
+import { getProfileName, requireNonNull } from '@app/common/utils';
 import { NotificationType } from '@app/notification/constants';
 import { NotificationService } from '@app/notification/services';
 import { PrismaService } from '@app/prisma';
@@ -635,16 +631,16 @@ export class ChatService extends AbstractService {
         ?.id,
       read: raw.ChatParticipant?.find((cp) => cp.accountId === p.id)?.read,
     }));
-    const mayBeProfileName =
-      profiles == null
-        ? undefined
-        : profiles.length > 2
-        ? getProfileNames(profiles, { short: true, max: 3 })
-        : getProfileName(profiles?.find((p) => p.id !== context.account.id));
+    // const mayBeProfileName =
+    //   profiles == null
+    //     ? undefined
+    //     : profiles.length > 2
+    //     ? getProfileNames(profiles, { short: true, max: 3 })
+    //     : getProfileName(profiles?.find((p) => p.id !== context.account.id));
 
     const output = {
       ...raw,
-      name: raw.name ?? mayBeProfileName,
+      name: raw.name,
       messages: raw.ChatMessage,
       latestMessage: raw.ChatMessage.sort(
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
