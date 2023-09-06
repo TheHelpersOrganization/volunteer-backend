@@ -676,7 +676,7 @@ export class ShiftService extends AbstractService {
         const speedInMetersPerSecond = distanceInMeters / durationInSeconds;
 
         // If speed is greater than 18 m/, then maybe we can't make it
-        if (speedInMetersPerSecond > 2) {
+        if (speedInMetersPerSecond > 18) {
           travelingConstrainedShifts?.push({
             ...(await this.mapToOutput(context, shift)),
             distanceInMeters,
