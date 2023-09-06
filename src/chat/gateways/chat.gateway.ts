@@ -32,10 +32,12 @@ import {
 } from '@nestjs/websockets';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
+import { ChatAuthService } from '../auth';
 import {
   CreateChatGroupInputDto,
   CreateChatInputDto,
   CreateMessageInputDto,
+  DeleteChatGroupInputDto,
   LeaveChatGroupInputDto,
   UpdateChatInputDto,
 } from '../dtos';
@@ -75,6 +77,7 @@ export class ChatGateway
     private readonly jwtService: JwtService,
     private readonly chatService: ChatService,
     private readonly chatGroupService: ChatGroupService,
+    private readonly chatAuthService: ChatAuthService,
   ) {
     super(logger);
   }
@@ -224,8 +227,23 @@ export class ChatGateway
     @MessageBody() data: LeaveChatGroupInputDto,
   ) {
     this.logCaller(context, this.leaveChatGroup);
-    const chat = await this.chatGroupService.leaveChatGroup(context, data);
-    return chat;
+
+    return this.chatGroupService.leaveChatGroup(context, data);
+  }
+
+  @SubscribeMessage('delete-chat-group')
+  async deleteChatGroup(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: DeleteChatGroupInputDto,
+  ) {
+    this.logCaller(context, this.deleteChatGroup);
+    const chat = await this.chatAuthService.validateIsChatGroupOwner(
+      context,
+      data.chatId,
+    );
+    return this.chatGroupService.deleteChatGroup(context, data.chatId, {
+      useChat: chat,
+    });
   }
 
   @OnEvent(ChatCreatedEvent.eventName)
