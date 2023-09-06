@@ -14,6 +14,8 @@ import { ShiftVolunteerStatus } from '../constants';
 export enum ShiftVolunteerInclude {
   Profile = 'profile',
   Shift = 'shift',
+  OverlappingCheck = 'overlappingCheck',
+  TravelingConstrainedCheck = 'travelingConstrainedCheck',
 }
 
 export class GetShiftVolunteerQueryDto extends PaginationQueryDto {

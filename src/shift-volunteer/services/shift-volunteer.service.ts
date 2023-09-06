@@ -4,7 +4,7 @@ import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
 import { OrganizationService } from '@app/organization/services';
 import { PrismaService } from '@app/prisma';
-import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileOutputDto, getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService, ProfileSkillService } from '@app/profile/services';
 import { ShiftSkillService } from '@app/shift-skill/services';
 import { ShiftStatus } from '@app/shift/constants';
@@ -22,8 +22,10 @@ import {
 } from '@app/shift/exceptions';
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma, Shift, VolunteerShift } from '@prisma/client';
+import { Location, Prisma, Shift, VolunteerShift } from '@prisma/client';
 import dayjs from 'dayjs';
+import { getDistance } from 'geolib';
+import { max, min } from 'lodash';
 import { ShiftVolunteerStatus } from '../constants';
 import {
   ApproveManyShiftVolunteer,
@@ -87,6 +89,17 @@ export class ShiftVolunteerService extends AbstractService {
           : undefined,
       include: include,
     });
+    const pendingVolunteers = res.filter(
+      (v) => v.status === ShiftVolunteerStatus.Pending,
+    );
+    const pendingAccountIds = pendingVolunteers.map((v) => v.accountId);
+    const pendingOrApprovedAccountIds = res
+      .filter(
+        (v) =>
+          v.status === ShiftVolunteerStatus.Pending ||
+          v.status === ShiftVolunteerStatus.Approved,
+      )
+      .map((v) => v.accountId);
 
     let totalPending: number | undefined = undefined;
     let totalApproved: number | undefined = undefined;
@@ -107,60 +120,64 @@ export class ShiftVolunteerService extends AbstractService {
       });
     }
 
-    // if (query.meetSkillRequirements) {
-    //   const skillRequirementGroupedByShift: any = {};
-    //   const shiftRequirements = await this.prisma.shiftSkill.findMany({
-    //     where: {
-    //       shiftId: { in: res.map((v) => v.shiftId) },
-    //     },
-    //   });
-    //   shiftRequirements.forEach((r) => {
-    //     if (skillRequirementGroupedByShift[r.shiftId] == null) {
-    //       skillRequirementGroupedByShift[r.shiftId] = [];
-    //     }
-    //     skillRequirementGroupedByShift[r.shiftId].push(r);
-    //   });
-    //   const skillHours = await this.shiftSkillService.getVolunteersSkillHours(
-    //     res.map((v) => v.accountId),
-    //   );
-    //   res.forEach((r) => {
-    //     const requirements = skillRequirementGroupedByShift[r.shiftId];
-    //     for (const requirement of requirements) {
-    //       const skill = skillHours[r.accountId].find(
-    //         (s) => s.skillId === requirement.skillId,
-    //       );
-    //       if (skill == null || skill.hours < requirement.hours) {
-    //         const i = res.findIndex(
-    //           (v) => v.accountId == r.accountId && v.shiftId == r.shiftId,
-    //         );
-    //         res.splice(i, 1);
-    //         break;
-    //       }
-    //     }
-    //   });
-    // }
+    let volunteers:
+      | (VolunteerShift & {
+          shift: Shift & {
+            shiftLocations: {
+              location: Location;
+            }[];
+          };
+        })[]
+      | undefined;
+    let hasOverlappingShift: { [key: number]: boolean | undefined } = {};
+    let hasTravelingConstrainedShift: { [key: number]: boolean | undefined } =
+      {};
+    if (
+      query.shiftId &&
+      query.include?.includes(ShiftVolunteerInclude.OverlappingCheck) == true
+    ) {
+      hasOverlappingShift = (
+        await this.checkOverlapShifts(context, query.shiftId, pendingAccountIds)
+      ).overlaps;
+    }
+    if (
+      query.shiftId &&
+      query.include?.includes(
+        ShiftVolunteerInclude.TravelingConstrainedCheck,
+      ) == true
+    ) {
+      hasTravelingConstrainedShift = (
+        await this.checkTravelingConstrainedShifts(
+          context,
+          query.shiftId,
+          pendingOrApprovedAccountIds,
+        )
+      ).travelingConstrained;
+    }
 
+    let profiles: ProfileOutputDto[] | undefined = undefined;
     if (query.include?.includes(ShiftVolunteerInclude.Profile) == true) {
       const accountIds = res.map((v) => v.accountId);
-      const profiles = await this.profileService.getProfiles(context, {
+      profiles = await this.profileService.getProfiles(context, {
         ids: accountIds,
         select: getProfileBasicSelect,
       });
-      const extendedRes = res.map((v) => ({
+    }
+
+    return this.extendedOutputArray(
+      ShiftVolunteerOutputDto,
+      res.map((v) => ({
         ...v,
-        profile: profiles.find((p) => p.id === v.accountId),
-      }));
-      return this.extendedOutputArray(ShiftVolunteerOutputDto, extendedRes, {
+        profile: profiles?.find((p) => p.id === v.accountId),
+        hasOverlappingShift: hasOverlappingShift[v.accountId],
+        hasTravelingConstrainedShift: hasTravelingConstrainedShift[v.accountId],
+      })),
+      {
         totalPending,
         totalApproved,
         count: res.length,
-      });
-    }
-    return this.extendedOutputArray(ShiftVolunteerOutputDto, res, {
-      totalPending,
-      totalApproved,
-      count: res.length,
-    });
+      },
+    );
   }
 
   getShiftVolunteerFilter(
@@ -247,6 +264,156 @@ export class ShiftVolunteerService extends AbstractService {
       return undefined;
     }
     return include;
+  }
+
+  async checkOverlapShifts(
+    context: RequestContext,
+    shiftId: number,
+    accountIds: number[],
+    options?: {
+      useShift?: Shift;
+    },
+  ) {
+    const res: { [key: number]: boolean | undefined } = {};
+    const shift =
+      options?.useShift ??
+      (await this.prisma.shift.findUnique({
+        where: {
+          id: shiftId,
+        },
+      }));
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const volunteers = await this.prisma.volunteerShift.findMany({
+      where: {
+        accountId: {
+          in: accountIds,
+        },
+        active: true,
+        status: ShiftVolunteerStatus.Pending,
+      },
+      include: {
+        shift: true,
+      },
+    });
+    for (const accountId of accountIds) {
+      const accountVolunteers = volunteers.filter(
+        (v) => v.accountId === accountId,
+      );
+      const overlap = accountVolunteers.some((v) => {
+        return (
+          v.shift.startTime < shift.endTime &&
+          v.shift.endTime > shift.startTime &&
+          v.shiftId !== shift.id
+        );
+      });
+      res[accountId] = overlap;
+    }
+    return {
+      shift: shift,
+      overlaps: res,
+    };
+  }
+
+  async checkTravelingConstrainedShifts(
+    context: RequestContext,
+    shiftId: number,
+    accountIds: number[],
+    options?: {
+      useShift?: Shift & {
+        shiftLocations: {
+          location: Location;
+        }[];
+      };
+    },
+  ) {
+    const res: { [key: number]: boolean | undefined } = {};
+    const shift =
+      options?.useShift ??
+      (await this.prisma.shift.findUnique({
+        where: {
+          id: shiftId,
+        },
+        include: {
+          shiftLocations: {
+            include: {
+              location: true,
+            },
+          },
+        },
+      }));
+    if (shift == null) {
+      throw new ShiftNotFoundException();
+    }
+    const volunteers = await this.prisma.volunteerShift.findMany({
+      where: {
+        accountId: context.account.id,
+        active: true,
+        status: {
+          in: [ShiftVolunteerStatus.Pending, ShiftVolunteerStatus.Approved],
+        },
+      },
+      include: {
+        shift: {
+          include: {
+            shiftLocations: {
+              include: {
+                location: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    for (const accountId of accountIds) {
+      const accountVolunteers = volunteers.filter(
+        (v) => v.accountId === accountId,
+      );
+      for (const v of accountVolunteers) {
+        if (v.shiftId === shift.id) {
+          continue;
+        }
+        // If shift is overlapping, skip
+        if (
+          v.shift.startTime < shift.endTime &&
+          v.shift.endTime > shift.startTime
+        ) {
+          continue;
+        }
+        // Time available to travel
+        const startTime: Date = max([v.shift.startTime, shift.startTime])!;
+        const endTime: Date = min([v.shift.endTime, shift.endTime])!;
+        const durationInSeconds =
+          (startTime.getTime() - endTime.getTime()) / 1000;
+
+        const volunteerShift = v.shift;
+        const location = volunteerShift.shiftLocations[0].location;
+        const lat1 = location.latitude;
+        const long1 = location.longitude;
+        if (lat1 == null || long1 == null) continue;
+        const lat2 = shift.shiftLocations[0].location.latitude;
+        const long2 = shift.shiftLocations[0].location.longitude;
+        if (lat2 == null || long2 == null) continue;
+
+        const distanceInMeters = getDistance(
+          { latitude: lat1, longitude: long1 },
+          { latitude: lat2, longitude: long2 },
+        );
+        // Speed in m/s
+        const speedInMetersPerSecond = distanceInMeters / durationInSeconds;
+
+        // If speed is greater than 18 m/, then maybe we can't make it
+        if (speedInMetersPerSecond > 18) {
+          res[accountId] = true;
+          break;
+        }
+      }
+    }
+    return {
+      shift: shift,
+      travelingConstrained: res,
+    };
   }
 
   async getApprovedByActivityId(
@@ -353,7 +520,11 @@ export class ShiftVolunteerService extends AbstractService {
 
     // Check if new shift time overlaps with pending or approved shifts
     const hasSomeOverlap = approved.some((v) => {
-      shift.startTime < v.shift.endTime && shift.endTime > v.shift.startTime;
+      return (
+        shift.startTime < v.shift.endTime &&
+        shift.endTime > v.shift.startTime &&
+        v.shiftId !== shift.id
+      );
     });
     if (hasSomeOverlap) {
       throw new ShiftIsOverlappingException();

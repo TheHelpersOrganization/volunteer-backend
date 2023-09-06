@@ -80,6 +80,12 @@ export class ShiftVolunteerOutputDto {
   @Expose()
   @Type(() => ShiftOutputDto)
   shift?: ShiftOutputDto;
+
+  @Expose()
+  hasOverlappingShift?: boolean;
+
+  @Expose()
+  hasTravelingConstrainedShift?: boolean;
 }
 
 export class ShiftVolunteerErrorOutputDto {
