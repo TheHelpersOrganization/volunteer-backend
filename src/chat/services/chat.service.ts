@@ -9,7 +9,7 @@ import {
 import { NotificationType } from '@app/notification/constants';
 import { NotificationService } from '@app/notification/services';
 import { PrismaService } from '@app/prisma';
-import { getProfileBasicSelect } from '@app/profile/dtos';
+import { ProfileOutputDto, getProfileBasicSelect } from '@app/profile/dtos';
 import { ProfileService } from '@app/profile/services';
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -24,11 +24,7 @@ import {
   CreateMessageInputDto,
   UpdateChatInputDto,
 } from '../dtos';
-import {
-  ChatMessageOutputDto,
-  ChatOutputDto,
-  ChatParticipantOutputDto,
-} from '../dtos/chat.output.dto';
+import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
 import {
   ChatBlockedEvent,
   ChatCreatedEvent,
@@ -251,36 +247,64 @@ export class ChatService extends AbstractService {
   async getChatParticipants(
     context: RequestContext,
     query: ChatParticipantQueryDto,
-  ): Promise<ChatParticipantOutputDto[]> {
+  ): Promise<ProfileOutputDto[]> {
     this.logCaller(context, this.getChatParticipants);
 
-    const participants = await this.prisma.chatParticipant.findMany({
-      where: {
-        Chat: {
-          ChatParticipant: {
-            some: {
-              accountId: context.account.id,
-            },
+    const where: Prisma.ChatParticipantWhereInput = {
+      Chat: {
+        ChatParticipant: {
+          some: {
+            accountId: context.account.id,
           },
         },
       },
+    };
+    if (query.excludeId) {
+      where.Account = {
+        id: {
+          notIn: query.excludeId,
+        },
+      };
+    }
+    if (query.search) {
+      if (!where.Account) {
+        where.Account = {};
+      }
+      where.Account.profile = {
+        OR: [
+          {
+            username: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            firstName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            lastName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      };
+    }
+
+    const participants = await this.prisma.chatParticipant.findMany({
+      where: where,
       take: query.limit,
       skip: query.offset,
     });
-    const accountIds = participants.map((p) => p.accountId);
+    const accountIds = new Set(participants.map((p) => p.accountId));
     const profiles = await this.profileService.getProfiles(context, {
-      ids: accountIds,
+      ids: Array.from(accountIds),
       select: getProfileBasicSelect,
     });
-
-    const res: ChatParticipantOutputDto[] = participants.map((p) => ({
-      ...requireNonNull(profiles.find((profile) => profile.id === p.accountId)),
-      chatId: p.chatId,
-      participantId: p.id,
-      read: p.read,
-    }));
-
-    return this.outputArray(ChatParticipantOutputDto, res);
+    return profiles;
   }
 
   async getChatMessages(

@@ -1,7 +1,13 @@
 import { PaginationQueryDto } from '@app/common/dtos';
-import { stringToBooleanTransform } from '@app/common/transformers';
+import {
+  stringToBooleanTransform,
+  stringToIntArrayTransform,
+} from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -86,4 +92,17 @@ export class ChatsQueryDto extends ChatQueryDto {
 
 export class ChatMessagesQueryDto extends PaginationQueryDto {}
 
-export class ChatParticipantQueryDto extends PaginationQueryDto {}
+export class ChatParticipantQueryDto extends PaginationQueryDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1000)
+  @IsInt({ each: true })
+  @Transform(stringToIntArrayTransform)
+  excludeId?: number[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  search?: string;
+}
