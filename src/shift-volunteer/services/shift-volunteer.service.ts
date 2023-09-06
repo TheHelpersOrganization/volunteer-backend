@@ -350,9 +350,7 @@ export class ShiftVolunteerService extends AbstractService {
       where: {
         accountId: context.account.id,
         active: true,
-        status: {
-          in: [ShiftVolunteerStatus.Pending, ShiftVolunteerStatus.Approved],
-        },
+        status: ShiftVolunteerStatus.Approved,
       },
       include: {
         shift: {
