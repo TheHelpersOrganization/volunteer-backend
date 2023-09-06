@@ -36,6 +36,7 @@ import {
   CreateChatGroupInputDto,
   CreateChatInputDto,
   CreateMessageInputDto,
+  LeaveChatGroupInputDto,
   UpdateChatInputDto,
 } from '../dtos';
 import {
@@ -214,6 +215,16 @@ export class ChatGateway
   ) {
     this.logCaller(context, this.sendMessage);
     const chat = await this.chatService.readChat(context, data);
+    return chat;
+  }
+
+  @SubscribeMessage('leave-chat-group')
+  async leaveChatGroup(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: LeaveChatGroupInputDto,
+  ) {
+    this.logCaller(context, this.leaveChatGroup);
+    const chat = await this.chatGroupService.leaveChatGroup(context, data);
     return chat;
   }
 
