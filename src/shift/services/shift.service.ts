@@ -610,7 +610,8 @@ export class ShiftService extends AbstractService {
           .filter(
             (v) =>
               v.shift.startTime < raw.endTime &&
-              v.shift.endTime > raw.startTime,
+              v.shift.endTime > raw.startTime &&
+              v.shiftId !== raw.id,
           )
           .map((s) => this.mapToOutput(context, s.shift)),
       );
@@ -644,6 +645,9 @@ export class ShiftService extends AbstractService {
       }
       for (const v of volunteers) {
         // If shift is overlapping, skip
+        if (v.shiftId === raw.id) {
+          continue;
+        }
         if (
           v.shift.startTime < raw.endTime &&
           v.shift.endTime > raw.startTime
