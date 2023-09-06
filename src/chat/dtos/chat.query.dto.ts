@@ -85,3 +85,5 @@ export class ChatsQueryDto extends ChatQueryDto {
 }
 
 export class ChatMessagesQueryDto extends PaginationQueryDto {}
+
+export class ChatParticipantQueryDto extends PaginationQueryDto {}

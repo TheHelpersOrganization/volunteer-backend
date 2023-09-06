@@ -41,3 +41,9 @@ export class CanNotRemoveChatOwnerException extends BaseApiException {
     super({ message: 'Can not remove chat owner' });
   }
 }
+
+export class CannotBlockGroupChatException extends BaseApiException {
+  constructor() {
+    super({ message: 'Cannot block group chat' });
+  }
+}

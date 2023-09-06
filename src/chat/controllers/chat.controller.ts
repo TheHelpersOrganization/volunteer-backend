@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ChatMessagesQueryDto,
+  ChatParticipantQueryDto,
   ChatQueryDto,
   ChatsQueryDto,
   CreateChatInputDto,
@@ -45,6 +46,14 @@ export class ChatController {
       accountId,
       query,
     );
+  }
+
+  @Get('participants')
+  async getChatParticipants(
+    @ReqContext() context: RequestContext,
+    @Query() query: ChatParticipantQueryDto,
+  ) {
+    return this.chatService.getChatParticipants(context, query);
   }
 
   @Get(':id')

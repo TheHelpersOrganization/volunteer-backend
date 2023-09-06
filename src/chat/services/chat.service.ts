@@ -16,6 +16,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import {
   ChatMessagesQueryDto,
+  ChatParticipantQueryDto,
   ChatQueryDto,
   ChatQuerySort,
   ChatsQueryDto,
@@ -23,7 +24,11 @@ import {
   CreateMessageInputDto,
   UpdateChatInputDto,
 } from '../dtos';
-import { ChatMessageOutputDto, ChatOutputDto } from '../dtos/chat.output.dto';
+import {
+  ChatMessageOutputDto,
+  ChatOutputDto,
+  ChatParticipantOutputDto,
+} from '../dtos/chat.output.dto';
 import {
   ChatBlockedEvent,
   ChatCreatedEvent,
@@ -33,6 +38,7 @@ import {
   ChatUpdatedEvent,
 } from '../events';
 import {
+  CannotBlockGroupChatException,
   ChatIsBlockedException,
   ChatIsNotBlockedException,
   ChatNotFoundException,
@@ -242,6 +248,41 @@ export class ChatService extends AbstractService {
     return orderBy;
   }
 
+  async getChatParticipants(
+    context: RequestContext,
+    query: ChatParticipantQueryDto,
+  ): Promise<ChatParticipantOutputDto[]> {
+    this.logCaller(context, this.getChatParticipants);
+
+    const participants = await this.prisma.chatParticipant.findMany({
+      where: {
+        Chat: {
+          ChatParticipant: {
+            some: {
+              accountId: context.account.id,
+            },
+          },
+        },
+      },
+      take: query.limit,
+      skip: query.offset,
+    });
+    const accountIds = participants.map((p) => p.accountId);
+    const profiles = await this.profileService.getProfiles(context, {
+      ids: accountIds,
+      select: getProfileBasicSelect,
+    });
+
+    const res: ChatParticipantOutputDto[] = participants.map((p) => ({
+      ...requireNonNull(profiles.find((profile) => profile.id === p.accountId)),
+      chatId: p.chatId,
+      participantId: p.id,
+      read: p.read,
+    }));
+
+    return this.outputArray(ChatParticipantOutputDto, res);
+  }
+
   async getChatMessages(
     context: RequestContext,
     id: number,
@@ -423,6 +464,10 @@ export class ChatService extends AbstractService {
 
     if (chat.isBlocked) {
       throw new ChatIsBlockedException();
+    }
+
+    if (chat.isGroup) {
+      throw new CannotBlockGroupChatException();
     }
 
     const res = await this.prisma.chat.update({
