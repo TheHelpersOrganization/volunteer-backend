@@ -11,6 +11,7 @@ import {
   DeleteChatParticipantGroupInputDto,
   LeaveChatGroupInputDto,
   MakeParticipantChatGroupOwnerInputDto,
+  UpdateChatGroupInputDto,
 } from '../dtos';
 import {
   ChatCreatedEvent,
@@ -90,6 +91,37 @@ export class ChatGroupService extends AbstractService {
     this.eventEmitter.emit(
       ChatCreatedEvent.eventName,
       new ChatCreatedEvent(context, output),
+    );
+
+    return output;
+  }
+
+  async updateChatGroup(
+    context: RequestContext,
+    dto: UpdateChatGroupInputDto,
+    options?: { useChat?: ChatOutputDto },
+  ) {
+    this.logCaller(context, this.updateChatGroup);
+
+    const chat =
+      options?.useChat ?? (await this.getChatGroupOrThrow(context, dto.chatId));
+
+    const res = await this.prisma.chat.update({
+      where: {
+        id: dto.chatId,
+      },
+      data: {
+        name: dto.name,
+        avatar: dto.avatar,
+      },
+      include: this.chatService.getChatInclude(),
+    });
+
+    const output = await this.chatService.mapToDto(context, res);
+
+    this.eventEmitter.emit(
+      ChatUpdatedEvent.eventName,
+      new ChatUpdatedEvent(context, output),
     );
 
     return output;

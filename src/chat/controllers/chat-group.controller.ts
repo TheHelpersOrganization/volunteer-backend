@@ -1,5 +1,5 @@
 import { ReqContext, RequestContext } from '@app/common/request-context';
-import { Body, Controller, Delete, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Put } from '@nestjs/common';
 import { ChatAuthService } from '../auth';
 import {
   CreateChatGroupInputDto,
@@ -8,6 +8,7 @@ import {
   DeleteChatParticipantGroupInputDto,
   LeaveChatGroupInputDto,
   MakeParticipantChatGroupOwnerInputDto,
+  UpdateChatGroupInputDto,
 } from '../dtos';
 import { ChatGroupService, ChatService } from '../services';
 
@@ -25,6 +26,20 @@ export class ChatGroupController {
     @Body() dto: CreateChatGroupInputDto,
   ) {
     return this.chatGroupService.createChatGroup(context, dto);
+  }
+
+  @Put()
+  async updateChatGroup(
+    @ReqContext() context: RequestContext,
+    @Body() dto: UpdateChatGroupInputDto,
+  ) {
+    const chat = await this.chatAuthService.validateIsChatGroupOwner(
+      context,
+      dto.chatId,
+    );
+    return this.chatGroupService.updateChatGroup(context, dto, {
+      useChat: chat,
+    });
   }
 
   @Delete()

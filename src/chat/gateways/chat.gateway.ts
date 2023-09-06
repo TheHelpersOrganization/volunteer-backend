@@ -221,6 +221,23 @@ export class ChatGateway
     return chat;
   }
 
+  @SubscribeMessage('update-chat-group')
+  async updateChatGroup(
+    @ReqContext() context: RequestContext,
+    @MessageBody() data: UpdateChatInputDto,
+  ) {
+    this.logCaller(context, this.updateChatGroup);
+
+    const chat = await this.chatAuthService.validateIsChatGroupOwner(
+      context,
+      data.chatId,
+    );
+
+    return this.chatGroupService.updateChatGroup(context, data, {
+      useChat: chat,
+    });
+  }
+
   @SubscribeMessage('leave-chat-group')
   async leaveChatGroup(
     @ReqContext() context: RequestContext,
