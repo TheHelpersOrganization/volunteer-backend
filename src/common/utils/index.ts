@@ -109,13 +109,25 @@ export const parseBooleanString = (str: any) => {
 
 export const rootProjectPath = path.resolve('./');
 
+export type GetProfileNameOptions = {
+  short?: boolean;
+};
+
+export type GetProfileNamesOptions = GetProfileNameOptions & {
+  max?: number;
+};
+
 export const getProfileNameOrNull = (
   profile?: ProfileOutputDto,
+  options?: GetProfileNameOptions,
 ): string | undefined => {
   if (!profile) {
     return;
   }
-  if (profile.firstName || profile.lastName) {
+  if (profile.lastName) {
+    if (options?.short) {
+      return `${profile.lastName}`;
+    }
     return `${profile.firstName ?? ''} ${profile.lastName ?? ''}`;
   }
   if (profile.username) {
@@ -124,12 +136,31 @@ export const getProfileNameOrNull = (
   return profile.email;
 };
 
-export const getProfileName = (profile?: ProfileOutputDto): string => {
-  const name = getProfileNameOrNull(profile);
+export const getProfileName = (
+  profile?: ProfileOutputDto,
+  options?: GetProfileNameOptions,
+): string => {
+  const name = getProfileNameOrNull(profile, options);
   if (!name) {
     throw new Error('Profile name is null');
   }
   return name;
+};
+
+export const getProfileNames = (
+  profiles: ProfileOutputDto[],
+  options?: GetProfileNamesOptions,
+): string => {
+  const max = options?.max;
+  // If number is greater than max, then we only show the first max or 3 names plus "and x more"
+  if (max != null && profiles.length > max) {
+    const firstFour = profiles.slice(0, max);
+    const rest = profiles.length - max;
+    return `${firstFour
+      .map((p) => getProfileName(p, options))
+      .join(', ')} and ${rest} ${rest == 1 ? 'more' : 'others'}`;
+  }
+  return profiles.map((p) => getProfileName(p, options)).join(', ');
 };
 
 export const normalize = (val: number, max: number, min = 0) => {

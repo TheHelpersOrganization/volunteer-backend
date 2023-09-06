@@ -3,7 +3,7 @@ import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
 import {
   getProfileName,
-  getProfileNameOrNull,
+  getProfileNames,
   requireNonNull,
 } from '@app/common/utils';
 import { NotificationType } from '@app/notification/constants';
@@ -635,14 +635,16 @@ export class ChatService extends AbstractService {
         ?.id,
       read: raw.ChatParticipant?.find((cp) => cp.accountId === p.id)?.read,
     }));
+    const mayBeProfileName =
+      profiles == null
+        ? undefined
+        : profiles.length > 2
+        ? getProfileNames(profiles, { short: true, max: 3 })
+        : getProfileName(profiles?.find((p) => p.id !== context.account.id));
 
     const output = {
       ...raw,
-      name:
-        raw.name ??
-        getProfileNameOrNull(
-          profiles?.find((p) => p.id !== context.account.id),
-        ),
+      name: raw.name ?? mayBeProfileName,
       messages: raw.ChatMessage,
       latestMessage: raw.ChatMessage.sort(
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
