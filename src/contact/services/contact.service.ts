@@ -35,23 +35,55 @@ export class ContactService extends AbstractService {
   getContactWhereInput(context: RequestContext, query: ContactQueryDto) {
     const where: Prisma.ContactWhereInput = {};
 
-    if (query.id) {
+    if (query.id || query.excludeId) {
       where.id = {
         in: query.id,
+        notIn: query.excludeId,
+      };
+    }
+
+    if (query.search) {
+      where.account = {
+        profile: {
+          OR: [
+            {
+              firstName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              username: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
       };
     }
 
     if (query.accountId) {
-      where.accountId = query.accountId;
+      if (!where.account) {
+        where.account = {};
+      }
+      where.account.id = query.accountId;
     }
 
     if (query.organizationId) {
-      where.account = {
-        members: {
-          some: {
-            organizationId: query.organizationId,
-            status: OrganizationMemberStatus.Approved,
-          },
+      if (!where.account) {
+        where.account = {};
+      }
+      where.account.members = {
+        some: {
+          organizationId: query.organizationId,
+          status: OrganizationMemberStatus.Approved,
         },
       };
     }
@@ -60,7 +92,6 @@ export class ContactService extends AbstractService {
   }
 
   async getById(context: RequestContext, id: number) {
-    this.logCaller(context, this.getById);
     const contact = await this.prisma.contact.findUnique({
       where: {
         id: id,

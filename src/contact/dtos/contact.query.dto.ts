@@ -4,7 +4,13 @@ import {
   stringToIntTransform,
 } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
-import { IsArray, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class ContactQueryDto extends PaginationQueryDto {
   @IsOptional()
@@ -12,6 +18,17 @@ export class ContactQueryDto extends PaginationQueryDto {
   @IsInt({ each: true })
   @Transform(stringToIntArrayTransform)
   id?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Transform(stringToIntArrayTransform)
+  excludeId?: number[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  search?: string;
 
   @IsOptional()
   @IsInt({ each: true })
