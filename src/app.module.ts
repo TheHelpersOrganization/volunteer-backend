@@ -23,6 +23,7 @@ import {
 } from './common/interceptors';
 import { RequestIdMiddleware } from './common/middlewares';
 import { VALIDATION_PIPE_OPTIONS } from './common/pipes';
+import { DevelopmentModule } from './development/development.module';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
 import { LocationModule } from './location/location.module';
@@ -44,6 +45,7 @@ import { TokenModule } from './token/token.module';
     AccountVerificationModule,
     AnalyticsModule,
     AuthModule,
+    DevelopmentModule,
     ProfileModule,
     TokenModule,
     EmailModule,
