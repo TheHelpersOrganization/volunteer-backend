@@ -26,6 +26,7 @@ import { VALIDATION_PIPE_OPTIONS } from './common/pipes';
 import { DevelopmentModule } from './development/development.module';
 import { EmailModule } from './email/email.module';
 import { FileModule } from './file/file.module';
+import { HealthModule } from './health/health.module';
 import { LocationModule } from './location/location.module';
 import { NewsModule } from './news/news.module';
 import { NotificationModule } from './notification/notification.module';
@@ -40,15 +41,16 @@ import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
-    CommonModule,
     AccountModule,
     AccountVerificationModule,
     AnalyticsModule,
     AuthModule,
+    CommonModule,
     DevelopmentModule,
     ProfileModule,
     TokenModule,
     EmailModule,
+    HealthModule,
     OrganizationModule,
     FileModule,
     LocationModule,

@@ -9,7 +9,7 @@ import {
   validateSync,
 } from 'class-validator';
 
-import { Environment } from '../constants';
+import { CacheProvider, Environment } from '../constants';
 
 class EnvironmentVariables {
   @IsOptional()
@@ -104,6 +104,38 @@ class EnvironmentVariables {
 
   @IsString()
   FIREBASE_PRIVATE_KEY: string;
+
+  @IsOptional()
+  @IsEnum(CacheProvider)
+  CACHE_PROVIDER: CacheProvider;
+
+  @IsOptional()
+  @IsString()
+  CACHE_URL: string;
+
+  @IsOptional()
+  @IsString()
+  CACHE_HOST: string;
+
+  @IsOptional()
+  @IsNumber()
+  CACHE_PORT: number;
+
+  @IsOptional()
+  @IsString()
+  CACHE_USERNAME: string;
+
+  @IsOptional()
+  @IsString()
+  CACHE_PASSWORD: string;
+
+  @IsOptional()
+  @IsNumber()
+  CACHE_TTL: number;
+
+  @IsOptional()
+  @IsNumber()
+  CACHE_MAX: number;
 }
 
 export function validate(config: Record<string, unknown>): any {

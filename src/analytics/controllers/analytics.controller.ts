@@ -1,5 +1,7 @@
+import { Role } from '@app/auth/constants';
+import { RequireRoles } from '@app/auth/decorators';
 import { ReqContext, RequestContext } from '@app/common/request-context';
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { AnalyticsQueryDto } from '../dtos';
 import { AnalyticsService } from '../services';
 
@@ -29,5 +31,11 @@ export class AnalyticsController {
     @Query() query: AnalyticsQueryDto,
   ) {
     return this.analyticsService.getActivityRankings(context, query);
+  }
+
+  @RequireRoles(Role.Operator)
+  @Post('refresh')
+  async refreshAnalytics(@ReqContext() context: RequestContext) {
+    return this.analyticsService.refreshAnalytics(context);
   }
 }
