@@ -1,5 +1,6 @@
 import {
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,19 +9,28 @@ import { AuthGuard } from '@nestjs/passport';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { Observable } from 'rxjs';
 
+import authConfig from '@app/common/configs/subconfigs/auth.config';
+import { ConfigType } from '@nestjs/config';
 import { STRATEGY_JWT_AUTH } from '../constants/strategy.constant';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { LoginSessionExpiredException } from '../exceptions/token-expired.exception';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard(STRATEGY_JWT_AUTH) {
-  constructor(private reflector: Reflector) {
+  constructor(
+    private reflector: Reflector,
+    @Inject(authConfig.KEY)
+    private readonly authConfigApi: ConfigType<typeof authConfig>,
+  ) {
     super();
   }
 
   override canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    if (this.authConfigApi.disabled) {
+      return true;
+    }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

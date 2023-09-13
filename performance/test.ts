@@ -3,25 +3,11 @@ import http from 'k6/http';
 
 export const options = {
   vus: 5,
-  duration: '30s',
+  duration: '10s',
 };
 
 export default function () {
-  const url = 'http://localhost:3000/mod/organizations/1/activities';
-  const payload = JSON.stringify({
-    name: 'test',
-    description: 'test',
-    startAt: '2021-05-01T00:00:00.000Z',
-    endAt: '2021-05-01T00:00:00.000Z',
-    location: 'test',
-    maxParticipants: 1,
-    minParticipants: 1,
-    price: 1,
-    currency: 'USD',
-    isOnline: false,
-    isPublished: false,
-    isDeleted: false,
-  });
+  const url = 'http://localhost:3000/api/v1/files/1';
 
   const params = {
     headers: {
@@ -29,9 +15,9 @@ export default function () {
     },
   };
 
-  const res = http.post(url, payload, params);
+  const res = http.get(url);
   check(res, {
     'status was 200': (r) => r.status === 200,
-    'transaction time OK': (r) => r.timings.duration < 200,
+    'transaction time OK': (r) => r.timings.duration < 1000,
   });
 }

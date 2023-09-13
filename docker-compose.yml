@@ -25,15 +25,21 @@ services:
       JWT_PUBLIC_KEY_BASE64: ${JWT_PUBLIC_KEY_BASE64}
       JWT_PRIVATE_KEY_BASE64: ${JWT_PRIVATE_KEY_BASE64}
       DEFAULT_ADMIN_USER_PASSWORD: ${DEFAULT_ADMIN_USER_PASSWORD}
+      CACHE_PROVIDER: redis
+      CACHE_HOST: cache
+      CACHE_PORT: ${CACHE_PORT}
+      CACHE_USERNAME: ${CACHE_USERNAME}
+      CACHE_PASSWORD: ${CACHE_PASSWORD}
     depends_on:
       - pgsqldb
+      - cache
 
   pgsqldb:
     image: postgres:14.3
     environment:
-      POSTGRES_USER: "${DB_USER}"
-      POSTGRES_PASSWORD: "${DB_PASS}"
-      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: '${DB_USER}'
+      POSTGRES_PASSWORD: '${DB_PASS}'
+      POSTGRES_DB: '${DB_NAME}'
     ports:
       - 5432:5432
     volumes:
@@ -46,6 +52,15 @@ services:
     depends_on:
       - pgsqldb
 
+  cache:
+    image: redis:7.2-alpine
+    ports:
+      - '${CACHE_PORT}:${CACHE_PORT}'
+    command: redis-server --port ${CACHE_PORT} --save 20 1 --loglevel warning --requirepass ${CACHE_PASSWORD}
+    volumes:
+      - cache:/data
+
 volumes:
   node_modules:
   pgsqldata:
+  cache:

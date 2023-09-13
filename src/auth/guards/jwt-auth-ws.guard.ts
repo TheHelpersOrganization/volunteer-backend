@@ -1,10 +1,25 @@
-import { ExecutionContext } from '@nestjs/common';
+import authConfig from '@app/common/configs/subconfigs/auth.config';
+import { ExecutionContext, Inject } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import { Observable } from 'rxjs';
 import { STRATEGY_JWT_AUTH_WEBSOCKET } from '../constants';
 
 export class WsAuthGuard extends AuthGuard(STRATEGY_JWT_AUTH_WEBSOCKET) {
-  constructor() {
+  constructor(
+    @Inject(authConfig.KEY)
+    private readonly authConfigApi: ConfigType<typeof authConfig>,
+  ) {
     super();
+  }
+
+  override canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    if (this.authConfigApi.disabled) {
+      return true;
+    }
+    return super.canActivate(context);
   }
 
   override getRequest(context: ExecutionContext) {
