@@ -432,7 +432,7 @@ export class ShiftVolunteerService extends AbstractService {
         },
         take: query.limitPerActivity,
       });
-      volunteers.push(...res);
+      volunteers.push(...res.map((v) => ({ ...v, activityId })));
     }
     const profiles = await this.profileService.getProfiles(context, {
       ids: volunteers.map((v) => v.accountId),

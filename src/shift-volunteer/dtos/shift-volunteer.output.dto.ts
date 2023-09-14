@@ -78,6 +78,9 @@ export class ShiftVolunteerOutputDto {
   // ----- Extra fields ----- //
 
   @Expose()
+  activityId?: number;
+
+  @Expose()
   @Type(() => ShiftOutputDto)
   shift?: ShiftOutputDto;
 
