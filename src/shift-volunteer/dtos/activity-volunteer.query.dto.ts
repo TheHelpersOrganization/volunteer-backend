@@ -1,4 +1,7 @@
-import { stringToIntArrayTransform } from '@app/common/transformers';
+import {
+  stringToIntArrayTransform,
+  stringToIntTransform,
+} from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -38,5 +41,6 @@ export class ActivityVolunteerQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
+  @Transform(stringToIntTransform)
   limitPerActivity?: number;
 }
