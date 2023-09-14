@@ -1,6 +1,7 @@
 import {
   stringToIntArrayTransform,
   stringToIntTransform,
+  stringToStringArrayTransform,
 } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
@@ -35,6 +36,7 @@ export class ActivityVolunteerQueryDto {
   @ArrayMinSize(1)
   @ArrayMaxSize(activityVolunteerIncludes.length)
   @IsEnum(ActivityVolunteerInclude, { each: true })
+  @Transform(stringToStringArrayTransform)
   include?: ActivityVolunteerInclude[];
 
   @IsOptional()

@@ -28,6 +28,7 @@ import { getDistance } from 'geolib';
 import { max, min } from 'lodash';
 import { ShiftVolunteerStatus } from '../constants';
 import {
+  ActivityVolunteerInclude,
   ActivityVolunteerQueryDto,
   ApproveManyShiftVolunteer,
   CreateShiftVolunteerInputDto,
@@ -434,13 +435,16 @@ export class ShiftVolunteerService extends AbstractService {
       });
       volunteers.push(...res.map((v) => ({ ...v, activityId })));
     }
-    const profiles = await this.profileService.getProfiles(context, {
-      ids: volunteers.map((v) => v.accountId),
-      select: getProfileBasicSelect,
-    });
+
+    const profiles = query.include?.includes(ActivityVolunteerInclude.Profile)
+      ? await this.profileService.getProfiles(context, {
+          ids: volunteers.map((v) => v.accountId),
+          select: getProfileBasicSelect,
+        })
+      : undefined;
     const output = volunteers.map((v) => ({
       ...v,
-      profile: profiles.find((p) => p.id === v.accountId),
+      profile: profiles?.find((p) => p.id === v.accountId),
     }));
     return this.outputArray(ShiftVolunteerOutputDto, output);
   }
