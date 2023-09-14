@@ -680,6 +680,7 @@ export class ActivityService extends AbstractService {
                 location: true,
               },
             },
+            shiftVolunteers: true,
           },
         },
       },

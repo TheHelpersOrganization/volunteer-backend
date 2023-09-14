@@ -131,6 +131,9 @@ export class AnalyticsService extends AbstractService {
         ids: mostParticipantsActivityIds,
         limit: query.limit,
       },
+      {
+        recordHistory: false,
+      },
     );
     return mostParticipantsActivities.sort(
       (a, b) => b.joinedParticipants - a.joinedParticipants,

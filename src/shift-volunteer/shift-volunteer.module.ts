@@ -7,7 +7,7 @@ import { ShiftSkillModule } from '@app/shift-skill/shift-skill.module';
 import { Module } from '@nestjs/common';
 import { ShiftVolunteerAuthService } from './auth/shift-volunteer-auth.service';
 import {
-  ActivityVolunteer,
+  ActivityVolunteerController,
   IdentifiedShiftVolunteerController,
   ModShiftVolunteerController,
   ShiftVolunteerController,
@@ -28,7 +28,7 @@ import {
     OrganizationModule,
   ],
   controllers: [
-    ActivityVolunteer,
+    ActivityVolunteerController,
     ShiftVolunteerController,
     ModShiftVolunteerController,
     IdentifiedShiftVolunteerController,

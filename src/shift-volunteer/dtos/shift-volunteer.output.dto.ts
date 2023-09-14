@@ -48,7 +48,7 @@ export class ShiftVolunteerOutputDto {
     return (obj.isCheckInVerified && obj.isCheckOutVerified) || value || false;
   })
   @Expose()
-  attendant: boolean;
+  attendant?: boolean;
 
   @Expose()
   completion?: number;

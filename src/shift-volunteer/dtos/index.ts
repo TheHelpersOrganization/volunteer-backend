@@ -1,3 +1,4 @@
+export * from './activity-volunteer.query.dto';
 export * from './confirm-check-in.input.dto';
 export * from './create-shift-volunteer.input.dto';
 export * from './get-shift-volunteer.query.dto';

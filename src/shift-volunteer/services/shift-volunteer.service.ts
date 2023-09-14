@@ -28,6 +28,7 @@ import { getDistance } from 'geolib';
 import { max, min } from 'lodash';
 import { ShiftVolunteerStatus } from '../constants';
 import {
+  ActivityVolunteerQueryDto,
   ApproveManyShiftVolunteer,
   CreateShiftVolunteerInputDto,
   GetShiftVolunteerQueryDto,
@@ -414,20 +415,34 @@ export class ShiftVolunteerService extends AbstractService {
     };
   }
 
-  async getApprovedByActivityId(
+  async getApprovedActivityVolunteers(
     context: RequestContext,
-    activityId: number,
+    query: ActivityVolunteerQueryDto,
   ): Promise<ShiftVolunteerOutputDto[]> {
-    this.logCaller(context, this.getApprovedByActivityId);
-    const res = await this.prisma.volunteerShift.findMany({
-      where: {
-        shift: {
-          activityId: activityId,
+    this.logCaller(context, this.getApprovedActivityVolunteers);
+
+    const volunteers: VolunteerShift[] = [];
+    for (const activityId of query.activityId) {
+      const res = await this.prisma.volunteerShift.findMany({
+        where: {
+          shift: {
+            activityId: activityId,
+          },
+          status: ShiftVolunteerStatus.Approved,
         },
-        status: ShiftVolunteerStatus.Approved,
-      },
+        take: query.limitPerActivity,
+      });
+      volunteers.push(...res);
+    }
+    const profiles = await this.profileService.getProfiles(context, {
+      ids: volunteers.map((v) => v.accountId),
+      select: getProfileBasicSelect,
     });
-    return this.outputArray(ShiftVolunteerOutputDto, res);
+    const output = volunteers.map((v) => ({
+      ...v,
+      profile: profiles.find((p) => p.id === v.accountId),
+    }));
+    return this.outputArray(ShiftVolunteerOutputDto, output);
   }
 
   async getByShiftId(
