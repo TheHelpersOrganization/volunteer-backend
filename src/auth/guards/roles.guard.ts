@@ -1,20 +1,31 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+import authConfig from '@app/common/configs/subconfigs/auth.config';
+import { ConfigType } from '@nestjs/config';
 import { Role } from '../constants/role.constant';
 import { IS_PUBLIC_KEY } from '../decorators';
 import { ROLES_KEY } from '../decorators/role.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    @Inject(authConfig.KEY)
+    private readonly authConfigApi: ConfigType<typeof authConfig>,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    if (this.authConfigApi.disabled) {
+      return true;
+    }
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
