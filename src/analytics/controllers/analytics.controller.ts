@@ -33,6 +33,14 @@ export class AnalyticsController {
     return this.analyticsService.getActivityRankings(context, query);
   }
 
+  @Get('activities/ratings')
+  async getActivitiesRatingsRankings(
+    @ReqContext() context: RequestContext,
+    @Query() query: AnalyticsQueryDto,
+  ) {
+    return this.analyticsService.getActivityRatingsRankings(context, query);
+  }
+
   @RequireRoles(Role.Operator)
   @Post('refresh')
   async refreshAnalytics(@ReqContext() context: RequestContext) {

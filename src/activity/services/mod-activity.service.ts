@@ -269,6 +269,8 @@ export class ModActivityService extends AbstractService {
         (activity.shifts
           ? _.max(activity.shifts.map((s) => s.endTime))
           : undefined),
+      rating: activity.rating,
+      ratingCount: activity.ratingCount,
       location: activity.location,
       contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,

@@ -12,6 +12,7 @@ import {
   ModShiftVolunteerController,
   ShiftVolunteerController,
 } from './controllers';
+import { ShiftVolunteerListener } from './listeners';
 import {
   ModShiftVolunteerService,
   ShiftVolunteerService,
@@ -38,6 +39,7 @@ import {
     ShiftVolunteerTaskService,
     ModShiftVolunteerService,
     ShiftVolunteerAuthService,
+    ShiftVolunteerListener,
   ],
   exports: [ShiftVolunteerService, ModShiftVolunteerService],
 })

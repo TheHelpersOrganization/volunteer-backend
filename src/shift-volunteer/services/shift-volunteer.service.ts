@@ -44,7 +44,10 @@ import {
   VerifyCheckInInputDto,
   VerifyVolunteerCheckInByIdInputDto,
 } from '../dtos';
-import { ShiftVolunteerReviewedEvent } from '../events';
+import {
+  ShiftVolunteerRatedEvent,
+  ShiftVolunteerReviewedEvent,
+} from '../events';
 import {
   CheckInHasAlreadyBeenVerified,
   CheckOutHasAlreadyBeenVerified,
@@ -1459,7 +1462,15 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
 
-    return this.output(ShiftVolunteerOutputDto, res);
+    const prev = this.output(ShiftVolunteerOutputDto, volunteer);
+    const next = this.output(ShiftVolunteerOutputDto, res);
+
+    this.eventEmitter.emit(
+      ShiftVolunteerRatedEvent.eventName,
+      new ShiftVolunteerRatedEvent(context, prev, next),
+    );
+
+    return next;
   }
 
   mapToDto(raw: any, shift?: Shift): ShiftVolunteerOutputDto {

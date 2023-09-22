@@ -831,6 +831,145 @@ export class ActivityService extends AbstractService {
     return countGroupByTime(res);
   }
 
+  async refreshActivityRatings(context: RequestContext) {
+    this.logCaller(context, this.refreshActivityRatings);
+    const where: Prisma.ActivityWhereInput = {
+      status: {
+        in: [ActivityStatus.Ongoing, ActivityStatus.Completed],
+      },
+    };
+    const select = {
+      id: true,
+      shifts: {
+        select: {
+          id: true,
+          shiftVolunteers: {
+            where: {
+              status: ShiftVolunteerStatus.Approved,
+              shiftRating: {
+                not: null,
+              },
+            },
+            select: {
+              shiftRating: true,
+            },
+          },
+        },
+      },
+    };
+
+    let activities = await this.prisma.activity.findMany({
+      where: where,
+      select: select,
+      take: 100,
+    });
+    while (activities.length > 0) {
+      // Update shift and activity rating
+      const updateShifts: {
+        id: number;
+        rating: number;
+        ratingCount: number;
+      }[] = [];
+      const updateActivities: {
+        id: number;
+        rating: number;
+        ratingCount: number;
+      }[] = [];
+      activities.forEach((activity) => {
+        if (activity.shifts.length === 0) {
+          return;
+        }
+        const updateShiftsLocal: {
+          id: number;
+          rating: number;
+          ratingCount: number;
+        }[] = [];
+        activity.shifts.forEach((shift) => {
+          if (shift.shiftVolunteers.length === 0) {
+            return;
+          }
+          const shiftRating =
+            shift.shiftVolunteers.reduce(
+              (sum, shiftVolunteer) => sum + shiftVolunteer.shiftRating!,
+              0,
+            ) / shift.shiftVolunteers.length;
+          updateShifts.push({
+            id: shift.id,
+            rating: shiftRating,
+            ratingCount: shift.shiftVolunteers.length,
+          });
+          updateShiftsLocal.push({
+            id: shift.id,
+            rating: shiftRating,
+            ratingCount: shift.shiftVolunteers.length,
+          });
+        });
+        const activityRating =
+          updateShiftsLocal.length > 0
+            ? updateShiftsLocal.reduce((sum, shift) => sum + shift.rating, 0) /
+              updateShiftsLocal.length
+            : null;
+        const activityRatingCount =
+          updateShiftsLocal.length > 0
+            ? updateShiftsLocal.reduce(
+                (sum, shift) => sum + shift.ratingCount,
+                0,
+              )
+            : 0;
+        if (activityRating != null) {
+          updateActivities.push({
+            id: activity.id,
+            rating: activityRating,
+            ratingCount: activityRatingCount,
+          });
+        }
+      });
+      const promises: Promise<any>[] = [];
+      updateShifts.forEach((shift) => {
+        const promise = this.prisma.shift
+          .update({
+            where: {
+              id: shift.id,
+            },
+            data: {
+              rating: shift.rating,
+              ratingCount: shift.ratingCount,
+            },
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        promises.push(promise);
+      });
+      updateActivities.forEach((activity) => {
+        const promise = this.prisma.activity
+          .update({
+            where: {
+              id: activity.id,
+            },
+            data: {
+              rating: activity.rating,
+              ratingCount: activity.ratingCount,
+            },
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        promises.push(promise);
+      });
+      await Promise.all(promises);
+
+      activities = await this.prisma.activity.findMany({
+        where: where,
+        select: select,
+        cursor: { id: activities[activities.length - 1].id },
+        take: 100,
+        skip: 1,
+      });
+    }
+    return true;
+  }
+
   async validateOrganizationActivity(
     organizationId: number,
     activityId: number,
@@ -862,6 +1001,8 @@ export class ActivityService extends AbstractService {
       startTime: activity.startTime,
       endTime: activity.endTime,
       organizationId: activity.organizationId,
+      rating: activity.rating,
+      ratingCount: activity.ratingCount,
       location: activity.location,
       contacts: activity.contacts,
       maxParticipants: activity.maxParticipants,

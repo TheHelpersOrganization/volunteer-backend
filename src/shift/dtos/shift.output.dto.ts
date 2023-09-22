@@ -71,6 +71,9 @@ export class ShiftOutputDto {
   @Type(() => ShiftManagerOutputDto)
   shiftManagers: ShiftManagerOutputDto;
 
+  @Expose()
+  rating?: number;
+
   // ----- Extra fields -----
 
   @Expose()

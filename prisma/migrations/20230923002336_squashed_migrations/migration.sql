@@ -145,6 +145,8 @@ CREATE TABLE "Activity" (
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "thumbnail" INTEGER,
     "organizationId" INTEGER NOT NULL,
+    "rating" INTEGER,
+    "ratingCount" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Activity_pkey" PRIMARY KEY ("id")
 );
@@ -165,6 +167,8 @@ CREATE TABLE "Shift" (
     "checkOutMinutesLimit" INTEGER,
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "rating" INTEGER,
+    "ratingCount" INTEGER NOT NULL DEFAULT 0,
     "activityId" INTEGER NOT NULL,
 
     CONSTRAINT "Shift_pkey" PRIMARY KEY ("id")

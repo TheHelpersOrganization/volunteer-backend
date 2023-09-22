@@ -130,6 +130,8 @@ export const seedActivities = async (
           endTime: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rating: null,
+          ratingCount: 0,
         };
         activities.push(activity);
 
@@ -649,6 +651,16 @@ export const seedActivities = async (
             });
           });
 
+          const ratedShiftVolunteers = shiftVolunteers.filter(
+            (v) =>
+              v.shiftId === shiftId &&
+              v.status === ShiftVolunteerStatus.Approved &&
+              v.shiftRating != null,
+          );
+          const averageRating =
+            ratedShiftVolunteers.length === 0
+              ? null
+              : _.meanBy(ratedShiftVolunteers, (v) => v.shiftRating);
           shifts.push({
             id: shiftId,
             name: capitalizeWords(fakerEn.lorem.words()),
@@ -670,10 +682,24 @@ export const seedActivities = async (
             joinedParticipants: numberOfApprovedVolunteers,
             checkInMinutesLimit: null,
             checkOutMinutesLimit: null,
+            rating: averageRating,
+            ratingCount: ratedShiftVolunteers.length,
             activityId: activity.id,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
+
+          const ratedShifts = shifts.filter(
+            (s) => s.activityId === activity.id && s.rating != null,
+          );
+          activity.rating =
+            ratedShifts.length === 0
+              ? null
+              : _.meanBy(ratedShifts, (s) => s.rating);
+          activity.ratingCount = ratedShifts.reduce(
+            (sum, s) => sum + (s.ratingCount ?? 0),
+            0,
+          );
           activity.startTime =
             activity.startTime == null
               ? shiftStartTime

@@ -15,3 +15,15 @@ export class ShiftVolunteerReviewedEvent extends AbstractEvent {
     super(context);
   }
 }
+
+export class ShiftVolunteerRatedEvent extends AbstractEvent {
+  static eventName = 'shift.volunteer.rated';
+
+  constructor(
+    context: RequestContext,
+    public readonly previous: ShiftVolunteerOutputDto,
+    public readonly next: ShiftVolunteerOutputDto,
+  ) {
+    super(context);
+  }
+}

@@ -48,6 +48,12 @@ export class ActivityOutputDto {
   @Expose()
   activityManagerIds: number[];
 
+  @Expose()
+  rating?: number;
+
+  @Expose()
+  ratingCount?: number;
+
   // ---- Computed fields ----
 
   @Expose()

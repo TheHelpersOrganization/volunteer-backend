@@ -1,3 +1,4 @@
+import { ActivityOutputDto } from '@app/activity/dtos';
 import { ActivityService } from '@app/activity/services';
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
@@ -81,6 +82,7 @@ export class AnalyticsService extends AbstractService {
       query.limit,
     );
 
+    // Calculate the rankings if cache doesn't exist or is expired
     let organizations = await this.prisma.organization.findMany({
       where: {
         id: {
@@ -138,6 +140,33 @@ export class AnalyticsService extends AbstractService {
     return mostParticipantsActivities.sort(
       (a, b) => b.joinedParticipants - a.joinedParticipants,
     );
+  }
+
+  async getActivityRatingsRankings(
+    context: RequestContext,
+    query: AnalyticsQueryDto,
+  ) {
+    const activities = await this.prisma.activity.findMany({
+      where: {
+        startTime: {
+          gt: dayjs().subtract(1, 'month').toDate(),
+        },
+        rating: {
+          not: null,
+        },
+      },
+      orderBy: [
+        {
+          rating: 'desc',
+        },
+        {
+          ratingCount: 'desc',
+        },
+      ],
+      take: query.limit,
+      skip: query.offset,
+    });
+    return this.outputArray(ActivityOutputDto, activities);
   }
 
   async refreshAnalytics(context: RequestContext) {

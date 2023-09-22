@@ -100,4 +100,12 @@ export class ActivityController {
   ): Promise<ActivityOutputDto> {
     return this.activityService.unbanActivity(context, id);
   }
+
+  @RequireRoles(Role.Operator)
+  @Post('ratings/refresh')
+  async refreshActivityRatings(
+    @ReqContext() context: RequestContext,
+  ): Promise<boolean> {
+    return this.activityService.refreshActivityRatings(context);
+  }
 }
