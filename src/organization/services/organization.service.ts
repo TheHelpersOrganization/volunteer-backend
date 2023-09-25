@@ -9,6 +9,7 @@ import { ShiftVolunteerReviewedEvent } from '@app/shift-volunteer/events';
 import { ShiftStatus } from '@app/shift/constants';
 import { Prisma } from '@prisma/client';
 import dayjs from 'dayjs';
+import { isPointWithinRadius } from 'geolib';
 import { RequestContext } from '../../common/request-context';
 import { ContactService } from '../../contact/services';
 import { LocationService } from '../../location/services';
@@ -53,43 +54,126 @@ export class OrganizationService extends AbstractService {
     this.logCaller(context, this.getOrganizations);
     const accountId = context.account.id;
 
-    const organizations = await this.prisma.organization.findMany({
-      where: this.getOrganizationWhere(context, query),
-      take: query.limit,
-      skip: query.offset,
-      include: {
-        organizationContacts: {
-          include: {
-            contact: true,
-          },
-        },
-        organizationLocations: {
-          include: {
-            location: true,
-          },
-        },
-        organizationFiles:
-          query.include?.includes(OrganizationInclude.File) == null
-            ? undefined
-            : {
-                include: {
-                  file: true,
-                },
-              },
-        members: {
-          where: {
-            OR: [
-              {
-                status: OrganizationMemberStatus.Approved,
-              },
-              {
-                accountId: accountId,
-              },
-            ],
-          },
+    const where = this.getOrganizationWhere(context, query);
+    const include = {
+      organizationContacts: {
+        include: {
+          contact: true,
         },
       },
+      organizationLocations: {
+        include: {
+          location: true,
+        },
+      },
+      organizationFiles:
+        query.include?.includes(OrganizationInclude.File) == null
+          ? undefined
+          : {
+              include: {
+                file: true,
+              },
+            },
+      members: {
+        where: {
+          OR: [
+            {
+              status: OrganizationMemberStatus.Approved,
+            },
+            {
+              accountId: accountId,
+            },
+          ],
+        },
+      },
+    };
+
+    // If radius is specified, we need to filter in backend instead of database
+    const useBackendBasedFilter =
+      query.radius != null && query.lat != null && query.lng != null;
+    const backendBasedFilter = (o: {
+      organizationLocations: {
+        location: {
+          id: number;
+          addressLine1: string | null;
+          addressLine2: string | null;
+          locality: string | null;
+          region: string | null;
+          country: string | null;
+          latitude: number | null;
+          longitude: number | null;
+        };
+      }[];
+    }) => {
+      const locations = o.organizationLocations?.map((ol) => ol.location) ?? [];
+      for (const location of locations) {
+        if (
+          query.radius != null &&
+          query.lat != null &&
+          query.lng != null &&
+          location != null &&
+          location.latitude != null &&
+          location.longitude != null
+        ) {
+          const isWithinRadius = isPointWithinRadius(
+            {
+              latitude: location.latitude,
+              longitude: location.longitude,
+            },
+            {
+              latitude: query.lat,
+              longitude: query.lng,
+            },
+            // km to m
+            query.radius * 1000,
+          );
+          if (isWithinRadius) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    const limit = useBackendBasedFilter ? 1000 : query.limit;
+    let notFoundIteration = 0;
+
+    // Without the backend based filter, we can just query the database
+    let organizations = await this.prisma.organization.findMany({
+      where: where,
+      take: limit,
+      skip: query.offset,
+      cursor: query.cursor != null ? { id: query.cursor } : undefined,
+      include: include,
     });
+
+    if (useBackendBasedFilter) {
+      let cursor =
+        organizations.length !== 0
+          ? { id: organizations[organizations.length - 1].id }
+          : undefined;
+      organizations = organizations.filter(backendBasedFilter);
+      while (organizations.length < limit! && notFoundIteration < 5) {
+        let res = await this.prisma.organization.findMany({
+          where: where,
+          take: limit,
+          skip: 1,
+          cursor: cursor,
+          include: include,
+        });
+        // If we can't find any organization, we can stop
+        if (res.length === 0) {
+          break;
+        }
+        cursor = { id: res[res.length - 1]?.id };
+        res = res.filter(backendBasedFilter);
+        if (res.length === 0) {
+          notFoundIteration++;
+          continue;
+        }
+        organizations.push(...res);
+      }
+    }
+
     const res = organizations.map((o) =>
       this.mapRawToDto(context, o, accountId),
     );
@@ -120,6 +204,32 @@ export class OrganizationService extends AbstractService {
         : {
             not: context.account.id,
           };
+    }
+    if (query.skill != null) {
+      where.organizationSkills = {
+        some: {
+          skillId: {
+            in: query.skill,
+          },
+        },
+      };
+    }
+    if (query.locality || query.region || query.country) {
+      where.organizationLocations = {
+        some: {
+          location: {
+            locality: {
+              contains: query.locality?.trim(),
+              mode: 'insensitive',
+            },
+            region: {
+              contains: query.region?.trim(),
+              mode: 'insensitive',
+            },
+            country: query.country,
+          },
+        },
+      };
     }
     if (query.isDisabled != null) {
       where.isDisabled = query.isDisabled;

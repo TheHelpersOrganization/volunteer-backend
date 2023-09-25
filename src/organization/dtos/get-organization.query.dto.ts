@@ -4,15 +4,23 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
+  IsISO31661Alpha2,
   IsInt,
+  IsLatitude,
+  IsLongitude,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 
 import { CountQueryDto } from '@app/common/dtos/count.dto';
 import {
+  separatedCommaNumberArrayTransform,
   stringToBooleanTransform,
+  stringToFloatTransform,
   stringToIntArrayTransform,
+  stringToIntTransform,
 } from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import { PaginationQueryDto } from '../../common/dtos';
@@ -67,6 +75,39 @@ export class OrganizationQueryDto extends PaginationQueryDto {
   @Transform(stringToBooleanTransform)
   @IsBoolean()
   owner?: boolean;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  @Transform(separatedCommaNumberArrayTransform)
+  skill?: number[];
+
+  @IsOptional()
+  @IsString()
+  locality?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsISO31661Alpha2()
+  country?: string;
+
+  @IsOptional()
+  @IsLatitude()
+  @Transform(stringToFloatTransform)
+  lat?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  @Transform(stringToFloatTransform)
+  lng?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Transform(stringToIntTransform)
+  radius?: number;
 
   @IsOptional()
   @IsArray()
