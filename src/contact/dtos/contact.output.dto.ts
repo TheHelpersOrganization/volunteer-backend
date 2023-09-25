@@ -5,6 +5,9 @@ export class ContactOutputDto {
   id: number;
 
   @Expose()
+  accountId: number;
+
+  @Expose()
   name: string;
 
   @Expose()
