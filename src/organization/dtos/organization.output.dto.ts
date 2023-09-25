@@ -68,4 +68,7 @@ export class OrganizationOutputDto {
   @Expose()
   @Type(() => FileOutputDto)
   files: FileOutputDto[];
+
+  @Expose()
+  numberOfActivities?: number;
 }

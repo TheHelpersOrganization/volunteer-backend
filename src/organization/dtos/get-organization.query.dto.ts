@@ -28,6 +28,7 @@ import { OrganizationMemberStatus, OrganizationStatus } from '../constants';
 
 export enum OrganizationInclude {
   File = 'file',
+  NumberOfActivities = 'numberOfActivities',
 }
 
 export const organizationIncludes = Object.values(OrganizationInclude);

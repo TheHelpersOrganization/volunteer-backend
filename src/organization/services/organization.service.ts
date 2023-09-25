@@ -177,6 +177,24 @@ export class OrganizationService extends AbstractService {
     const res = organizations.map((o) =>
       this.mapRawToDto(context, o, accountId),
     );
+    if (query.include?.includes(OrganizationInclude.NumberOfActivities)) {
+      const activityCounts = await this.prisma.activity.groupBy({
+        by: ['organizationId'],
+        _count: {
+          _all: true,
+        },
+        where: {
+          organizationId: {
+            in: res.map((r) => r.id),
+          },
+        },
+      });
+      for (const organization of res) {
+        organization.numberOfActivities = activityCounts.find(
+          (a) => a.organizationId === organization.id,
+        )?._count._all;
+      }
+    }
 
     return this.outputArray(OrganizationOutputDto, res);
   }
@@ -287,7 +305,16 @@ export class OrganizationService extends AbstractService {
     if (organization == null) {
       return null;
     }
-    return this.mapRawToDto(context, organization, context.account.id);
+    const output = this.mapRawToDto(context, organization, context.account.id);
+    if (query?.include?.includes(OrganizationInclude.NumberOfActivities)) {
+      const activityCount = await this.prisma.activity.count({
+        where: {
+          organizationId: organization.id,
+        },
+      });
+      output.numberOfActivities = activityCount;
+    }
+    return output;
   }
 
   private getMemberQuery(query: OrganizationQueryDto, accountId: number) {
