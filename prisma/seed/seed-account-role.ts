@@ -62,6 +62,14 @@ export const seedAccountsAndRoles = async (
     },
     {
       id: getNextRoleId(),
+      name: RoleEnum.SuperAdmin,
+      displayName: 'Super Admin',
+      description: 'Super Admin',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: getNextRoleId(),
       name: RoleEnum.Operator,
       displayName: 'Operator',
       description: 'Operator',

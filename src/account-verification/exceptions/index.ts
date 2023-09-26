@@ -41,3 +41,9 @@ export class AccountVerificationIsBlockedException extends BaseApiException {
     super({ message: 'Account verification is blocked' });
   }
 }
+
+export class UnableToGrantRoleToSelfAccountException extends BaseApiException {
+  constructor() {
+    super({ message: 'Unable to grant role to self account' });
+  }
+}

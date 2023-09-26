@@ -10,6 +10,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
   UseGuards,
@@ -69,5 +70,14 @@ export class AdminAccountController {
     @Query() query: BaseAccountQueryDto,
   ) {
     return this.adminAccountService.banAccount(context, id, dto, query);
+  }
+
+  @RequireRoles(Role.SuperAdmin)
+  @Post(':id/grant-admin')
+  async grantAdmin(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ) {
+    return this.adminAccountService.grantAdminRole(context, id);
   }
 }

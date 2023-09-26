@@ -2,6 +2,7 @@ export enum Role {
   Volunteer = 'volunteer',
   Moderator = 'moderator',
   Admin = 'admin',
+  SuperAdmin = 'superadmin',
   // Permit all requests
   Operator = 'operator',
 }

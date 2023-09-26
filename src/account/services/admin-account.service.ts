@@ -2,6 +2,7 @@ import { AccountVerificationStatus } from '@app/account-verification/constants';
 import {
   AccountVerificationIsBlockedException,
   NoPendingAccountVerificationException,
+  UnableToGrantRoleToSelfAccountException,
   UnableToVerifySelfAccountException,
 } from '@app/account-verification/exceptions';
 import { Role } from '@app/auth/constants';
@@ -12,6 +13,7 @@ import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
 import { countGroupByTime } from '@app/common/utils';
 import { PrismaService } from '@app/prisma';
+import { RoleNotFountException } from '@app/role/exceptions';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
@@ -26,12 +28,14 @@ import {
 } from '../dtos';
 import { UnableToBanSelfAccountException } from '../exceptions';
 import { RawExtendedAccount } from '../types';
+import { AccountService } from './account.service';
 
 @Injectable()
 export class AdminAccountService extends AbstractService {
   constructor(
     logger: AppLogger,
     private readonly prisma: PrismaService,
+    private readonly accountService: AccountService,
   ) {
     super(logger);
   }
@@ -256,6 +260,48 @@ export class AdminAccountService extends AbstractService {
     );
 
     return this.mapToDto(updated);
+  }
+
+  async grantAdminRole(context: RequestContext, id: number) {
+    this.logCaller(context, this.grantAdminRole);
+    const adminRole = await this.prisma.role.findUnique({
+      where: {
+        name: Role.Admin,
+      },
+    });
+    if (!adminRole) {
+      throw new RoleNotFountException();
+    }
+    const account = await this.prisma.account.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+    if (account.id === context.account.id) {
+      throw new UnableToGrantRoleToSelfAccountException();
+    }
+    const exists = await this.prisma.accountRole.findFirst({
+      where: {
+        accountId: id,
+        roleId: adminRole.id,
+      },
+    });
+    if (exists) {
+      return this.accountService.findById(context, id);
+    }
+    const updated = await this.prisma.accountRole.create({
+      data: {
+        accountId: id,
+        roleId: adminRole.id,
+      },
+      include: {
+        role: true,
+      },
+    });
+    return this.accountService.findById(context, id);
   }
 
   getAccountIncludes(query: GetAccountQueryDto) {
