@@ -64,7 +64,7 @@ export class AdminAccountService extends AbstractService {
           firstName: true,
           lastName: true,
           username: true,
-          avatar: true,
+          avatarId: true,
         },
       };
     }
