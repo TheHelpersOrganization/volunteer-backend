@@ -80,4 +80,13 @@ export class AdminAccountController {
   ) {
     return this.adminAccountService.grantAdminRole(context, id);
   }
+
+  @RequireRoles(Role.SuperAdmin)
+  @Post(':id/revoke-admin')
+  async revokeAdmin(
+    @ReqContext() context: RequestContext,
+    @Param('id') id: number,
+  ) {
+    return this.adminAccountService.revokeAdminRole(context, id);
+  }
 }

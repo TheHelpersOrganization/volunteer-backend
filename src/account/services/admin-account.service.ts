@@ -374,6 +374,47 @@ export class AdminAccountService extends AbstractService {
     return this.accountService.findById(context, id);
   }
 
+  async revokeAdminRole(context: RequestContext, id: number) {
+    this.logCaller(context, this.revokeAdminRole);
+    const adminRole = await this.prisma.role.findUnique({
+      where: {
+        name: Role.Admin,
+      },
+    });
+    if (!adminRole) {
+      throw new RoleNotFountException();
+    }
+    const account = await this.prisma.account.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!account) {
+      throw new AccountNotFoundException();
+    }
+    if (account.id === context.account.id) {
+      throw new UnableToGrantRoleToSelfAccountException();
+    }
+    const exists = await this.prisma.accountRole.findFirst({
+      where: {
+        accountId: id,
+        roleId: adminRole.id,
+      },
+    });
+    if (!exists) {
+      return this.accountService.findById(context, id);
+    }
+    const updated = await this.prisma.accountRole.delete({
+      where: {
+        accountId_roleId: {
+          accountId: id,
+          roleId: adminRole.id,
+        },
+      },
+    });
+    return this.accountService.findById(context, id);
+  }
+
   getAccountIncludes(query: GetAccountQueryDto) {
     const includeVerificationList =
       query.includes?.includes(GetAccountIncludes.VerificationList) ?? false;
