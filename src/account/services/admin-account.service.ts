@@ -71,11 +71,7 @@ export class AdminAccountService extends AbstractService {
 
     const accounts = await this.prisma.account.findMany({
       where: where,
-      include: {
-        accountVerification: includeVerificationList,
-        accountBan: includeBanList,
-        profile: includeProfile,
-      },
+      include: include,
       take: query.limit,
       skip: query.offset,
     });
