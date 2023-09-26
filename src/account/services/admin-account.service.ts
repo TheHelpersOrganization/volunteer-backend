@@ -51,12 +51,30 @@ export class AdminAccountService extends AbstractService {
       GetAccountIncludes.VerificationList,
     );
     const includeBanList = query.includes?.includes(GetAccountIncludes.BanList);
+    const includeProfile =
+      query.includes?.includes(GetAccountIncludes.Profile) == true;
+    const include: Prisma.AccountInclude = {
+      accountVerification: includeVerificationList,
+      accountBan: includeBanList,
+    };
+    if (includeProfile) {
+      include.profile = {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          avatar: true,
+        },
+      };
+    }
 
     const accounts = await this.prisma.account.findMany({
       where: where,
       include: {
         accountVerification: includeVerificationList,
         accountBan: includeBanList,
+        profile: includeProfile,
       },
       take: query.limit,
       skip: query.offset,
@@ -134,6 +152,62 @@ export class AdminAccountService extends AbstractService {
     where.email = query?.email
       ? { contains: query.email, mode: 'insensitive' }
       : undefined;
+    if (query.search) {
+      where.OR = [
+        {
+          email: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          profile: {
+            firstName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          profile: {
+            lastName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          profile: {
+            username: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ];
+    }
+    if (query.role) {
+      where.accountRoles = {
+        some: {
+          role: {
+            name: {
+              in: query.role,
+            },
+          },
+        },
+      };
+    }
+    if (query.excludeRole) {
+      where.accountRoles = {
+        none: {
+          role: {
+            name: {
+              in: query.excludeRole,
+            },
+          },
+        },
+      };
+    }
     if (query.createdAt) {
       where.createdAt = {
         gte: query.createdAt[0],

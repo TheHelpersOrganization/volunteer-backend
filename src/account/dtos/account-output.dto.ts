@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
 import { AccountVerificationOutputDto } from '@app/account-verification/dtos';
+import { ProfileOutputDto } from '@app/profile/dtos';
 import { Role } from '../../auth/constants/role.constant';
 
 export class AccountOutputDto {
@@ -37,6 +38,10 @@ export class AccountOutputDto {
   updatedAt?: Date;
 
   // ----- Extra fields -----
+
+  @Expose()
+  @Type(() => ProfileOutputDto)
+  profile?: ProfileOutputDto;
 
   @Expose()
   @Type(() => AccountVerificationOutputDto)

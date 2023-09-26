@@ -1,6 +1,9 @@
 import { PaginationQueryDto } from '@app/common/dtos';
 import { CountQueryDto } from '@app/common/dtos/count.dto';
-import { stringToBooleanTransform } from '@app/common/transformers';
+import {
+  stringToBooleanTransform,
+  stringToStringArrayTransform,
+} from '@app/common/transformers';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -19,6 +22,7 @@ import { EMAIL_MAX_LENGTH } from '../constants';
 export enum GetAccountIncludes {
   VerificationList = 'verification-list',
   BanList = 'ban-list',
+  Profile = 'profile',
 }
 
 export class BaseAccountQueryDto extends PaginationQueryDto {
@@ -50,6 +54,23 @@ export class GetAccountQueryDto extends BaseAccountQueryDto {
   @IsString()
   @MaxLength(EMAIL_MAX_LENGTH)
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  search?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  @MaxLength(10, { each: true })
+  @Transform(stringToStringArrayTransform)
+  role?: string[];
+
+  @IsOptional()
+  @IsString({ each: true })
+  @MaxLength(10, { each: true })
+  @Transform(stringToStringArrayTransform)
+  excludeRole?: string[];
 
   @IsOptional()
   @IsArray()
