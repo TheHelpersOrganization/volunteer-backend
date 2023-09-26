@@ -111,6 +111,11 @@ export class OrganizationQueryDto extends PaginationQueryDto {
   radius?: number;
 
   @IsOptional()
+  @IsInt({ each: true })
+  @Transform(separatedCommaNumberArrayTransform)
+  joinedAccount?: number[];
+
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(organizationIncludes.length)

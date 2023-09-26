@@ -16,6 +16,7 @@ import {
   IsDate,
   IsEnum,
   IsISO31661Alpha2,
+  IsInt,
   IsLatitude,
   IsLongitude,
   IsNumber,
@@ -87,6 +88,11 @@ export class BaseGetActivityQueryDto extends PaginationQueryDto {
   @IsBoolean()
   @Transform(stringToBooleanTransform)
   isShiftManager?: boolean;
+
+  @IsOptional()
+  @IsInt({ each: true })
+  @Transform(separatedCommaNumberArrayTransform)
+  joinedAccount?: number[];
 
   // Skills
   @IsOptional()

@@ -318,7 +318,11 @@ export class OrganizationService extends AbstractService {
   }
 
   private getMemberQuery(query: OrganizationQueryDto, accountId: number) {
-    if (query.joined == null && query.memberStatus == null) {
+    if (
+      query.joined == null &&
+      query.memberStatus == null &&
+      query.joinedAccount == null
+    ) {
       return undefined;
     }
     const whereMember: Prisma.MemberListRelationFilter | undefined = {};
@@ -349,6 +353,16 @@ export class OrganizationService extends AbstractService {
       whereMember.some = {
         accountId: accountId,
         status: query.memberStatus,
+      };
+    }
+    if (query.joinedAccount != null) {
+      whereMember.some = {
+        accountId: {
+          in: query.joinedAccount,
+        },
+        status: {
+          in: [OrganizationMemberStatus.Approved],
+        },
       };
     }
     return whereMember;

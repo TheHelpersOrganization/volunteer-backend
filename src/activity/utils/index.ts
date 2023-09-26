@@ -42,42 +42,47 @@ export const getShiftFilter = (
       },
     };
   }
-  // if (query.locality || query.region || query.country) {
-  //   shiftQuery = {
-  //     ...shiftQuery,
-  //     some: {
-  //       shiftLocations: {
-  //         some: {
-  //           location: {
-  //             locality: {
-  //               contains: query.locality?.trim(),
-  //               mode: 'insensitive',
-  //             },
-  //             region: {
-  //               contains: query.region?.trim(),
-  //               mode: 'insensitive',
-  //             },
-  //             country: query.country,
-  //           },
-  //         },
-  //       },
-  //     },
-  //   };
-  // }
+  if (query.joinedAccount) {
+    if (shiftQuery == null) {
+      shiftQuery = {};
+    }
+    if (shiftQuery.some == null) {
+      shiftQuery.some = {};
+    }
+    if (shiftQuery.some.shiftVolunteers == null) {
+      shiftQuery.some.shiftVolunteers = {};
+    }
+    if (shiftQuery.some.shiftVolunteers.some == null) {
+      shiftQuery.some.shiftVolunteers.some = {};
+    }
+    shiftQuery.some.shiftVolunteers.some = {
+      accountId: {
+        in: query.joinedAccount,
+      },
+      status: {
+        in: [ShiftVolunteerStatus.Approved],
+      },
+    };
+  }
   if (query instanceof GetActivityByIdQueryDto) {
     if (query.joinStatus && extra && extra.joiner) {
-      shiftQuery = {
-        ...shiftQuery,
-        some: {
-          shiftVolunteers: {
-            some: {
-              status: {
-                in: query.joinStatus,
-              },
-              accountId: extra.joiner,
-            },
-          },
+      if (shiftQuery == null) {
+        shiftQuery = {};
+      }
+      if (shiftQuery.some == null) {
+        shiftQuery.some = {};
+      }
+      if (shiftQuery.some.shiftVolunteers == null) {
+        shiftQuery.some.shiftVolunteers = {};
+      }
+      if (shiftQuery.some.shiftVolunteers.some == null) {
+        shiftQuery.some.shiftVolunteers.some = {};
+      }
+      shiftQuery.some.shiftVolunteers.some = {
+        status: {
+          in: query.joinStatus,
         },
+        accountId: extra.joiner,
       };
     }
   }
