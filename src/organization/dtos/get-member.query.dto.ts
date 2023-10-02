@@ -20,6 +20,7 @@ export enum GetMemberInclude {
   Profile = 'profile',
   Role = 'role',
   RoleGranter = 'roleGranter',
+  Contact = 'contact',
 }
 
 export const getMemberIncludes = Object.values(GetMemberInclude);

@@ -1,3 +1,4 @@
+import { ContactOutputDto } from '@app/contact/dtos';
 import { ProfileOutputDto } from '@app/profile/dtos';
 import { Expose, Type } from 'class-transformer';
 import { OrganizationMemberStatus } from '../constants';
@@ -26,6 +27,10 @@ export class MemberOutputDto {
   @Expose()
   @Type(() => MemberRoleOutputDto)
   roles: MemberRoleOutputDto[];
+
+  @Expose()
+  @Type(() => ContactOutputDto)
+  contacts?: ContactOutputDto[];
 
   @Expose()
   rejectionReason?: string;

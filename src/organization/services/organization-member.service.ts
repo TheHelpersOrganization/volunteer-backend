@@ -741,6 +741,14 @@ export class OrganizationMemberService extends AbstractService {
       };
     }
 
+    if (include?.includes(GetMemberInclude.Contact)) {
+      res.account = {
+        include: {
+          Contact: true,
+        },
+      };
+    }
+
     return res;
   }
 
@@ -775,6 +783,9 @@ export class OrganizationMemberService extends AbstractService {
           ? profiles?.find((p) => p.id == memberRole.grantedBy)
           : undefined,
       })),
+      contacts: includes?.includes(GetMemberInclude.Contact)
+        ? raw.account?.Contact
+        : undefined,
     }));
 
     return this.outputArray(MemberOutputDto, outputs);
