@@ -72,7 +72,7 @@ export const seedProfiles = async (
       dateOfBirth: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
       gender: gender,
       bio: fakerEn.lorem.paragraphs(),
-      phoneNumber: fakerVi.phone.number('+84#########'),
+      phoneNumber: fakerVi.phone.number(),
       createdAt: createdAt,
       updatedAt: updatedAt,
       locationId: locations[i].id,

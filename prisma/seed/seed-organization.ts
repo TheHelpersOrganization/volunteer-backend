@@ -109,7 +109,8 @@ export const seedOrganizations = async (
       const res = {
         id: getNextOrganizationId(),
         name: `The Helpers${index === 0 ? '' : ` ${index}`}`,
-        phoneNumber: fakerVi.phone.number('+84#########'),
+        phoneNumber: fakerVi.phone.number(),
+        //phoneNumber: fakerVi.phone.number('+84#########'),
         email: fakerVi.internet.exampleEmail(),
         description: fakerEn.lorem.paragraphs(),
         website: fakerVi.internet.url(),
@@ -138,7 +139,7 @@ export const seedOrganizations = async (
       const res = {
         id: getNextOrganizationId(),
         name: fakerEn.company.name(),
-        phoneNumber: fakerVi.phone.number('+84#########'),
+        phoneNumber: fakerVi.phone.number(),
         email: fakerEn.internet.exampleEmail(),
         description: fakerEn.lorem.paragraphs(),
         website: fakerVi.internet.url(),

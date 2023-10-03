@@ -189,14 +189,14 @@ export const generateViContact = () => ({
   id: getNextContactId(),
   name: fakerVi.person.fullName(),
   email: fakerVi.internet.exampleEmail(),
-  phoneNumber: fakerVi.phone.number('+84#########'),
+  phoneNumber: fakerVi.phone.number(),
 });
 
 export const generateEnContact = () => ({
   id: getNextContactId(),
   name: fakerEn.person.fullName(),
   email: fakerEn.internet.exampleEmail(),
-  phoneNumber: fakerEn.phone.number('+84#########'),
+  phoneNumber: fakerEn.phone.number(),
 });
 
 export const capitalizeWords = (s: string) => {

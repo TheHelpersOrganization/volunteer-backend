@@ -14,7 +14,9 @@ import {
   Organization,
   PrismaClient,
 } from '@prisma/client';
+import { readFileSync } from 'fs';
 import _ from 'lodash';
+import path from 'path';
 import { seedFiles } from './seed-file';
 import { getNextNewsId } from './utils';
 
@@ -32,6 +34,9 @@ export const seedNews = async (
 ) => {
   const news: News[] = [];
   const newsHasThumbnail: boolean[] = [];
+  const newsTemplates = loadNews(
+    path.join(__dirname, `./assets/volunteer-news.txt`),
+  );
 
   // Default organizations will have variety of news
   const verifiedOrganizations = data.organizations.filter(
@@ -142,8 +147,8 @@ export const seedNews = async (
     }
     newsHasThumbnail.push(
       faker.helpers.weightedArrayElement([
-        { weight: 1, value: true },
-        { weight: 5, value: false },
+        { weight: 3, value: true },
+        { weight: 1, value: false },
       ]),
     );
   });
@@ -187,6 +192,7 @@ const generateNews = (data: {
   orgId: number;
   authorId: number;
   activityIds: number[];
+  template?: NewsTemplate;
 }) => {
   const type = faker.helpers.arrayElement(newsTypes);
   const activityId =
@@ -199,11 +205,13 @@ const generateNews = (data: {
   return {
     id: getNextNewsId(),
     type: type,
-    title: faker.lorem.lines(1),
-    content: faker.lorem.paragraphs({
-      min: 3,
-      max: 10,
-    }),
+    title: data.template?.title ?? faker.lorem.lines(1),
+    content:
+      data.template?.description ??
+      faker.lorem.paragraphs({
+        min: 3,
+        max: 10,
+      }),
     contentFormat: 'plaintext',
     thumbnail: null,
     organizationId: data.orgId,
@@ -223,4 +231,37 @@ const generateNews = (data: {
     }),
     activityId: activityId,
   };
+};
+
+class NewsTemplate {
+  title: string;
+  description: string;
+}
+
+const loadNews = (path: string) => {
+  // Parse txt file
+  // Return array of NewsTemplate
+  const content = readFileSync(path, 'utf-8');
+  const lines = content.split('\n');
+  const newsTemplates: NewsTemplate[] = [];
+  let currentNewsTemplate: NewsTemplate | null = null;
+  lines.forEach((line) => {
+    if (line.startsWith('Title: ')) {
+      currentNewsTemplate = new NewsTemplate();
+      // Remove the prefix
+      const title = line.substring('Title: '.length);
+      currentNewsTemplate.title = title;
+      newsTemplates.push(currentNewsTemplate);
+    } else if (line.startsWith('Description: ')) {
+      if (currentNewsTemplate) {
+        const description = line.substring('Description: '.length);
+        currentNewsTemplate.description = description;
+      }
+    } else if (line.trim().length !== 0) {
+      if (currentNewsTemplate) {
+        currentNewsTemplate.description += `\n${line}`;
+      }
+    }
+  });
+  return newsTemplates;
 };

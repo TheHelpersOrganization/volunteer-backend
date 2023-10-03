@@ -30,7 +30,6 @@ import { seedFiles } from './seed-file';
 import { skillTypeFromSkillId } from './seed-skill';
 import {
   SkillType,
-  capitalizeWords,
   generateLocation,
   getActivityTemplateAt,
   getNextActivityId,
@@ -166,14 +165,6 @@ export const seedActivities = async (
           updatedAt: new Date(),
         });
 
-        // const activitySkills: Skill[] = _.sampleSize(
-        //   skills,
-        //   fakerEn.helpers.weightedArrayElement([
-        //     { weight: 10, value: 1 },
-        //     { weight: 3, value: 2 },
-        //     { weight: 1, value: 3 },
-        //   ]),
-        // );
         const activitySkills: Skill[] = template.skillTypes.flatMap(
           (skillType) =>
             requireNonNullish(skills.find((s) => s.name === skillType)),
@@ -201,8 +192,9 @@ export const seedActivities = async (
           weightedNumberOfShifts,
         );
 
-        for (let i = 0; i < numberOfShifts; i++) {
+        for (let shiftIndex = 0; shiftIndex < numberOfShifts; shiftIndex++) {
           const shiftId = getNextShiftId();
+          const shiftName = generateShiftName(activity.name, shiftIndex + 1);
           const shiftRatingBias = generateRating(activityRatingBias);
           let shiftStatus: ShiftStatus;
           switch (activityStatus) {
@@ -214,7 +206,7 @@ export const seedActivities = async (
               break;
             default:
               shiftStatus =
-                i == 0
+                shiftIndex == 0
                   ? ShiftStatus.Ongoing
                   : requireNonNullish(
                       _.sample([ShiftStatus.Pending, ShiftStatus.Completed]),
@@ -663,8 +655,8 @@ export const seedActivities = async (
               : _.meanBy(ratedShiftVolunteers, (v) => v.shiftRating);
           shifts.push({
             id: shiftId,
-            name: capitalizeWords(fakerEn.lorem.words()),
-            description: fakerEn.lorem.paragraphs(),
+            name: shiftName,
+            description: activity.description,
             startTime: shiftStartTime,
             endTime: shiftEndTime,
             status: shiftStatus,
@@ -807,4 +799,25 @@ const generateRating = (bias: number) => {
   const weighted = weightedRatings[bias - 1];
   const rating = fakerEn.helpers.weightedArrayElement(weighted);
   return rating;
+};
+
+const generateShiftName = (activityName: string, shiftIndex: number) => {
+  // If activity name is short, use activity name plus shift index
+  if (activityName.length <= 15) {
+    return generateShiftNameFromActivityName(activityName, shiftIndex);
+  }
+  return generateShiftNameFromIndex(shiftIndex);
+};
+
+const generateShiftNameFromIndex = (shiftIndex: number) => {
+  const shiftName = `Shift ${shiftIndex + 1}`;
+  return shiftName;
+};
+
+const generateShiftNameFromActivityName = (
+  activityName: string,
+  shiftIndex: number,
+) => {
+  const shiftName = `${activityName} - Shift ${shiftIndex + 1}`;
+  return shiftName;
 };
