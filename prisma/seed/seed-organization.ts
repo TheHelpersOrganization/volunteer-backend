@@ -15,7 +15,9 @@ import {
   Role,
 } from '@prisma/client';
 import { randomInt } from 'crypto';
+import { readFileSync } from 'fs';
 import _ from 'lodash';
+import path from 'path';
 import {
   OrganizationMemberRole,
   OrganizationMemberStatus,
@@ -63,6 +65,7 @@ export const seedOrganizations = async (
   const organizationContactsRel: OrganizationContact[] = [];
 
   const hasLogo: boolean[] = [];
+  const organizationTemplate = loadOrganizations();
 
   for (let i = 0; i < organizationCount; i++) {
     const v = fakerEn.helpers.weightedArrayElement([
@@ -112,7 +115,8 @@ export const seedOrganizations = async (
         phoneNumber: fakerVi.phone.number(),
         //phoneNumber: fakerVi.phone.number('+84#########'),
         email: fakerVi.internet.exampleEmail(),
-        description: fakerEn.lorem.paragraphs(),
+        description:
+          organizationTemplate[index % organizationTemplate.length].bio,
         website: fakerVi.internet.url(),
         status: value,
         isDisabled: false,
@@ -123,7 +127,7 @@ export const seedOrganizations = async (
           : null,
         ownerId: 1,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
-        verifierComment: fakerEn.lorem.sentence(),
+        verifierComment: 'Your organization is verified',
         createdAt: fakerVi.date.between({ from: '2000-01-01', to: new Date() }),
         updatedAt: new Date(),
         hoursContributed: 0,
@@ -141,7 +145,8 @@ export const seedOrganizations = async (
         name: fakerEn.company.name(),
         phoneNumber: fakerVi.phone.number(),
         email: fakerEn.internet.exampleEmail(),
-        description: fakerEn.lorem.paragraphs(),
+        description:
+          organizationTemplate[realIndex % organizationTemplate.length].bio,
         website: fakerVi.internet.url(),
         status: value.organizationStatus,
         isDisabled: fakerVi.datatype.boolean(),
@@ -364,4 +369,27 @@ export const seedOrganizations = async (
     organizationSkills,
     members,
   };
+};
+
+class OrganizationTemplate {
+  bio: string;
+}
+
+const loadOrganizations = () => {
+  const lines = readFileSync(
+    path.join(__dirname, `./assets/organization-bio.txt`),
+    'utf-8',
+  ).split('\n');
+  const organizationTemplates: OrganizationTemplate[] = [];
+
+  lines.forEach((line) => {
+    if (line.trim().length === 0) {
+      return;
+    }
+    const organizationTemplate = new OrganizationTemplate();
+    organizationTemplate.bio = line;
+    organizationTemplates.push(organizationTemplate);
+  });
+
+  return organizationTemplates;
 };

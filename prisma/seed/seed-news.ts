@@ -1,5 +1,5 @@
 import { requireNonNull } from '@app/common/utils';
-import { NewsType, newsTypes } from '@app/news/constants';
+import { NewsContentFormat, NewsType, newsTypes } from '@app/news/constants';
 import { calculateNewsPopularity } from '@app/news/utils';
 import {
   OrganizationMemberStatus,
@@ -132,6 +132,7 @@ export const seedNews = async (
             orgId: org.id,
             authorId: faker.helpers.arrayElement(organizationMembers).accountId,
             activityIds: organizationActivityIds,
+            template: newsTemplates[i % newsTemplates.length],
           }),
         );
       }
@@ -212,7 +213,7 @@ const generateNews = (data: {
         min: 3,
         max: 10,
       }),
-    contentFormat: 'plaintext',
+    contentFormat: NewsContentFormat.Plaintext,
     thumbnail: null,
     organizationId: data.orgId,
     views: views,

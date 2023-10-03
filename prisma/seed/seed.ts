@@ -61,7 +61,7 @@ const seed = async () => {
     '- Seeding skills...',
   );
 
-  await runWithTimer(
+  const { profiles } = await runWithTimer(
     () =>
       seedProfiles(prisma, accounts, skills, {
         importantAccountIds: defaultAccountIds,
@@ -176,6 +176,7 @@ const seed = async () => {
       seedNotifications(
         prisma,
         accounts,
+        profiles,
         activities,
         shifts,
         organizations,

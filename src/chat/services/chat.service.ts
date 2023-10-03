@@ -419,7 +419,6 @@ export class ChatService extends AbstractService {
       const participant = chat.participants.find(
         (p) => p.id === context.account.id,
       );
-      console.log(participant);
       const message = await tx.chatMessage.create({
         data: {
           ...dto,

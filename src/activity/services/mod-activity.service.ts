@@ -1,7 +1,7 @@
 import { AppLogger } from '@app/common/logger';
 import { RequestContext } from '@app/common/request-context';
 import { AbstractService } from '@app/common/services';
-import { NotificationType } from '@app/notification/constants';
+import { createNewActivityNotification } from '@app/notification/constants/notifications';
 import { NotificationService } from '@app/notification/services';
 import {
   OrganizationMemberStatus,
@@ -149,11 +149,12 @@ export class ModActivityService extends AbstractService {
       },
     });
 
+    const createNotification = createNewActivityNotification({
+      activityName: res.name,
+      organizationName: organization.name!,
+    });
     this.notificationService.sendNotifications(context, {
-      type: NotificationType.Activity,
-      title: 'New Activity',
-      shortDescription: `New activity ${res.name} has been created for ${organization.name}.`,
-      description: `New activity ${res.name} has been created for ${organization.name}.`,
+      ...createNotification,
       accountIds: organization.members.map((m) => m.accountId),
       activityId: res.id,
     });

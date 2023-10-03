@@ -28,14 +28,20 @@ const axios = new Axios({
 
 export const resetBucket = async () => {
   try {
-    const objects = await s3Client.listObjectsV2({ Bucket: bucket });
-    if (objects.Contents) {
+    console.log('🕓 Deleting objects in batches');
+    const batchIndex = 1;
+    let objects = await s3Client.listObjectsV2({ Bucket: bucket });
+    while (objects.Contents) {
+      console.log(
+        `Batch ${batchIndex}: Deleting ${objects.Contents.length} objects`,
+      );
       await s3Client.deleteObjects({
         Bucket: bucket,
         Delete: {
           Objects: objects.Contents.map((obj) => ({ Key: obj.Key })),
         },
       });
+      objects = await s3Client.listObjectsV2({ Bucket: bucket });
     }
   } catch (err) {
     console.error('Failed to reset bucket');

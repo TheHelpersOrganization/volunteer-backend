@@ -9,7 +9,9 @@ import {
   Skill,
 } from '@prisma/client';
 import { randomInt } from 'crypto';
+import { readFileSync } from 'fs';
 import _ from 'lodash';
+import path from 'path';
 import { Gender } from '../../src/profile/constants';
 import { seedFiles } from './seed-file';
 import { generateLocation, generateViName } from './utils';
@@ -26,6 +28,7 @@ export const seedProfiles = async (
   const locations: Location[] = Array.from({ length: accounts.length }).map(
     () => generateLocation(),
   );
+  const profileTemplates = loadProfiles();
 
   const profileAvatars = accounts.map((account) => {
     return fakerEn.helpers.weightedArrayElement([
@@ -45,7 +48,7 @@ export const seedProfiles = async (
 
   let avatarIndex = 0;
 
-  const profiles: Profile[] = accounts.map((account, i) => {
+  const profiles: Profile[] = accounts.map((account, profileIndex) => {
     const createdAt = fakerVi.date.between({
       from: account.createdAt ?? new Date(),
       to: new Date(),
@@ -62,7 +65,7 @@ export const seedProfiles = async (
     }
     const { firstName, lastName } = generateViName(genderName);
 
-    const hasAvatar = profileAvatars[i];
+    const hasAvatar = profileAvatars[profileIndex];
 
     const res = {
       id: account.id,
@@ -71,11 +74,11 @@ export const seedProfiles = async (
       lastName: lastName,
       dateOfBirth: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
       gender: gender,
-      bio: fakerEn.lorem.paragraphs(),
+      bio: profileTemplates[profileIndex % profileTemplates.length].bio,
       phoneNumber: fakerVi.phone.number(),
       createdAt: createdAt,
       updatedAt: updatedAt,
-      locationId: locations[i].id,
+      locationId: locations[profileIndex].id,
       avatarId: hasAvatar ? avatars[avatarIndex]?.id ?? null : null,
     };
 
@@ -127,4 +130,26 @@ export const seedProfiles = async (
     profiles,
     profileInterestedSkills,
   };
+};
+
+class ProfileTemplate {
+  bio: string;
+}
+
+const loadProfiles = () => {
+  const lines = readFileSync(
+    path.join(__dirname, './assets/profile-bio.txt'),
+    'utf-8',
+  ).split('\n');
+  const profileTemplates: ProfileTemplate[] = [];
+  lines.forEach((line) => {
+    if (line.trim().length === 0) {
+      return;
+    }
+    const profileTemplate = new ProfileTemplate();
+    profileTemplate.bio = line;
+    profileTemplates.push(profileTemplate);
+  });
+
+  return profileTemplates;
 };

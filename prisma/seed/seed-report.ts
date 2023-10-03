@@ -19,6 +19,8 @@ import {
   ReportNews,
   ReportOrganization,
 } from '@prisma/client';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { seedFiles } from './seed-file';
 import { getNextReportId } from './utils';
 
@@ -35,7 +37,7 @@ export const seedReports = async (
     runWithoutDb?: boolean;
   },
 ) => {
-  const reports: Report[] = [];
+  const reports: (Report & { template?: ReportTemplate })[] = [];
   const accountReports: ReportAccount[] = [];
   const organizationReports: ReportOrganization[] = [];
   const activityReports: ReportActivity[] = [];
@@ -44,6 +46,13 @@ export const seedReports = async (
   const reportMessages: ReportMessage[] = [];
   const reportMessageFilesCount: { [key: number]: number } = {};
   const reportMessageFiles: ReportMessageFile[] = [];
+
+  const accountTemplates = loadReports('./assets/account-reports.txt');
+  const organizationTemplates = loadReports(
+    './assets/organization-reports.txt',
+  );
+  const activityTemplates = loadReports('./assets/activity-reports.txt');
+  const newsTemplates = loadReports('./assets/news-reports.txt');
 
   accounts.forEach((account) => {
     if (!options?.importantAccountIds?.includes(account.id)) {
@@ -58,6 +67,10 @@ export const seedReports = async (
           status: faker.helpers.arrayElement(reportStatuses),
           reporterId: account.id,
           reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+          accountTemplates: accountTemplates,
+          organizationTemplates: organizationTemplates,
+          activityTemplates: activityTemplates,
+          newsTemplates: newsTemplates,
         });
         reports.push(report);
 
@@ -97,6 +110,10 @@ export const seedReports = async (
             status: status,
             reporterId: account.id,
             reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+            accountTemplates: accountTemplates,
+            organizationTemplates: organizationTemplates,
+            activityTemplates: activityTemplates,
+            newsTemplates: newsTemplates,
           });
           reports.push(report);
 
@@ -115,6 +132,10 @@ export const seedReports = async (
             status: status,
             reporterId: account.id,
             reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+            accountTemplates: accountTemplates,
+            organizationTemplates: organizationTemplates,
+            activityTemplates: activityTemplates,
+            newsTemplates: newsTemplates,
           });
           reports.push(report);
 
@@ -134,6 +155,10 @@ export const seedReports = async (
             status: status,
             reporterId: account.id,
             reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+            accountTemplates: accountTemplates,
+            organizationTemplates: organizationTemplates,
+            activityTemplates: activityTemplates,
+            newsTemplates: newsTemplates,
           });
           reports.push(report);
 
@@ -152,6 +177,10 @@ export const seedReports = async (
             status: status,
             reporterId: account.id,
             reviewerId: faker.helpers.arrayElement(adminAccounts).id,
+            accountTemplates: accountTemplates,
+            organizationTemplates: organizationTemplates,
+            activityTemplates: activityTemplates,
+            newsTemplates: newsTemplates,
           });
           reports.push(report);
 
@@ -171,6 +200,8 @@ export const seedReports = async (
       reportCreatedAt: report.createdAt,
       reportUpdatedAt: report.updatedAt,
       first: true,
+      template: report.template!,
+      index: 0,
     });
     reportMessages.push(reportMessage);
 
@@ -218,6 +249,8 @@ export const seedReports = async (
         ]),
         reportCreatedAt: report.createdAt,
         reportUpdatedAt: report.updatedAt,
+        template: report.template!,
+        index: i + 1,
       });
       reportMessages.push(otherReportMessage);
 
@@ -293,6 +326,9 @@ export const seedReports = async (
     };
   }
 
+  reports.forEach((report) => {
+    delete report.template;
+  });
   await prisma.report.createMany({
     data: reports,
   });
@@ -335,22 +371,38 @@ const createReport = (data: {
   status: ReportStatus;
   reporterId: number;
   reviewerId: number;
-}): Report => {
+  accountTemplates: ReportTemplate[];
+  organizationTemplates: ReportTemplate[];
+  activityTemplates: ReportTemplate[];
+  newsTemplates: ReportTemplate[];
+}) => {
   const createdAt = faker.date.past({ years: 1, refDate: new Date() });
   const updatedAt = faker.date.between({
     from: createdAt,
     to: new Date(),
   });
 
+  let template: ReportTemplate;
+  if (data.type === ReportType.Account) {
+    template = faker.helpers.arrayElement(data.accountTemplates);
+  } else if (data.type === ReportType.Organization) {
+    template = faker.helpers.arrayElement(data.organizationTemplates);
+  } else if (data.type === ReportType.Activity) {
+    template = faker.helpers.arrayElement(data.activityTemplates);
+  } else {
+    template = faker.helpers.arrayElement(data.newsTemplates);
+  }
+
   return {
     id: getNextReportId(),
     type: data.type,
     status: data.status,
-    title: faker.lorem.sentence(),
+    title: template.title,
     reporterId: data.reporterId,
     reviewerId: data.reviewerId,
     createdAt: createdAt,
     updatedAt: updatedAt,
+    template: template,
   };
 };
 
@@ -360,6 +412,8 @@ const createReportMessage = (data: {
   reportCreatedAt: Date;
   reportUpdatedAt: Date;
   first?: boolean;
+  template: ReportTemplate;
+  index: number;
 }): ReportMessage => {
   const createdAt = faker.date.between({
     from: data.reportCreatedAt,
@@ -375,8 +429,42 @@ const createReportMessage = (data: {
     reportId: data.reportId,
     senderId: data.senderId,
     first: data.first ?? false,
-    content: faker.lorem.paragraph(),
+    content: data.template.messages[data.index],
     createdAt: createdAt,
     updatedAt: updatedAt,
   };
+};
+
+class ReportTemplate {
+  title: string;
+  messages: string[];
+}
+
+const loadReports = (relativePath: string) => {
+  const content = readFileSync(path.join(__dirname, relativePath), 'utf-8');
+  const lines = content.split('\n');
+  const reports: ReportTemplate[] = [];
+  let currentReport: ReportTemplate | null = null;
+
+  for (const line of lines) {
+    if (line.startsWith('Report')) {
+      if (currentReport != null) {
+        reports.push(currentReport);
+      }
+      currentReport = new ReportTemplate();
+      currentReport.title = line.replace('Report:', '').trim();
+      currentReport.messages = [];
+    } else if (line.startsWith('User') || line.startsWith('Admin')) {
+      if (currentReport != null) {
+        if (currentReport.messages == null) {
+          currentReport.messages = [];
+        }
+        currentReport.messages.push(
+          line.replace('User:', '').replace('Admin:', '').trim(),
+        );
+      }
+    }
+  }
+
+  return reports;
 };
