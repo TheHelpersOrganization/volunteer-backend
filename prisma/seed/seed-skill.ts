@@ -1,4 +1,3 @@
-import { faker as fakerEn } from '@faker-js/faker/locale/en';
 import { PrismaClient, Skill } from '@prisma/client';
 import { SkillType, getNextSkillId } from './utils';
 
@@ -6,49 +5,49 @@ export const skills: Skill[] = [
   {
     id: getNextSkillId(),
     name: SkillType.Health,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Health',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Food,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Food',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Education,
-    description: fakerEn.lorem.paragraphs(),
+    description: 'Education',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Equality,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Equality',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Climate,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Climate',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Conservation,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Conservation',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: getNextSkillId(),
     name: SkillType.Job,
-    description: fakerEn.lorem.paragraph(),
+    description: 'Job',
     createdAt: new Date(),
     updatedAt: new Date(),
   },

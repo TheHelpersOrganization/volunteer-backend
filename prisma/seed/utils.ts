@@ -130,7 +130,12 @@ export const generateLocation = (options?: { region?: string }) => {
 //   createdAt: new Date(),
 //   updatedAt: new Date(),
 // });
-
+const memberRejectionReasonTemplate = [
+  'Member has bad reputation',
+  'Member is not active enough',
+  'Does not meet the requirements',
+  'Not enough experience',
+];
 export const generateMember = (
   account: Account,
   organization: Organization,
@@ -149,7 +154,7 @@ export const generateMember = (
     OrganizationMemberStatus.Rejected,
     OrganizationMemberStatus.Removed,
   ].includes(status)
-    ? fakerEn.lorem.sentence()
+    ? fakerEn.helpers.arrayElement(memberRejectionReasonTemplate)
     : null;
 
   return {

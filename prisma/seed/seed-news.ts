@@ -97,6 +97,7 @@ export const seedNews = async (
               orgId: org.id,
               authorId: authorId,
               activityIds: organizationActivityIds,
+              template: newsTemplates[i % newsTemplates.length],
             }),
           );
         }
@@ -117,6 +118,7 @@ export const seedNews = async (
             authorId: faker.helpers.arrayElement(organizationDefaultMembers)
               .accountId,
             activityIds: organizationActivityIds,
+            template: newsTemplates[i % newsTemplates.length],
           }),
         );
       }
@@ -193,7 +195,7 @@ const generateNews = (data: {
   orgId: number;
   authorId: number;
   activityIds: number[];
-  template?: NewsTemplate;
+  template: NewsTemplate;
 }) => {
   const type = faker.helpers.arrayElement(newsTypes);
   const activityId =

@@ -197,18 +197,6 @@ const generateChatParticipant = (data: {
   return chatParticipant;
 };
 
-const generateChatMessage = (data: { chatId: number; sender: number }) => {
-  const chatMessage = {
-    id: getNextChatMessageId(),
-    chatId: data.chatId,
-    sender: data.sender,
-    message: faker.lorem.paragraph(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  return chatMessage;
-};
-
 // Example Chat Messages
 // Conversation 1 - Environmental Cleanup Volunteers:
 // Volunteer 1: Good morning, fellow environmental cleanup volunteers! How's the park looking today?

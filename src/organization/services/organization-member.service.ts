@@ -29,6 +29,7 @@ import {
 } from '../dtos';
 import {
   CannotTransferOwnershipToSelfException,
+  InvalidMemberStatus,
   OrganizationNotFoundException,
   UserHaveAlreadyJoinedOrganizationException,
   UserHaveNotJoinedOrganizationException,
@@ -383,6 +384,52 @@ export class OrganizationMemberService extends AbstractService {
           status == OrganizationMemberStatus.Rejected
             ? rejectionReason
             : undefined,
+        censorId: context.account.id,
+      },
+    });
+
+    return this.output(MemberOutputDto, updated);
+  }
+
+  // rejected -> approved
+  // removed -> approved
+  async approveMemberBack(
+    context: RequestContext,
+    organizationId: number,
+    memberId: number,
+  ) {
+    this.logCaller(context, this.approveMemberBack);
+
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: organizationId,
+      },
+    });
+    if (organization == null) {
+      throw new OrganizationNotFoundException();
+    }
+
+    const member = await this.prisma.member.findFirst({
+      where: {
+        id: memberId,
+      },
+    });
+    if (member == null) {
+      throw new UserHaveNotJoinedOrganizationException();
+    }
+    if (
+      member.status != OrganizationMemberStatus.Rejected &&
+      member.status != OrganizationMemberStatus.Removed
+    ) {
+      throw new InvalidMemberStatus();
+    }
+
+    const updated = await this.prisma.member.update({
+      where: {
+        id: member.id,
+      },
+      data: {
+        status: OrganizationMemberStatus.Approved,
         censorId: context.account.id,
       },
     });

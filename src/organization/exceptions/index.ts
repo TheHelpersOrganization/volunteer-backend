@@ -55,6 +55,12 @@ export class UserStatusNotApprovedException extends BaseApiException {
   }
 }
 
+export class InvalidMemberStatus extends BaseApiException {
+  constructor() {
+    super({ message: 'Invalid member status' });
+  }
+}
+
 export class CannotTransferOwnershipToSelfException extends BaseApiException {
   constructor() {
     super({ message: 'Cannot transfer ownership to yourself' });

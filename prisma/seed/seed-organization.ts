@@ -66,6 +66,13 @@ export const seedOrganizations = async (
 
   const hasLogo: boolean[] = [];
   const organizationTemplate = loadOrganizations();
+  const verifierCommentTemplate = [
+    'Your organization is verified',
+    'Your organization information is verified',
+    'Your organization is verified. Thank you for joining us!',
+    'Your organization is verified. Welcome to The Helpers!',
+    'Your organization is verified. We hope you enjoy your stay!',
+  ];
 
   for (let i = 0; i < organizationCount; i++) {
     const v = fakerEn.helpers.weightedArrayElement([
@@ -159,7 +166,7 @@ export const seedOrganizations = async (
           : null,
         ownerId: value.account.id,
         verifierId: _.sample(adminAccounts)?.id ?? adminAccounts[0].id,
-        verifierComment: fakerEn.lorem.sentence(),
+        verifierComment: _.sample(verifierCommentTemplate) ?? null,
         createdAt: fakerVi.date.between({ from: '1950-01-01', to: new Date() }),
         updatedAt: new Date(),
         hoursContributed: 0,

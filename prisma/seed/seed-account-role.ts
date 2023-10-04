@@ -183,6 +183,27 @@ export const seedAccountsAndRoles = async (
   const verificationList: AccountVerification[] = [];
   const banList: AccountBan[] = [];
 
+  const noteTemplatesOk = [
+    'Account verified',
+    'Information verified',
+    'Profile verified',
+  ];
+  const noteTemplatesNotOk = [
+    'Wrong information',
+    'Please check your email again',
+    'Profile contains inappropriate content',
+    'Profile contains inappropriate image',
+  ];
+  const banNoteTemplates = [
+    'Banned for inappropriate content',
+    'Banned for inappropriate image',
+    'Banned for inappropriate behavior',
+    'Banned for inappropriate language',
+    'Harassment',
+    'Spam',
+    'Scam',
+  ];
+
   const volunteerAccounts = Array.from({
     length: options?.numberOfVolunteerAccounts ?? 300,
   }).map(() => {
@@ -203,14 +224,19 @@ export const seedAccountsAndRoles = async (
       // Random number of verification
       for (let i = 0; i < fakerVi.number.int({ min: 0, max: 3 }); i++) {
         const ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+        const isVerified = fakerVi.datatype.boolean();
+
+        const note = isVerified
+          ? fakerVi.helpers.arrayElement(noteTemplatesOk)
+          : fakerVi.helpers.arrayElement(noteTemplatesNotOk);
         verificationList.push({
           id: getNextAccountVerificationId(),
           accountId: accountId,
           performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-          note: fakerEn.lorem.lines(),
-          isVerified: fakerVi.datatype.boolean(),
+          note: note,
+          isVerified: isVerified,
           status: AccountVerificationStatus.Completed,
-          content: fakerEn.lorem.paragraphs(),
+          content: 'I want to verify my account',
           createdAt: ca,
           updatedAt: ca,
         });
@@ -218,14 +244,17 @@ export const seedAccountsAndRoles = async (
 
       // The last verification must match the account verification status
       ca = fakerVi.date.soon({ days: 14, refDate: createdAt });
+      const note = isAccountVerified
+        ? fakerVi.helpers.arrayElement(noteTemplatesOk)
+        : fakerVi.helpers.arrayElement(noteTemplatesNotOk);
       verificationList.push({
         id: getNextAccountVerificationId(),
         accountId: accountId,
         performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-        note: fakerEn.lorem.lines(),
+        note: note,
         isVerified: isAccountVerified,
         status: AccountVerificationStatus.Completed,
-        content: fakerEn.lorem.paragraphs(),
+        content: 'I want to verify my account',
         createdAt: ca,
         updatedAt: ca,
       });
@@ -236,10 +265,10 @@ export const seedAccountsAndRoles = async (
         id: getNextAccountVerificationId(),
         accountId: accountId,
         performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-        note: fakerEn.lorem.lines(),
+        note: null,
         isVerified: false,
         status: AccountVerificationStatus.Pending,
-        content: fakerEn.lorem.paragraphs(),
+        content: 'I want to verify my account',
         createdAt: ca,
         updatedAt: ca,
       });
@@ -253,7 +282,7 @@ export const seedAccountsAndRoles = async (
           id: getNextAccountBanId(),
           accountId: accountId,
           performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-          note: fakerEn.lorem.lines(),
+          note: fakerEn.helpers.arrayElement(banNoteTemplates),
           isBanned: fakerVi.datatype.boolean(),
           createdAt: ca,
           updatedAt: ca,
@@ -265,7 +294,7 @@ export const seedAccountsAndRoles = async (
         id: getNextAccountBanId(),
         accountId: accountId,
         performedBy: fakerVi.helpers.arrayElement(adminAccounts).id,
-        note: fakerEn.lorem.lines(),
+        note: fakerEn.helpers.arrayElement(banNoteTemplates),
         isBanned: isAccountDisabled,
         createdAt: ca,
         updatedAt: ca,

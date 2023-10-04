@@ -1,7 +1,4 @@
-import {
-  NotificationType,
-  notificationTypes,
-} from '@app/notification/constants';
+import { NotificationType } from '@app/notification/constants';
 import {
   NotificationTemplate,
   createNewActivityNotification,
@@ -72,7 +69,15 @@ export const seedNotifications = async (
     });
 
     for (let i = 0; i < faker.number.int({ min: 10, max: 30 }); i++) {
-      const type = requireNonNullish(_.sample(notificationTypes));
+      const type = requireNonNullish(
+        _.sample([
+          NotificationType.Activity,
+          NotificationType.Shift,
+          NotificationType.Organization,
+          NotificationType.Report,
+          NotificationType.Chat,
+        ]),
+      );
       let activityId: number | undefined = undefined;
       let shiftId: number | undefined = undefined;
       let organizationId: number | undefined = undefined;

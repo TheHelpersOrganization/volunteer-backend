@@ -56,6 +56,19 @@ export class OrganizationMemberModController {
     );
   }
 
+  @Post(':id/approve-back')
+  async approveBackMember(
+    @ReqContext() context: RequestContext,
+    @Param('organizationId') organizationId: number,
+    @Param('id') id: number,
+  ): Promise<MemberOutputDto> {
+    return this.organizationMemberService.approveMemberBack(
+      context,
+      organizationId,
+      id,
+    );
+  }
+
   @Post(':id/reject')
   async rejectMember(
     @ReqContext() context: RequestContext,

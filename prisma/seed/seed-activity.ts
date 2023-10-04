@@ -93,6 +93,33 @@ export const seedActivities = async (
   const shiftVolunteers: VolunteerShift[] = [];
   const shiftManagers: ShiftManager[] = [];
 
+  const shiftRatingCommentTemplates = [
+    'Great shift!',
+    'Had a great time!',
+    'Would recommend!',
+    'Would volunteer again!',
+    'Great experience!',
+    'Great organization!',
+    'Great people!',
+    'Contributed a lot to the community!',
+  ];
+  const reviewCommentTemplates = [
+    'Great volunteer!',
+    'Enjoyed working with this volunteer!',
+    'Hope to work with this volunteer again!',
+    'Nice altitudes and skills',
+    'Great contribution to the community!',
+  ];
+  const volunteerRejectionReasonTemplates = [
+    'Not enough experience',
+    'Bad attitude according to previous volunteer managers',
+    'Not enough skills',
+    'Failed the interview',
+    'Bad behavior in previous activities',
+    'Skills do not match the requirements',
+    'Too long to respond',
+  ];
+
   organizations
     .filter((o) => o.status === OrganizationStatus.Verified)
     .forEach((organization) => {
@@ -483,7 +510,7 @@ export const seedActivities = async (
                 : null;
             const shiftRatingComment =
               shiftStatus === ShiftStatus.Completed
-                ? fakerEn.lorem.sentence()
+                ? fakerEn.helpers.arrayElement(shiftRatingCommentTemplates)
                 : null;
             shiftVolunteers.push({
               id: getNextShiftVolunteerId(),
@@ -507,7 +534,7 @@ export const seedActivities = async (
               reviewerId: attendant
                 ? fakerEn.helpers.arrayElement(volunteerAccounts).id
                 : null,
-              reviewNote: fakerEn.lorem.sentence(),
+              reviewNote: fakerEn.helpers.arrayElement(reviewCommentTemplates),
               accountId: account.id,
               active: true,
               censorId: [
@@ -521,7 +548,9 @@ export const seedActivities = async (
                 ShiftVolunteerStatus.Rejected,
                 ShiftVolunteerStatus.Removed,
               ].includes(status)
-                ? fakerEn.lorem.sentence()
+                ? fakerEn.helpers.arrayElement(
+                    volunteerRejectionReasonTemplates,
+                  )
                 : null,
               shiftRating: shiftRating,
               shiftRatingComment: shiftRatingComment,
@@ -592,7 +621,7 @@ export const seedActivities = async (
                   : null;
               const shiftRatingComment =
                 shiftStatus === ShiftStatus.Completed
-                  ? fakerEn.lorem.sentence()
+                  ? fakerEn.helpers.arrayElement(shiftRatingCommentTemplates)
                   : null;
               shiftVolunteers.push({
                 id: getNextShiftVolunteerId(),
@@ -619,7 +648,9 @@ export const seedActivities = async (
                 reviewerId: attendant
                   ? fakerEn.helpers.arrayElement(volunteerAccounts).id
                   : null,
-                reviewNote: attendant ? fakerEn.lorem.sentence() : null,
+                reviewNote: attendant
+                  ? fakerEn.helpers.arrayElement(reviewCommentTemplates)
+                  : null,
                 accountId: account.id,
                 active: false,
                 censorId: [
@@ -633,7 +664,9 @@ export const seedActivities = async (
                   ShiftVolunteerStatus.Rejected,
                   ShiftVolunteerStatus.Removed,
                 ].includes(status)
-                  ? fakerEn.lorem.sentence()
+                  ? fakerEn.helpers.arrayElement(
+                      volunteerRejectionReasonTemplates,
+                    )
                   : null,
                 shiftRating: shiftRating,
                 shiftRatingComment: shiftRatingComment,
