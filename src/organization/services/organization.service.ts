@@ -297,7 +297,14 @@ export class OrganizationService extends AbstractService {
               },
         members: {
           where: {
-            status: OrganizationMemberStatus.Approved,
+            OR: [
+              {
+                status: OrganizationMemberStatus.Approved,
+              },
+              {
+                accountId: context.account.id,
+              },
+            ],
           },
         },
       },

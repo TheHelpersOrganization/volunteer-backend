@@ -1,5 +1,5 @@
 import { ContactOutputDto } from '@app/contact/dtos';
-import { ShortLocationOutputDto } from '@app/location/dtos';
+import { LocationOutputDto } from '@app/location/dtos';
 import { Expose, Type } from 'class-transformer';
 import { ActivityStatus } from '../constants';
 
@@ -57,8 +57,8 @@ export class ActivityOutputDto {
   // ---- Computed fields ----
 
   @Expose()
-  @Type(() => ShortLocationOutputDto)
-  location: ShortLocationOutputDto;
+  @Type(() => LocationOutputDto)
+  location: LocationOutputDto;
 
   @Expose()
   @Type(() => ContactOutputDto)
