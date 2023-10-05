@@ -32,6 +32,9 @@ export class RegisterOutput {
   isAccountVerified: boolean;
 
   @Expose()
+  isEmailVerified: boolean;
+
+  @Expose()
   @ApiProperty()
   createdAt: string;
 
