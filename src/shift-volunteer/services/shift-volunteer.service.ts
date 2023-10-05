@@ -897,10 +897,18 @@ export class ShiftVolunteerService extends AbstractService {
       },
     });
     const shift = this.validateShiftBeforeApproveOrRejectOrRemove(s);
-
+    const volunteer = await this.prisma.volunteerShift.findUnique({
+      where: {
+        id: id,
+        active: true,
+      },
+    });
+    if (volunteer == null) {
+      throw new VolunteerNotFoundException();
+    }
     const volunteers = await this.prisma.volunteerShift.findMany({
       where: {
-        accountId: context.account.id,
+        accountId: volunteer.accountId,
         active: true,
       },
       include: {
@@ -910,6 +918,7 @@ export class ShiftVolunteerService extends AbstractService {
     const approvedVolunteers = volunteers.filter(
       (v) => v.status === ShiftVolunteerStatus.Approved,
     );
+    console.log(volunteers.map);
     const shiftVolunteer = volunteers.find((v) => v.id === id);
     if (shiftVolunteer == null) {
       throw new InvalidStatusException();

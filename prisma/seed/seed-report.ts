@@ -1,3 +1,4 @@
+import { OrganizationStatus } from '@app/organization/constants';
 import {
   ReportStatus,
   ReportType,
@@ -37,6 +38,9 @@ export const seedReports = async (
     runWithoutDb?: boolean;
   },
 ) => {
+  const verifiedOrganizations = organizations.filter(
+    (organization) => organization.status == OrganizationStatus.Verified,
+  );
   const reports: (Report & { template?: ReportTemplate })[] = [];
   const accountReports: ReportAccount[] = [];
   const organizationReports: ReportOrganization[] = [];
@@ -82,8 +86,9 @@ export const seedReports = async (
         } else if (report.type === ReportType.Organization) {
           organizationReports.push({
             id: report.id,
-            reportedOrganizationId:
-              faker.helpers.arrayElement(organizations).id,
+            reportedOrganizationId: faker.helpers.arrayElement(
+              verifiedOrganizations,
+            ).id,
           });
         } else if (report.type === ReportType.Activity) {
           activityReports.push({
@@ -141,8 +146,9 @@ export const seedReports = async (
 
           organizationReports.push({
             id: report.id,
-            reportedOrganizationId:
-              faker.helpers.arrayElement(organizations).id,
+            reportedOrganizationId: faker.helpers.arrayElement(
+              verifiedOrganizations,
+            ).id,
           });
         }
         const numberOfActivityReports = faker.helpers.weightedArrayElement([

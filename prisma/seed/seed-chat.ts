@@ -178,6 +178,9 @@ const generateChatGroup = (data: {
   const chatParticipants = data.candidateIds.map((candidateId) => {
     return generateChatParticipant({ chatId: id, accountId: candidateId });
   });
+  chatParticipants.push(
+    generateChatParticipant({ chatId: id, accountId: data.accountId }),
+  );
   return { chat, chatParticipants };
 };
 
