@@ -200,26 +200,47 @@ export class ProfileService extends AbstractService {
 
     const updatedProfile: any = {
       ...input,
+      avatar: input.avatarId,
       location: undefined,
     };
 
     this.logger.log(ctx, `calling prisma.profile save`);
-    const res = await this.prisma.profile.upsert({
-      where: { id: accountId },
-      create: {
-        ...updatedProfile,
-        accountId: accountId,
-        locationId: location?.id,
-      },
-      update: {
-        ...updatedProfile,
-        accountId: accountId,
-        locationId: location?.id,
-      },
-      include: {
-        location: true,
-      },
-    });
+    let res: any;
+    if (profile == null) {
+      res = await this.prisma.profile.create({
+        data: {
+          id: accountId,
+          username: input.username,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phoneNumber: input.phoneNumber,
+          dateOfBirth: input.dateOfBirth,
+          gender: input.gender,
+          bio: input.bio,
+          avatarId: input.avatarId,
+        },
+        include: {
+          location: true,
+        },
+      });
+    } else {
+      res = await this.prisma.profile.update({
+        where: { id: accountId },
+        data: {
+          username: input.username,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phoneNumber: input.phoneNumber,
+          dateOfBirth: input.dateOfBirth,
+          gender: input.gender,
+          bio: input.bio,
+          avatarId: input.avatarId,
+        },
+        include: {
+          location: true,
+        },
+      });
+    }
 
     return this.output(ProfileOutputDto, res);
   }
