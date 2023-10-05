@@ -29,6 +29,9 @@ export class RegisterOutput {
   isAccountDisabled: boolean;
 
   @Expose()
+  isAccountVerified: boolean;
+
+  @Expose()
   @ApiProperty()
   createdAt: string;
 

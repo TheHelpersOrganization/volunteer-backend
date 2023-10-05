@@ -83,7 +83,7 @@ export class AuthController {
   async register(
     @ReqContext() ctx: RequestContext,
     @Body() input: RegisterInput,
-  ): Promise<RegisterOutput> {
+  ) {
     const registeredAccount = await this.authService.register(ctx, input);
     return registeredAccount;
   }
